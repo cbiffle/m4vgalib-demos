@@ -101,9 +101,15 @@ BFF_REG_RW(Word, cfgr,
 
 BFF_REG_RW(Word, cir, )
 
-BFF_REG_RW(Word, ahb1rstr, )
-BFF_REG_RW(Word, ahb2rstr, )
-BFF_REG_RW(Word, ahb3rstr, )
+BFF_REG_RW(Word, ahb1rstr,
+  BFF_FIELD_ARRAY(31: 0, 1, bool, bit)
+)
+BFF_REG_RW(Word, ahb2rstr,
+  BFF_FIELD_ARRAY(31: 0, 1, bool, bit)
+)
+BFF_REG_RW(Word, ahb3rstr,
+  BFF_FIELD_ARRAY(31: 0, 1, bool, bit)
+)
 BFF_REG_RESERVED(Word, 1c, 1)
 
 BFF_REG_RW(Word, apb1rstr,
@@ -114,9 +120,15 @@ BFF_REG_RW(Word, apb2rstr,
 )
 BFF_REG_RESERVED(Word, 28, 2)
 
-BFF_REG_RW(Word, ahb1enr, )
-BFF_REG_RW(Word, ahb2enr, )
-BFF_REG_RW(Word, ahb3enr, )
+BFF_REG_RW(Word, ahb1enr,
+  BFF_FIELD_ARRAY(31: 0, 1, bool, bit)
+)
+BFF_REG_RW(Word, ahb2enr,
+  BFF_FIELD_ARRAY(31: 0, 1, bool, bit)
+)
+BFF_REG_RW(Word, ahb3enr,
+  BFF_FIELD_ARRAY(31: 0, 1, bool, bit)
+)
 BFF_REG_RESERVED(Word, 3c, 1)
 
 BFF_REG_RW(Word, apb1enr,
