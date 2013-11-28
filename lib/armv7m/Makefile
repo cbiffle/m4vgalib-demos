@@ -10,6 +10,7 @@ armv7m[cc_files] := \
 armv7m[cc_flags] := -std=gnu++0x
 
 armv7m[libs] := \
+  lib/biffield:biffield \
   lib/common:common
 
 armv7m[using_l_flags] := $(shell pwd)/peripherals.ld

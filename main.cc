@@ -1,8 +1,16 @@
 #include "lib/armv7m/crt0.h"
 #include "lib/armv7m/exception_table.h"
+#include "lib/armv7m/scb.h"
 
 void v7m_reset_handler() {
   armv7m::crt0_init();
+
+  // Enable fault reporting.
+  armv7m::scb.write_shcsr(armv7m::scb.read_shcsr()
+                          .with_memfaultena(true)
+                          .with_busfaultena(true)
+                          .with_usgfaultena(true));
+
   while (1);
 }
 
