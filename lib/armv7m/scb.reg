@@ -26,9 +26,15 @@ BFF_REG_RW(Word, vtor, )
 BFF_REG_RW(Word, aircr, )
 BFF_REG_RW(Word, scr, )
 BFF_REG_RW(Word, ccr, )
-BFF_REG_RW(Word, shpr1, )
-BFF_REG_RW(Word, shpr2, )
-BFF_REG_RW(Word, shpr3, )
+BFF_REG_RW(Word, shpr1,
+  BFF_FIELD_ARRAY(31: 0, 8, Byte, pri)
+)
+BFF_REG_RW(Word, shpr2,
+  BFF_FIELD_ARRAY(31: 0, 8, Byte, pri)
+)
+BFF_REG_RW(Word, shpr3,
+  BFF_FIELD_ARRAY(31: 0, 8, Byte, pri)
+)
 
 BFF_REG_RW(Word, shcsr,
   BFF_FIELD(18:18, bool, usgfaultena)

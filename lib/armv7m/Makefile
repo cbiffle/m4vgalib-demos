@@ -5,6 +5,7 @@ products := armv7m exception_table crt0
 armv7m[type] := library
 
 armv7m[cc_files] := \
+  exceptions.cc \
   nvic.cc
 
 armv7m[cc_flags] := -std=gnu++0x
