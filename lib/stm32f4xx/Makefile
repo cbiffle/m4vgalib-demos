@@ -5,6 +5,7 @@ products := stm32f4xx
 stm32f4xx[type] := library
 
 stm32f4xx[cc_files] := \
+  interrupts.cc \
   rcc.cc
 
 stm32f4xx[cc_flags] := -std=gnu++0x
