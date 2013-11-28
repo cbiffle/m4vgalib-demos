@@ -3,6 +3,8 @@
 #include "lib/armv7m/instructions.h"
 #include "lib/armv7m/scb.h"
 
+#include "vga/vga.h"
+
 void v7m_reset_handler() {
   armv7m::crt0_init();
 
@@ -20,6 +22,8 @@ void v7m_reset_handler() {
   armv7m::instruction_synchronization_barrier();  // Now please.
 
   // It is now safe to use floating point.
+
+  vga::init();
 
   while (1);
 }
