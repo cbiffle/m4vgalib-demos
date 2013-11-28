@@ -1,5 +1,6 @@
 #include "lib/armv7m/crt0.h"
 #include "lib/armv7m/exception_table.h"
+#include "lib/armv7m/instructions.h"
 #include "lib/armv7m/scb.h"
 
 void v7m_reset_handler() {
@@ -10,6 +11,15 @@ void v7m_reset_handler() {
                           .with_memfaultena(true)
                           .with_busfaultena(true)
                           .with_usgfaultena(true));
+
+  // Enable floating point automatic/lazy state preservation.
+  // The CONTROL bit governing FP will be set automatically when first used.
+  armv7m::scb_fp.write_fpccr(armv7m::scb_fp.read_fpccr()
+                             .with_aspen(true)
+                             .with_lspen(true));
+  armv7m::instruction_synchronization_barrier();  // Now please.
+
+  // It is now safe to use floating point.
 
   while (1);
 }
