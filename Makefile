@@ -25,3 +25,12 @@ stuff[type] := subdirectories
 
 
 include $(depth)/build/Makefile.rules
+
+flash: $(intermediate)/m4vga
+	openocd -f openocd.cfg \
+                -c "init" \
+                -c "reset init" \
+                -c "flash write_image erase $<" \
+                -c "reset halt" \
+                -c "resume" \
+                -c "shutdown"
