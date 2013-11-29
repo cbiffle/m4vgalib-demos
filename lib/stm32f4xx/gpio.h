@@ -58,6 +58,48 @@ struct Gpio {
    * 1.
    */
   void set_pull(HalfWord mask, Pull);
+
+  /*
+   * Changes the alternate function of each pin whose corresponding bit in the
+   * mask is 1.  Note that this is not atomic across the port, unlike the other
+   * mask mode setters above.
+   */
+  void set_alternate_function(HalfWord mask, unsigned);
+
+  /*
+   * Sets the output data latch for any pins whose corresponding bit in the
+   * mask is 1.  This will become apparent the next time the pin is an output.
+   */
+  void set(HalfWord mask);
+
+  /*
+   * Clears the output data latch for any pins whose corresponding bit in the
+   * mask is 1.  This will become apparent the next time the pin is an output.
+   */
+  void clear(HalfWord mask);
+
+
+  enum Mask {
+    #define STM32F4XX_GPIO_MASK(n) p ## n = 1 << n,
+    STM32F4XX_GPIO_MASK(0)
+    STM32F4XX_GPIO_MASK(1)
+    STM32F4XX_GPIO_MASK(2)
+    STM32F4XX_GPIO_MASK(3)
+    STM32F4XX_GPIO_MASK(4)
+    STM32F4XX_GPIO_MASK(5)
+    STM32F4XX_GPIO_MASK(6)
+    STM32F4XX_GPIO_MASK(7)
+
+    STM32F4XX_GPIO_MASK(8)
+    STM32F4XX_GPIO_MASK(9)
+    STM32F4XX_GPIO_MASK(10)
+    STM32F4XX_GPIO_MASK(11)
+    STM32F4XX_GPIO_MASK(12)
+    STM32F4XX_GPIO_MASK(13)
+    STM32F4XX_GPIO_MASK(14)
+    STM32F4XX_GPIO_MASK(15)
+    #undef STM32F4XX_GPIO_MASK
+  };
 };
 
 extern Gpio gpioa;
