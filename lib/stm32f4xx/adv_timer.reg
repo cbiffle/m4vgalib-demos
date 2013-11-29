@@ -36,7 +36,22 @@ BFF_REG_RW(Word, dier,
   BFF_FIELD( 1: 1, bool, cc1ie)
   BFF_FIELD( 0: 0, bool, uie)
 )
-BFF_REG_RW(Word, sr, )
+BFF_REG_RW(Word, sr,
+  BFF_FIELD(12:12, bool, cc4of)
+  BFF_FIELD(11:11, bool, cc3of)
+  BFF_FIELD(10:10, bool, cc2of)
+  BFF_FIELD( 9: 9, bool, cc1of)
+
+  BFF_FIELD( 6: 6, bool, tif)
+  BFF_FIELD( 5: 5, bool, comif)
+
+  BFF_FIELD( 4: 4, bool, cc4if)
+  BFF_FIELD( 3: 3, bool, cc3if)
+  BFF_FIELD( 2: 2, bool, cc2if)
+  BFF_FIELD( 1: 1, bool, cc1if)
+
+  BFF_FIELD( 0: 0, bool, uif)
+)
 BFF_REG_RW(Word, egr, )
 BFF_REG_RW(Word, ccmr1,
   /* output compare mode */
