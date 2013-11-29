@@ -46,11 +46,4 @@ void Gpio::clear(HalfWord mask) {
   write_bsrr(bsrr_value_t().with_resetbits(mask));
 }
 
-void Gpio::toggle(HalfWord mask) {
-  auto bits = read_odr().get_bits();
-  write_bsrr(bsrr_value_t()
-             .with_setbits(~bits & mask)
-             .with_resetbits(bits & mask));
-}
-
 }  // namespace stm32f4xx

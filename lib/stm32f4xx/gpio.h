@@ -81,7 +81,12 @@ struct Gpio {
   /*
    * Toggles every pin whose corresponding bit in the mask is 1.
    */
-  void toggle(HalfWord mask);
+  inline void toggle(HalfWord mask) {
+    auto bits = read_odr().get_bits();
+    write_bsrr(bsrr_value_t()
+               .with_setbits(~bits & mask)
+               .with_resetbits(bits & mask));
+  }
 
 
   enum Mask {
