@@ -13,9 +13,12 @@ m4vga[libs] := \
   lib/armv7m:crt0 \
   lib/armv7m:exception_table \
   lib/stm32f4xx:stm32f4xx \
+  lib/stm32f4xx:interrupt_table \
   vga:vga
 
-m4vga[whole_archive] := lib/armv7m:exception_table
+m4vga[whole_archive] := \
+  lib/armv7m:exception_table \
+  lib/stm32f4xx:interrupt_table
 
 m4vga[l_flags] = \
   -Wl,-Map=$(intermediate)/m4vga.map \
