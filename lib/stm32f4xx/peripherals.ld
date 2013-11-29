@@ -1,1 +1,7 @@
 _ZN9stm32f4xx3rccE = 0x40023800;
+
+_ZN9stm32f4xx5gpioaE = 0x40020000;
+_ZN9stm32f4xx5gpiobE = 0x40020400;
+_ZN9stm32f4xx5gpiocE = 0x40020800;
+_ZN9stm32f4xx5gpiodE = 0x40020c00;
+_ZN9stm32f4xx5gpioeE = 0x40021000;

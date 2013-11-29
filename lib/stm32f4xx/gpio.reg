@@ -1,0 +1,32 @@
+BFF_REG_RW(Word, moder,
+  BFF_FIELD_ARRAY(31: 0, 2, Mode, mode)
+)
+BFF_REG_RW(Word, otyper,
+  BFF_FIELD_ARRAY(15: 0, 1, OutputType, otype)
+)
+BFF_REG_RW(Word, ospeedr,
+  BFF_FIELD_ARRAY(31: 0, 2, OutputSpeed, ospeed)
+)
+BFF_REG_RW(Word, pupdr,
+  BFF_FIELD_ARRAY(31: 0, 2, Pull, pupd)
+)
+BFF_REG_RW(Word, idr,
+  BFF_FIELD_ARRAY(15: 0, 1, bool, id)
+)
+BFF_REG_RW(Word, odr,
+  BFF_FIELD_ARRAY(15: 0, 1, bool, od)
+)
+BFF_REG_RW(Word, bsrr,
+  BFF_FIELD_ARRAY(31:16, 1, bool, reset)
+  BFF_FIELD_ARRAY(15: 0, 1, bool, set)
+)
+BFF_REG_RW(Word, lckr,
+  BFF_FIELD(16:16, bool, lckk)
+  BFF_FIELD_ARRAY(15: 0, 1, bool, lck)
+)
+BFF_REG_RW(Word, afrl,
+  BFF_FIELD_ARRAY(31: 0, 4, unsigned, af)
+)
+BFF_REG_RW(Word, afrh,
+  BFF_FIELD_ARRAY(31: 0, 4, unsigned, af)
+)
