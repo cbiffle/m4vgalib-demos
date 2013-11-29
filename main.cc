@@ -21,6 +21,11 @@ void v7m_reset_handler() {
                              .with_lspen(true));
   armv7m::instruction_synchronization_barrier();  // Now please.
 
+  // Enable access to the floating point coprocessor.
+  armv7m::scb.write_cpacr(armv7m::scb.read_cpacr()
+                          .with_cp11(armv7m::Scb::CpAccess::full)
+                          .with_cp10(armv7m::Scb::CpAccess::full));
+
   // It is now safe to use floating point.
 
   vga::init();

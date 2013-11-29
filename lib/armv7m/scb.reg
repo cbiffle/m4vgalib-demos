@@ -59,3 +59,10 @@ BFF_REG_RW(Word, dfsr, )
 BFF_REG_RW(Word, mmfar, )
 BFF_REG_RW(Word, bfar, )
 BFF_REG_RW(Word, afsr, )
+
+BFF_REG_RESERVED(Word, 40, 18)
+
+BFF_REG_RW(Word, cpacr,
+  BFF_FIELD(23:22, CpAccess, cp11)
+  BFF_FIELD(21:20, CpAccess, cp10)
+)
