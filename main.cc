@@ -10,14 +10,31 @@
 static stm32f4xx::ClockConfig const clock_cfg = {
   8000000,  // external crystal Hz
   8,        // divide down to 1Mhz
-  336,      // multiply up to 336MHz VCO
-  2,        // divide by 2 for 168MHz CPU clock
-  7,        // divide by 7 for 48MHz SDIO clock
-  1,        // divide CPU clock by 1 for 168MHz AHB clock
-  4,        // divide CPU clock by 4 for 42MHz APB1 clock.
-  2,        // divide CPU clock by 2 for 84MHz APB2 clock.
+  320,      // multiply up to 320MHz VCO
+  2,        // divide by 2 for 160MHz CPU clock
+  7,        // divide by 7 for 48MHz-ish SDIO clock
+  1,        // divide CPU clock by 1 for 160MHz AHB clock
+  4,        // divide CPU clock by 4 for 40MHz APB1 clock.
+  2,        // divide CPU clock by 2 for 80MHz APB2 clock.
 
-  5,        // 5 wait states for 168MHz at 3.3V.
+  5,        // 5 wait states for 160MHz at 3.3V.
+};
+
+static vga::VideoMode const mode = {
+  clock_cfg,
+
+  1056,  // line_pixels
+  128,   // sync_pixels
+  88,    // back_porch_pixels
+  22,    // video_lead
+  800,   // video_pixels,
+  vga::VideoMode::Polarity::positive,
+
+  1,
+  1 + 4,
+  1 + 4 + 23,
+  1 + 4 + 23 + 600,
+  vga::VideoMode::Polarity::positive,
 };
 
 void v7m_reset_handler() {
@@ -43,9 +60,9 @@ void v7m_reset_handler() {
 
   // It is now safe to use floating point.
 
-  stm32f4xx::rcc.configure_clocks(clock_cfg);
-
   vga::init();
+
+  vga::select_mode(mode);
 
   while (1);
 }
