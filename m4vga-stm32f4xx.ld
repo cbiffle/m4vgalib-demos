@@ -1,4 +1,7 @@
 MEMORY {
+  /* Alias of the SRAM112 region when it's remapped. */
+  sram112_at_zero (rwx) : ORIGIN = 0x00000000, LENGTH =  112K
+
   rom (rx)      : ORIGIN = 0x08000000, LENGTH = 1024K
   ccm (rwx)     : ORIGIN = 0x10000000, LENGTH =   64K
   sram112 (rwx) : ORIGIN = 0x20000000, LENGTH =  112K
@@ -11,8 +14,10 @@ ENTRY(v7m_reset_handler)
 
 SECTIONS {
   .v7m_vector_table : {
+    PROVIDE(_rom_vector_table_start = .);
     KEEP(*(.v7m_exception_table))
     KEEP(*(.stm32f4xx_interrupt_table))
+    PROVIDE(_rom_vector_table_end = .);
   } >rom
 
   . = ALIGN(4);
@@ -65,9 +70,16 @@ SECTIONS {
     KEEP(*(.vga_local_ram))
   } >ccm
 
+  .ram_vectors (NOLOAD) : {
+    . = ALIGN(512);
+    PROVIDE(_ram_vector_table = .);
+    . = . + SIZEOF(.v7m_vector_table);
+  } >sram112_at_zero
+
   .sram16 (NOLOAD) : {
     KEEP(*(.vga_scan_ram))
   } >sram16
 }
 
 PROVIDE(v7m_initial_stack_top = ORIGIN(ccm) + LENGTH(ccm));
+PROVIDE(_flash_base = ORIGIN(rom));

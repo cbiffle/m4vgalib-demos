@@ -4,6 +4,7 @@
 #include "lib/armv7m/scb.h"
 
 #include "lib/stm32f4xx/rcc.h"
+#include "lib/stm32f4xx/syscfg.h"
 
 #include "vga/vga.h"
 
@@ -37,8 +38,58 @@ static vga::VideoMode const mode = {
   vga::VideoMode::Polarity::positive,
 };
 
+extern "C" {
+  extern unsigned _rom_vector_table_start;
+  extern unsigned _rom_vector_table_end;
+  extern unsigned _ram_vector_table;
+  extern unsigned _flash_base;
+}
+
+/*
+ * Remap the 112KiB SRAM to address zero, so we can access it using the
+ * Cortex-M4 I/D buses.
+ */
+static void remap_sram() {
+  // Power on syscfg, so we can mess with its registers.
+  stm32f4xx::rcc.enable_clock(stm32f4xx::ApbPeripheral::syscfg);
+
+  // VTOR starts out at zero, which points to Flash and is good.
+  // But now things are about to change.
+  // Interrupts are disabled, but to be safe in case we fault (due to a bug),
+  // go ahead and give VTOR the true address of the Flash table.
+  armv7m::scb.write_vtor(reinterpret_cast<unsigned>(&_flash_base));
+  armv7m::data_synchronization_barrier();  // Write it now.
+  armv7m::instruction_synchronization_barrier();  // Flush pipeline just in case
+
+  // Remap!
+  auto mode = stm32f4xx::SysCfg::memrmp_value_t::mem_mode_t::embedded_sram;
+  stm32f4xx::syscfg.write_memrmp(stm32f4xx::syscfg.read_memrmp()
+                                 .with_mem_mode(mode));
+  armv7m::data_synchronization_barrier();  // Write it now.
+  armv7m::instruction_synchronization_barrier();  // Flush pipeline just in case
+}
+
+/*
+ * Move the vector table into SRAM to reduce interrupt jitter.
+ */
+static void move_vector_table() {
+  unsigned const *src = &_rom_vector_table_start;
+  unsigned const *end = &_rom_vector_table_end;
+
+  unsigned *dst = &_ram_vector_table;
+
+  while (src != end) {
+    *dst++ = *src++;
+  }
+
+  armv7m::scb.write_vtor(reinterpret_cast<unsigned>(&_ram_vector_table));
+}
+
 void v7m_reset_handler() {
   armv7m::crt0_init();
+
+  remap_sram();
+  move_vector_table();
 
   // Enable fault reporting.
   armv7m::scb.write_shcsr(armv7m::scb.read_shcsr()
