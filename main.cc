@@ -21,7 +21,7 @@ static stm32f4xx::ClockConfig const clock_cfg = {
 };
 
 static vga::VideoMode const mode = {
-  clock_cfg,
+  &clock_cfg,
 
   1056,  // line_pixels
   128,   // sync_pixels
