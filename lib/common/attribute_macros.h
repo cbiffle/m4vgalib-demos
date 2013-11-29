@@ -15,4 +15,6 @@
 
 #define INLINE inline __attribute__((always_inline))
 
+#define ALIGNED(n) __attribute__((aligned(n)))
+
 #endif  // LIB_KTL_ATTRIBUTE_MACROS_H

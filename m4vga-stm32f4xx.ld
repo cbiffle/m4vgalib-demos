@@ -60,6 +60,10 @@ SECTIONS {
     . = ALIGN(4);
     _ebss = .;
   } >ccm
+
+  .sram16 (NOLOAD) : {
+    KEEP(*(.vga_scan_ram))
+  } >sram16
 }
 
 PROVIDE(v7m_initial_stack_top = ORIGIN(ccm) + LENGTH(ccm));
