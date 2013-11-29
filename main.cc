@@ -43,6 +43,9 @@ extern "C" {
   extern unsigned _rom_vector_table_end;
   extern unsigned _ram_vector_table;
   extern unsigned _flash_base;
+  extern unsigned _ramcode_lma;
+  extern unsigned _ramcode_start;
+  extern unsigned _ramcode_end;
 }
 
 /*
@@ -85,11 +88,26 @@ static void move_vector_table() {
   armv7m::scb.write_vtor(reinterpret_cast<unsigned>(&_ram_vector_table));
 }
 
+/*
+ * Move selected routines into SRAM to remove wait states from instruction
+ * fetches and constant loads.
+ */
+static void move_ramcode() {
+  unsigned const *src = &_ramcode_lma;
+  unsigned *dst = &_ramcode_start;
+  unsigned const *end = &_ramcode_end;
+
+  while (dst != end) {
+    *dst++ = *src++;
+  }
+}
+
 void v7m_reset_handler() {
   armv7m::crt0_init();
 
   remap_sram();
   move_vector_table();
+  move_ramcode();
 
   // Enable fault reporting.
   armv7m::scb.write_shcsr(armv7m::scb.read_shcsr()

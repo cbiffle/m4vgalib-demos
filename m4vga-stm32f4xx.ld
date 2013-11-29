@@ -76,6 +76,15 @@ SECTIONS {
     . = . + SIZEOF(.v7m_vector_table);
   } >sram112_at_zero
 
+  .ramcode : ALIGN(4) {
+    PROVIDE(_ramcode_start = .);
+    KEEP(*(.ramcode*))
+    . = ALIGN(4);
+    PROVIDE(_ramcode_end = .);
+  } >sram112_at_zero AT>rom
+
+  PROVIDE(_ramcode_lma = LOADADDR(.ramcode));
+
   .sram16 (NOLOAD) : {
     KEEP(*(.vga_scan_ram))
   } >sram16
