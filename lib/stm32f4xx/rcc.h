@@ -7,6 +7,8 @@
 
 namespace stm32f4xx {
 
+struct ClockConfig;
+
 struct Rcc {
   enum class pprex_t : unsigned {
     div1 = 0b000,
@@ -31,9 +33,35 @@ struct Rcc {
 
   void disable_clock(AhbPeripheral);
   void disable_clock(ApbPeripheral);
+
+  void configure_clocks(ClockConfig const &);
 };
 
 extern Rcc rcc;
+
+struct ClockSpeeds {
+  float cpu;
+  float ahb;
+  float apb1;
+  float apb2;
+  float pll48;
+};
+
+struct ClockConfig {
+  float crystal_hz;
+  unsigned crystal_divisor;
+  unsigned vco_multiplier;
+  unsigned general_divisor;
+  unsigned pll48_divisor;
+
+  unsigned ahb_divisor;
+  unsigned apb1_divisor;
+  unsigned apb2_divisor;
+
+  unsigned flash_latency;
+
+  void compute_speeds(ClockSpeeds *) const;
+};
 
 }  // namespace stm32f4xx
 

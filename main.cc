@@ -3,7 +3,22 @@
 #include "lib/armv7m/instructions.h"
 #include "lib/armv7m/scb.h"
 
+#include "lib/stm32f4xx/rcc.h"
+
 #include "vga/vga.h"
+
+static stm32f4xx::ClockConfig const clock_cfg = {
+  8000000,  // external crystal Hz
+  8,        // divide down to 1Mhz
+  336,      // multiply up to 336MHz VCO
+  2,        // divide by 2 for 168MHz CPU clock
+  7,        // divide by 7 for 48MHz SDIO clock
+  1,        // divide CPU clock by 1 for 168MHz AHB clock
+  4,        // divide CPU clock by 4 for 42MHz APB1 clock.
+  2,        // divide CPU clock by 2 for 84MHz APB2 clock.
+
+  5,        // 5 wait states for 168MHz at 3.3V.
+};
 
 void v7m_reset_handler() {
   armv7m::crt0_init();
@@ -27,6 +42,8 @@ void v7m_reset_handler() {
                           .with_cp10(armv7m::Scb::CpAccess::full));
 
   // It is now safe to use floating point.
+
+  stm32f4xx::rcc.configure_clocks(clock_cfg);
 
   vga::init();
 

@@ -12,6 +12,7 @@ m4vga[libs] := \
   lib/armv7m:armv7m \
   lib/armv7m:crt0 \
   lib/armv7m:exception_table \
+  lib/stm32f4xx:stm32f4xx \
   vga:vga
 
 m4vga[whole_archive] := lib/armv7m:exception_table
