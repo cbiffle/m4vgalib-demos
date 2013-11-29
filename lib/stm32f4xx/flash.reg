@@ -1,0 +1,8 @@
+BFF_REG_RW(Word, acr,
+  BFF_FIELD(12:12, bool, dcrst)
+  BFF_FIELD(11:11, bool, icrst)
+  BFF_FIELD(10:10, bool, dcen)
+  BFF_FIELD( 9: 9, bool, icen)
+  BFF_FIELD( 8: 8, bool, prften)
+  BFF_FIELD( 2: 0, unsigned, latency)
+)
