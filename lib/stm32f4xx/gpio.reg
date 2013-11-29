@@ -15,6 +15,7 @@ BFF_REG_RW(Word, idr,
 )
 BFF_REG_RW(Word, odr,
   BFF_FIELD_ARRAY(15: 0, 1, bool, od)
+  BFF_FIELD(15: 0, HalfWord, bits)
 )
 BFF_REG_RW(Word, bsrr,
   BFF_FIELD_ARRAY(31:16, 1, bool, reset)

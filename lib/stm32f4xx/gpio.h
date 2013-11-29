@@ -78,6 +78,11 @@ struct Gpio {
    */
   void clear(HalfWord mask);
 
+  /*
+   * Toggles every pin whose corresponding bit in the mask is 1.
+   */
+  void toggle(HalfWord mask);
+
 
   enum Mask {
     #define STM32F4XX_GPIO_MASK(n) p ## n = 1 << n,
