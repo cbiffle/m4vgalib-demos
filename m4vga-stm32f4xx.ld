@@ -61,6 +61,10 @@ SECTIONS {
     _ebss = .;
   } >ccm
 
+  .local (NOLOAD) : {
+    KEEP(*(.vga_local_ram))
+  } >ccm
+
   .sram16 (NOLOAD) : {
     KEEP(*(.vga_scan_ram))
   } >sram16
