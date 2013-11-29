@@ -10,11 +10,6 @@ armv7m[cc_files] := \
 
 armv7m[cc_flags] := -std=gnu++0x
 
-armv7m[S_files] := \
-  copy_words.S
-
-armv7m[S_flags] := -Wa,-mimplicit-it=thumb
-
 armv7m[libs] := \
   lib/biffield:biffield \
   lib/common:common

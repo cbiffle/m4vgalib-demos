@@ -13,10 +13,11 @@
 @  r0  source address
 @  r1  destination address
 @  r2  number of words to transfer.
+.section .ramcode,"ax",%progbits
 .balign 4
-.global _ZN6armv7m10copy_wordsEPKmPmm
+.global _Z10copy_wordsPKmPmm
 .thumb_func
-_ZN6armv7m10copy_wordsEPKmPmm:
+_Z10copy_wordsPKmPmm:
       @ Name our registers.
       src   .req r0
       dst   .req r1
