@@ -38,12 +38,4 @@ void Gpio::set_alternate_function(HalfWord mask, unsigned af) {
   write_afrh(val_high);
 }
 
-void Gpio::set(HalfWord mask) {
-  write_bsrr(bsrr_value_t().with_setbits(mask));
-}
-
-void Gpio::clear(HalfWord mask) {
-  write_bsrr(bsrr_value_t().with_resetbits(mask));
-}
-
 }  // namespace stm32f4xx

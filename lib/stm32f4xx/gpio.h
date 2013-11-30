@@ -2,6 +2,7 @@
 #define LIB_STM32F4XX_GPIO_H
 
 #include "lib/stm32f4xx/types.h"
+#include "lib/common/attribute_macros.h"
 
 namespace stm32f4xx {
 
@@ -70,18 +71,22 @@ struct Gpio {
    * Sets the output data latch for any pins whose corresponding bit in the
    * mask is 1.  This will become apparent the next time the pin is an output.
    */
-  void set(HalfWord mask);
+  INLINE void set(HalfWord mask) {
+    write_bsrr(bsrr_value_t().with_setbits(mask));
+  }
 
   /*
    * Clears the output data latch for any pins whose corresponding bit in the
    * mask is 1.  This will become apparent the next time the pin is an output.
    */
-  void clear(HalfWord mask);
+  INLINE void clear(HalfWord mask) {
+    write_bsrr(bsrr_value_t().with_resetbits(mask));
+  }
 
   /*
    * Toggles every pin whose corresponding bit in the mask is 1.
    */
-  inline void toggle(HalfWord mask) {
+  INLINE void toggle(HalfWord mask) {
     auto bits = read_odr().get_bits();
     write_bsrr(bsrr_value_t()
                .with_setbits(~bits & mask)
