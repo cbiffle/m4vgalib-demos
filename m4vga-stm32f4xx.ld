@@ -26,6 +26,7 @@ SECTIONS {
     *(.text*)
     . = ALIGN(4);
     *(.rodata*)
+
     . = ALIGN(4);
   } >rom
 
@@ -50,16 +51,15 @@ SECTIONS {
   . = ALIGN(4);
   _etext = .;
 
-  .data : AT (_etext) {
+  .data : {
     _data = .;
     *(.data*)
     . = ALIGN(4);
     _edata = .;
-  } >ccm
-
-  . = ALIGN(4);
+  } >ccm AT>rom
 
   .bss (NOLOAD) : {
+    . = ALIGN(4);
     *(.bss*)
     *(COMMON)
     . = ALIGN(4);

@@ -8,36 +8,7 @@
 
 #include "vga/arena.h"
 #include "vga/vga.h"
-
-static stm32f4xx::ClockConfig const clock_cfg = {
-  8000000,  // external crystal Hz
-  8,        // divide down to 1Mhz
-  320,      // multiply up to 320MHz VCO
-  2,        // divide by 2 for 160MHz CPU clock
-  7,        // divide by 7 for 48MHz-ish SDIO clock
-  1,        // divide CPU clock by 1 for 160MHz AHB clock
-  4,        // divide CPU clock by 4 for 40MHz APB1 clock.
-  2,        // divide CPU clock by 2 for 80MHz APB2 clock.
-
-  5,        // 5 wait states for 160MHz at 3.3V.
-};
-
-static vga::VideoMode const mode = {
-  &clock_cfg,
-
-  1056,  // line_pixels
-  128,   // sync_pixels
-  88,    // back_porch_pixels
-  22,    // video_lead
-  800,   // video_pixels,
-  vga::VideoMode::Polarity::positive,
-
-  1,
-  1 + 4,
-  1 + 4 + 23,
-  1 + 4 + 23 + 600,
-  vga::VideoMode::Polarity::positive,
-};
+#include "vga/mode/raster_800x600x1.h"
 
 extern "C" {
   extern unsigned _rom_vector_table_start;
@@ -103,6 +74,8 @@ static void move_ramcode() {
   }
 }
 
+static vga::mode::Raster_800x600x1 raster_mode;
+
 void v7m_reset_handler() {
   armv7m::crt0_init();
 
@@ -134,7 +107,7 @@ void v7m_reset_handler() {
 
   vga::init();
 
-  vga::select_mode(mode);
+  vga::select_mode(&raster_mode);
 
   while (1);
 }

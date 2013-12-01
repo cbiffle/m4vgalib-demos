@@ -4,7 +4,7 @@ products := m4vga stuff
 m4vga[type] := program
 m4vga[arch] := stm32f4xx
 
-m4vga[cc_files] := main.cc
+m4vga[cc_files] := main.cc runtime.cc
 
 m4vga[cc_flags] := -std=gnu++0x
 
