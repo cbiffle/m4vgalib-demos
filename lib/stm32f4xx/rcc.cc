@@ -151,6 +151,10 @@ void Rcc::configure_clocks(ClockConfig const &cfg) {
   write_cfgr(read_cfgr().with_sw(cfgr_value_t::sw_t::hsi));
   while (read_cfgr().get_sws() != cfgr_value_t::sws_t::hsi);  // Wait for it.
 
+  // Turn off the PLL.
+  write_cr(read_cr().with_pllon(false));
+  while (read_cr().get_pllrdy());  // Wait for it to unlock.
+
   // Apply divisors before boosting frequency.
   write_cfgr(read_cfgr()
              .with_hpre(prescalers.get_hpre())
