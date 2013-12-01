@@ -1,3 +1,3 @@
 #!/bin/sh
 
-arm-none-eabi-gdb -x gdbconfig release/m4vga
+arm-none-eabi-gdb -x gdbconfig $1
