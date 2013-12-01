@@ -9,8 +9,66 @@
 #include "vga/mode/text_800x600.h"
 
 static vga::mode::Text_800x600 mode;
-
 typedef vga::Mode::Pixel Pixel;
+
+/*******************************************************************************
+ * Some basic terminal functionality.
+ */
+
+static unsigned t_row = 0, t_col = 0;
+
+static void type_raw(Pixel fore, Pixel back, char c) {
+  mode.put_char(t_col, t_row, fore, back, c);
+  ++t_col;
+  if (t_col == 80) {
+    t_col = 0;
+    ++t_row;
+    if (t_row == 37) t_row = 0;
+  }
+}
+
+static void type(Pixel fore, Pixel back, char c) {
+  switch (c) {
+    case '\n':
+      do {
+        type_raw(fore, back, ' ');
+      } while (t_col);
+      return;
+
+    default:
+      type_raw(fore, back, c);
+      return;
+  }
+}
+
+static void type(Pixel fore, Pixel back, char const *s) {
+  while (char c = *s++) {
+    type(fore, back, c);
+  }
+}
+
+static void rainbow_type(char const *s) {
+  unsigned x = 0;
+  while (char c = *s++) {
+    type(x & 0b111111, ~x & 0b111111, c);
+    ++x;
+  }
+}
+
+static void cursor_to(unsigned col, unsigned row) {
+  if (col >= 80) col = 80 - 1;
+  if (row >= 37) row = 37 - 1;
+
+  t_col = col;
+  t_row = row;
+}
+
+static void text_at(unsigned col, unsigned row,
+                    Pixel fore, Pixel back,
+                    char const *s) {
+  cursor_to(col, row);
+  type(fore, back, s);
+}
 
 static void text_centered(unsigned row, Pixel fore, Pixel back, char const *s) {
   unsigned len = 0;
@@ -19,17 +77,10 @@ static void text_centered(unsigned row, Pixel fore, Pixel back, char const *s) {
   unsigned left_margin = 40 - len / 2;
   unsigned right_margin = 80 - len - left_margin;
 
-  mode.cursor_to(0, row);
-  for (unsigned i = 0; i < left_margin; ++i) mode.type_char(fore, back, ' ');
-  mode.type_chars(fore, back, s);
-  for (unsigned i = 0; i < right_margin; ++i) mode.type_char(fore, back, ' ');
-}
-
-static void text_at(unsigned col, unsigned row,
-                    Pixel fore, Pixel back,
-                    char const *s) {
-  mode.cursor_to(col, row);
-  mode.type_chars(fore, back, s);
+  cursor_to(0, row);
+  for (unsigned i = 0; i < left_margin; ++i) type(fore, back, ' ');
+  type(fore, back, s);
+  for (unsigned i = 0; i < right_margin; ++i) type(fore, back, ' ');
 }
 
 enum {
@@ -39,8 +90,14 @@ enum {
   black   = 0b000000,
 
   red     = 0b000011,
+  green   = 0b001100,
   blue    = 0b110000,
 };
+
+
+/*******************************************************************************
+ * The actual demo.
+ */
 
 void v7m_reset_handler() {
   armv7m::crt0_init();
@@ -75,24 +132,16 @@ void v7m_reset_handler() {
   text_centered(0, white, dk_gray, "800x600 Attributed Text Demo");
   text_at(0, 1, white, black,
     "10x16 point characters in an 80x37 grid, with ");
-  mode.type_chars(red, black, "foreground");
-  mode.type_chars(white, black, " and ");
-  mode.type_chars(white, blue, "background");
-  mode.type_chars(white, black, " colors.");
+  type(red, black, "foreground");
+  type(white, black, " and ");
+  type(white, blue, "background");
+  type(white, black, " colors.");
 
-  text_at(0, 3, black, white, "Colors chosen from 256-color palette"
-                              " (only 64 currently wired up):\n");
+  text_centered(3, black, white, "Colors chosen from 256-color palette"
+                                 " (only 64 currently wired up):");
 
-  for (unsigned i = 0; i < 64; ++i) {
-    mode.type_char(black, i, ' ');
-  }
-  mode.type_char(black, black, '\n');
-  for (unsigned i = 0; i < 26; ++i) {
-    mode.type_char(i, i ? black : dk_gray, 'A' + i);
-  }
-  for (unsigned i = 26; i < 64; ++i) {
-    mode.type_char(i, black, 'A' + (i - 26));
-  }
+  rainbow_type(
+    "The quick brown fox jumped over the lazy dog. 0123456789!@#$%^&*");
 
   text_at(0, 7, white, 0b100000,
     "     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam ut\n"
@@ -123,22 +172,29 @@ void v7m_reset_handler() {
     "     adipiscing pellentesque felis.\n"
     );
 
-  text_at(50, 36, white, black, "Frame number:");
+  text_at(3, 34, green, black, "Loadable fonts");
+  type(white, black, " - ");
+  type(blue, black, "Room for 14 text pages in RAM");
+  type(white, black, " - ");
+  type(red, black, "34.4% CPU cycles available");
 
-  char fc[17];
-  fc[16] = 0;
+  text_at(0, 36, white, black, "60 fps / 40MHz pixel clock");
+  text_at(58, 36, white, black, "Frame number:");
+
+  char fc[9];
+  fc[8] = 0;
   unsigned frame = 0;
   while (1) {
     while (vga::in_vblank());
     vga::wait_for_vblank();
-    ++frame;
     
-    unsigned f = frame;
-    for (unsigned i = 16; i > 0; --i) {
+    unsigned f = ++frame;
+    // Write out frame number as hex.
+    for (unsigned i = 8; i > 0; --i) {
       unsigned n = f & 0xF;
       fc[i - 1] = n > 9 ? 'A' + n - 10 : '0' + n;
       f >>= 4;
     }
-    text_at(64, 36, red, black, fc);
+    text_at(72, 36, red, black, fc);
   }
 }
