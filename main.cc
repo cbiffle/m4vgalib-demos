@@ -8,6 +8,7 @@
 
 #include "vga/arena.h"
 #include "vga/vga.h"
+#include "vga/mode/raster_640x480x1.h"
 #include "vga/mode/raster_800x600x1.h"
 
 extern "C" {
@@ -74,7 +75,8 @@ static void move_ramcode() {
   }
 }
 
-static vga::mode::Raster_800x600x1 raster_mode;
+static vga::mode::Raster_640x480x1 raster_640;
+static vga::mode::Raster_800x600x1 raster_800;
 
 void v7m_reset_handler() {
   armv7m::crt0_init();
@@ -107,7 +109,12 @@ void v7m_reset_handler() {
 
   vga::init();
 
-  vga::select_mode(&raster_mode);
+  while (1) {
+    vga::select_mode(&raster_800);
+    for (volatile unsigned i = 0; i < 50000000; ++i);
+    vga::select_mode(&raster_640);
+    for (volatile unsigned i = 0; i < 50000000; ++i);
+  }
 
   while (1);
 }
