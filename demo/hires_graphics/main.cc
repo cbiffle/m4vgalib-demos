@@ -39,18 +39,22 @@ void v7m_reset_handler() {
 
   vga::select_mode(&mode);
 
-  vga::Graphics1 g = mode.make_graphics();
-
   while (1) {
+    vga::Graphics1 g = mode.make_bg_graphics();
+
     for (unsigned y = 0; y < 600; ++y) {
       for (unsigned x = 0; x < 800; ++x) {
         g.set_pixel(x, y);
       }
     }
+    mode.flip();
+
+    g = mode.make_bg_graphics();
     for (unsigned y = 0; y < 600; ++y) {
       for (unsigned x = 0; x < 800; ++x) {
         g.clear_pixel(x, y);
       }
     }
+    mode.flip();
   }
 }
