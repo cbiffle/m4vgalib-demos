@@ -43,12 +43,18 @@ static vga::Timing timing = {
 };
 
 void Mode_800x600::activate() {
-  // Wheeee
+  _frame = 0;
+}
+
+__attribute__((section(".ramcode")))
+void Mode_800x600::top_of_frame() {
+  ++_frame;
 }
 
 __attribute__((section(".ramcode")))
 void Mode_800x600::rasterize(unsigned line_number, Pixel *target) {
-  pattern(line_number >> 2, 0, target, output_width);
+  unsigned f = _frame;
+  pattern((line_number >> 2) + f, f, target, output_width);
 }
 
 __attribute__((section(".ramcode")))

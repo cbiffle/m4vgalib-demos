@@ -11,6 +11,10 @@ public:
   virtual void activate();
   virtual void rasterize(unsigned line_number, Pixel *target);
   virtual vga::Timing const &get_timing() const;
+  virtual void top_of_frame();
+
+private:
+  unsigned _frame;
 };
 
 }  // namespace xor_pattern
