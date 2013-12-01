@@ -108,16 +108,17 @@ void v7m_reset_handler() {
 
   vga::init();
 
-  while (1) {
-    vga::select_mode(&raster_800);
-    for (volatile unsigned i = 0; i < 50000000; ++i);
-    vga::select_mode(&raster_640);
-    for (volatile unsigned i = 0; i < 50000000; ++i);
-    vga::select_mode(&text_800);
-    for (volatile unsigned i = 0; i < 50000000; ++i);
-  }
+  vga::select_mode(&text_800);
 
-  while (1);
+  text_800.clear_framebuffer(0);
+  text_800.type_chars(0xFF, 0b010101, "PixelPusher Initialized.\n");
+
+
+  unsigned char fore = 0;
+  while (1) {
+    text_800.type_char_raw(fore, 0b010101, fore);
+    ++fore;
+  }
 }
 
 
