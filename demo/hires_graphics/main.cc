@@ -11,6 +11,58 @@
 
 static vga::mode::Raster_800x600x1 mode;
 
+static void set_ball(vga::Graphics1 &g, unsigned x, unsigned y) {
+  g.set_pixel(x, y);
+  g.set_pixel(x - 1, y);
+  g.set_pixel(x + 1, y);
+  g.set_pixel(x, y - 1);
+  g.set_pixel(x, y + 1);
+}
+
+static void clear_ball(vga::Graphics1 &g, unsigned x, unsigned y) {
+  g.clear_pixel(x, y);
+  g.clear_pixel(x - 1, y);
+  g.clear_pixel(x + 1, y);
+  g.clear_pixel(x, y - 1);
+  g.clear_pixel(x, y + 1);
+}
+
+static void step_ball(int &x, int &y,
+                      int other_x, int other_y,
+                      int &xi, int &yi) {
+  vga::Graphics1 g = mode.make_bg_graphics();
+
+  clear_ball(g, x, y);
+  x = other_x + xi;
+  y = other_y + yi;
+
+  if (x < 0) {
+    x = 0;
+    xi = -xi;
+  }
+
+  if (y < 0) {
+    y = 0;
+    yi = -yi;
+  }
+
+  if (x >= 800) {
+    x = 799;
+    xi = -xi;
+  }
+
+  if (y >= 600) {
+    y = 599;
+    yi = -yi;
+  }
+
+  set_ball(g, x, y);
+
+  ++yi;
+  vga::sync_to_vblank();
+  mode.flip();
+}
+
 void v7m_reset_handler() {
   armv7m::crt0_init();
   runtime::ramcode_init();
@@ -39,22 +91,16 @@ void v7m_reset_handler() {
 
   vga::select_mode(&mode);
 
+  mode.set_fg_color(0b111111);
+  mode.set_bg_color(0b100000);
+
+  int x[2], y[2];
+  int xi = 5, yi = 1;
+
+  x[0] = x[1] = y[0] = y[1] = 0;
+
   while (1) {
-    vga::Graphics1 g = mode.make_bg_graphics();
-
-    for (unsigned y = 0; y < 600; ++y) {
-      for (unsigned x = 0; x < 800; ++x) {
-        g.set_pixel(x, y);
-      }
-    }
-    mode.flip();
-
-    g = mode.make_bg_graphics();
-    for (unsigned y = 0; y < 600; ++y) {
-      for (unsigned x = 0; x < 800; ++x) {
-        g.clear_pixel(x, y);
-      }
-    }
-    mode.flip();
+    step_ball(x[0], y[0], x[1], y[1], xi, yi);
+    step_ball(x[1], y[1], x[0], y[0], xi, yi);
   }
 }
