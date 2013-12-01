@@ -1,6 +1,8 @@
 #ifndef LIB_ARMV7M_SCB_H
 #define LIB_ARMV7M_SCB_H
 
+#include "lib/armv7m/types.h"
+
 namespace armv7m {
 
 struct Scb {
