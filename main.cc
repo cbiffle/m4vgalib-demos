@@ -6,7 +6,6 @@
 #include "lib/stm32f4xx/rcc.h"
 #include "lib/stm32f4xx/syscfg.h"
 
-#include "vga/arena.h"
 #include "vga/vga.h"
 #include "vga/mode/raster_640x480x1.h"
 #include "vga/mode/raster_800x600x1.h"
@@ -106,8 +105,6 @@ void v7m_reset_handler() {
                           .with_cp10(armv7m::Scb::CpAccess::full));
 
   // It is now safe to use floating point.
-
-  vga::arena_reset();
 
   vga::init();
 
