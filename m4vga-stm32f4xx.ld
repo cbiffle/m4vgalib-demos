@@ -68,6 +68,8 @@ SECTIONS {
 
   .local (NOLOAD) : {
     KEEP(*(.vga_local_ram))
+    . = ALIGN(4);
+    PROVIDE(_ccm_arena_start = .);
   } >ccm
 
   .ram_vectors (NOLOAD) : {
@@ -81,6 +83,7 @@ SECTIONS {
     KEEP(*(.ramcode*))
     . = ALIGN(4);
     PROVIDE(_ramcode_end = .);
+    PROVIDE(_sram112_arena_start = .);
   } >sram112_at_zero AT>rom
 
   PROVIDE(_ramcode_lma = LOADADDR(.ramcode));
@@ -88,6 +91,16 @@ SECTIONS {
   .sram16 (NOLOAD) : {
     KEEP(*(.vga_scan_ram))
   } >sram16
+
+  .arena_regions : {
+    PROVIDE(_arena_regions_start = .);
+    LONG(_ccm_arena_start);
+    LONG(ORIGIN(ccm) + LENGTH(ccm) - 1024);
+    LONG(_sram112_arena_start);
+    LONG(ORIGIN(sram112_at_zero) + LENGTH(sram112_at_zero));
+    PROVIDE(_arena_regions_end = .);
+  } >rom
+
 }
 
 PROVIDE(v7m_initial_stack_top = ORIGIN(ccm) + LENGTH(ccm));

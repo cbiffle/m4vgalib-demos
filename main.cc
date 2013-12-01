@@ -6,6 +6,7 @@
 #include "lib/stm32f4xx/rcc.h"
 #include "lib/stm32f4xx/syscfg.h"
 
+#include "vga/arena.h"
 #include "vga/vga.h"
 
 static stm32f4xx::ClockConfig const clock_cfg = {
@@ -128,6 +129,8 @@ void v7m_reset_handler() {
                           .with_cp10(armv7m::Scb::CpAccess::full));
 
   // It is now safe to use floating point.
+
+  vga::arena_reset();
 
   vga::init();
 
