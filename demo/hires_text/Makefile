@@ -42,7 +42,7 @@ include $(depth)/build/Makefile.rules
 
 
 flash: $(intermediate)/demo
-	openocd -f openocd.cfg \
+	openocd -f $(depth)/openocd.cfg \
                 -c "init" \
                 -c "reset init" \
                 -c "flash write_image erase $<" \
