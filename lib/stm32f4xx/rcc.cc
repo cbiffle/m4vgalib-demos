@@ -136,6 +136,19 @@ static Rcc::pprex_t get_ppre(unsigned divisor) {
   }
 }
 
+float Rcc::get_clock_hz(ApbPeripheral p) {
+  unsigned bus = get_bus_index(p);
+
+  switch (bus) {
+    case 0: return clock_speeds.apb1;
+    case 1: return clock_speeds.apb2;
+
+    default:
+      // TODO(cbiffle): assert
+      while (1);
+  }
+}
+
 void Rcc::configure_clocks(ClockConfig const &cfg) {
   cfg.compute_speeds(&clock_speeds);
 

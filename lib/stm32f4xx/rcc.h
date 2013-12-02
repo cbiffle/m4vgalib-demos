@@ -35,6 +35,8 @@ struct Rcc {
   void disable_clock(ApbPeripheral);
 
   void configure_clocks(ClockConfig const &);
+
+  float get_clock_hz(ApbPeripheral);
 };
 
 extern Rcc rcc;
