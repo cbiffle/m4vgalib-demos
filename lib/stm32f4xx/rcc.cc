@@ -136,7 +136,28 @@ static Rcc::pprex_t get_ppre(unsigned divisor) {
   }
 }
 
-float Rcc::get_clock_hz(ApbPeripheral p) {
+float Rcc::get_cpu_clock_hz() const {
+  return clock_speeds.cpu;
+}
+
+float Rcc::get_ahb_clock_hz() const {
+  return clock_speeds.ahb;
+}
+
+float Rcc::get_apb1_clock_hz() const {
+  return clock_speeds.apb1;
+}
+
+float Rcc::get_apb2_clock_hz() const {
+  return clock_speeds.apb2;
+}
+
+float Rcc::get_pll48_clock_hz() const {
+  return clock_speeds.pll48;
+}
+
+
+float Rcc::get_clock_hz(ApbPeripheral p) const {
   unsigned bus = get_bus_index(p);
 
   switch (bus) {

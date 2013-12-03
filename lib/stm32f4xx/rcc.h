@@ -36,7 +36,13 @@ struct Rcc {
 
   void configure_clocks(ClockConfig const &);
 
-  float get_clock_hz(ApbPeripheral);
+  float get_cpu_clock_hz() const;
+  float get_ahb_clock_hz() const;
+  float get_apb1_clock_hz() const;
+  float get_apb2_clock_hz() const;
+  float get_pll48_clock_hz() const;
+
+  float get_clock_hz(ApbPeripheral) const;
 };
 
 extern Rcc rcc;
