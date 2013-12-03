@@ -96,7 +96,7 @@ struct Nvic {
   Word const volatile iabr[16];
   Word const _reserved4[16];
 
-  Word const _reserved5[128];
+  Word const _reserved5[32];
 
   /*
    * Interrupt Priority Registers.  These registers contain the priority level
