@@ -1,0 +1,20 @@
+BFF_REG_RW(Word, csr,
+  BFF_FIELD  (16:16, bool, countflag)
+  BFF_FIELD_E( 2: 2, bool, clksource,
+    BFF_ENUM(false, external_reference)
+    BFF_ENUM(true,  cpu_clock)
+  )
+  BFF_FIELD  ( 1: 1, bool, tickint)
+  BFF_FIELD  ( 0: 0, bool, enable)
+)
+BFF_REG_RW(Word, rvr,
+  BFF_FIELD(23: 0, unsigned, reload)
+)
+BFF_REG_RW(Word, cvr,
+  BFF_FIELD(31: 0, unsigned, current)
+)
+BFF_REG_RW(Word, calib,
+  BFF_FIELD(31:31, bool, noref)
+  BFF_FIELD(30:30, bool, skew)
+  BFF_FIELD(23: 0, unsigned, tenms)
+)
