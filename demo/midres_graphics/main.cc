@@ -8,6 +8,9 @@
 #include "vga/graphics_1.h"
 #include "vga/vga.h"
 #include "vga/mode/raster_640x480x1.h"
+#include "vga/rast/bitmap_1.h"
+
+using vga::rast::Bitmap_1;
 
 static vga::mode::Raster_640x480x1 mode;
 
@@ -30,7 +33,8 @@ static void clear_ball(vga::Graphics1 &g, unsigned x, unsigned y) {
 static void step_ball(int &x, int &y,
                       int other_x, int other_y,
                       int &xi, int &yi) {
-  vga::Graphics1 g = mode.make_bg_graphics();
+  Bitmap_1 &rast = mode.get_rasterizer();
+  vga::Graphics1 g = rast.make_bg_graphics();
 
   clear_ball(g, x, y);
   x = other_x + xi;
@@ -60,7 +64,7 @@ static void step_ball(int &x, int &y,
 
   ++yi;
   vga::sync_to_vblank();
-  mode.flip();
+  rast.flip();
 }
 
 void v7m_reset_handler() {
@@ -91,8 +95,9 @@ void v7m_reset_handler() {
 
   vga::select_mode(&mode);
 
-  mode.set_fg_color(0b111111);
-  mode.set_bg_color(0b100000);
+  Bitmap_1 &rast = mode.get_rasterizer();
+  rast.set_fg_color(0b111111);
+  rast.set_bg_color(0b100000);
 
   int x[2], y[2];
   int xi = 5, yi = 1;
