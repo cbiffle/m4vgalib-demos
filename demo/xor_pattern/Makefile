@@ -4,7 +4,8 @@ products := lib demo
 lib[type] := library
 
 lib[cc_files] := \
-  mode_800x600.cc
+  mode_800x600.cc \
+  xor.cc
 
 lib[S_files] := \
   pattern.S

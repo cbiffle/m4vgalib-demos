@@ -3,8 +3,6 @@
 #include "lib/stm32f4xx/rcc.h"
 #include "vga/timing.h"
 
-#include "demo/xor_pattern/pattern.h"
-
 namespace demo {
 namespace xor_pattern {
 
@@ -43,18 +41,13 @@ static vga::Timing timing = {
 };
 
 void Mode_800x600::activate() {
-  _frame = 0;
-}
-
-__attribute__((section(".ramcode")))
-void Mode_800x600::top_of_frame() {
-  ++_frame;
+  _rr.activate(timing);
 }
 
 __attribute__((section(".ramcode")))
 void Mode_800x600::rasterize(unsigned line_number, Pixel *target) {
-  unsigned f = _frame;
-  pattern((line_number >> 2) + f, f, target, output_width);
+  line_number -= timing.video_start_line;
+  (void) _rr.rasterize(line_number, target);
 }
 
 __attribute__((section(".ramcode")))
