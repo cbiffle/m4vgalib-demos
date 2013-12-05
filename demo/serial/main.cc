@@ -22,7 +22,7 @@ using stm32f4xx::Usart;
 using stm32f4xx::usart2;
 using stm32f4xx::Gpio;
 
-static vga::rast::Text_10x16 rasterizer;
+static vga::rast::Text_10x16 rasterizer(800, 600);
 
 typedef vga::Rasterizer::Pixel Pixel;
 

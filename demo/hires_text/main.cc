@@ -9,7 +9,7 @@
 #include "vga/timing.h"
 #include "vga/vga.h"
 
-static vga::rast::Text_10x16 rasterizer;
+static vga::rast::Text_10x16 rasterizer(800, 600);
 
 typedef vga::Rasterizer::Pixel Pixel;
 
