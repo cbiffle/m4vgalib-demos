@@ -5,14 +5,13 @@
 
 #include "runtime/ramcode.h"
 
-#include "vga/vga.h"
 #include "vga/rast/text_10x16.h"
-#include "vga/mode/text_800x600.h"
+#include "vga/timing.h"
+#include "vga/vga.h"
 
-using vga::rast::Text_10x16;
+static vga::rast::Text_10x16 rasterizer;
 
-static vga::mode::Text_800x600 mode;
-typedef vga::Mode::Pixel Pixel;
+typedef vga::Rasterizer::Pixel Pixel;
 
 /*******************************************************************************
  * Some basic terminal functionality.
@@ -21,8 +20,7 @@ typedef vga::Mode::Pixel Pixel;
 static unsigned t_row = 0, t_col = 0;
 
 static void type_raw(Pixel fore, Pixel back, char c) {
-  Text_10x16 &rast = mode.get_rasterizer();
-  rast.put_char(t_col, t_row, fore, back, c);
+  rasterizer.put_char(t_col, t_row, fore, back, c);
   ++t_col;
   if (t_col == 80) {
     t_col = 0;
@@ -129,10 +127,11 @@ void v7m_reset_handler() {
 
   vga::init();
 
-  vga::select_mode(&mode);
+  rasterizer.activate(vga::timing_vesa_800x600_60hz);
+  vga::configure_band(0, 600, &rasterizer);
+  vga::configure_timing(vga::timing_vesa_800x600_60hz);
 
-  Text_10x16 &rast = mode.get_rasterizer();
-  rast.clear_framebuffer(0);
+  rasterizer.clear_framebuffer(0);
 
   text_centered(0, white, dk_gray, "800x600 Attributed Text Demo");
   text_at(0, 1, white, black,

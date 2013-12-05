@@ -5,10 +5,12 @@
 
 #include "runtime/ramcode.h"
 
+#include "vga/timing.h"
 #include "vga/vga.h"
-#include "demo/xor_pattern/mode_800x600.h"
 
-static demo::xor_pattern::Mode_800x600 xor_pattern;
+#include "demo/xor_pattern/xor.h"
+
+static demo::xor_pattern::Xor rasterizer;
 
 void v7m_reset_handler() {
   armv7m::crt0_init();
@@ -36,6 +38,8 @@ void v7m_reset_handler() {
 
   vga::init();
 
-  vga::select_mode(&xor_pattern);
+  rasterizer.activate(vga::timing_vesa_800x600_60hz);
+  vga::configure_band(0, 600, &rasterizer);
+  vga::configure_timing(vga::timing_vesa_800x600_60hz);
   while (1);
 }

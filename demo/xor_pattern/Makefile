@@ -4,7 +4,6 @@ products := lib demo
 lib[type] := library
 
 lib[cc_files] := \
-  mode_800x600.cc \
   xor.cc
 
 lib[S_files] := \

@@ -13,7 +13,7 @@
 
 #include "vga/arena.h"
 #include "vga/rast/text_10x16.h"
-#include "vga/mode/text_800x600.h"
+#include "vga/timing.h"
 #include "vga/vga.h"
 
 using stm32f4xx::gpioa;
@@ -22,10 +22,9 @@ using stm32f4xx::Usart;
 using stm32f4xx::usart2;
 using stm32f4xx::Gpio;
 
-using vga::rast::Text_10x16;
+static vga::rast::Text_10x16 rasterizer;
 
-static vga::mode::Text_800x600 mode;
-typedef vga::Mode::Pixel Pixel;
+typedef vga::Rasterizer::Pixel Pixel;
 
 /*******************************************************************************
  * Some basic terminal functionality.
@@ -34,8 +33,7 @@ typedef vga::Mode::Pixel Pixel;
 static unsigned t_row = 0, t_col = 0;
 
 static void type_raw(Pixel fore, Pixel back, char c) {
-  Text_10x16 &rast = mode.get_rasterizer();
-  rast.put_char(t_col, t_row, fore, back, c);
+  rasterizer.put_char(t_col, t_row, fore, back, c);
   ++t_col;
   if (t_col == 80) {
     t_col = 0;
@@ -53,8 +51,6 @@ static void cursor_to(unsigned col, unsigned row) {
 }
 
 static void type(Pixel fore, Pixel back, char c) {
-  Text_10x16 &rast = mode.get_rasterizer();
-
   switch (c) {
     case '\r':
       do {
@@ -63,7 +59,7 @@ static void type(Pixel fore, Pixel back, char c) {
       return;
 
     case '\f':
-      rast.clear_framebuffer(back);
+      rasterizer.clear_framebuffer(back);
       cursor_to(0, 0);
       break;
 
@@ -255,11 +251,13 @@ void v7m_reset_handler() {
 
   vga::init();
 
-  vga::select_mode(&mode, usart2_poll);
+  rasterizer.activate(vga::timing_vesa_800x600_60hz);
+  vga::configure_band(0, 600, &rasterizer);
+  vga::configure_timing(vga::timing_vesa_800x600_60hz, usart2_poll);
+
   usart2_init();
 
-  Text_10x16 &rast = mode.get_rasterizer();
-  rast.clear_framebuffer(blue);
+  rasterizer.clear_framebuffer(blue);
 
   type_box(white, dk_gray, 10, 10, 70, 27);
 
@@ -318,7 +316,7 @@ void v7m_reset_handler() {
     bool has_c = usart_rx_queue.take(c);
     if (!has_c) continue;
 
-    rast.clear_framebuffer(blue);
+    rasterizer.clear_framebuffer(blue);
     usart2_send(c);
     type(white, blue, c);
     break;
