@@ -6,7 +6,10 @@
 #include "runtime/ramcode.h"
 
 #include "vga/vga.h"
+#include "vga/rast/text_10x16.h"
 #include "vga/mode/text_800x600.h"
+
+using vga::rast::Text_10x16;
 
 static vga::mode::Text_800x600 mode;
 typedef vga::Mode::Pixel Pixel;
@@ -18,7 +21,8 @@ typedef vga::Mode::Pixel Pixel;
 static unsigned t_row = 0, t_col = 0;
 
 static void type_raw(Pixel fore, Pixel back, char c) {
-  mode.put_char(t_col, t_row, fore, back, c);
+  Text_10x16 &rast = mode.get_rasterizer();
+  rast.put_char(t_col, t_row, fore, back, c);
   ++t_col;
   if (t_col == 80) {
     t_col = 0;
@@ -127,7 +131,8 @@ void v7m_reset_handler() {
 
   vga::select_mode(&mode);
 
-  mode.clear_framebuffer(0);
+  Text_10x16 &rast = mode.get_rasterizer();
+  rast.clear_framebuffer(0);
 
   text_centered(0, white, dk_gray, "800x600 Attributed Text Demo");
   text_at(0, 1, white, black,
