@@ -1,0 +1,287 @@
+#include "lib/armv7m/crt0.h"
+#include "lib/armv7m/exception_table.h"
+#include "lib/armv7m/instructions.h"
+#include "lib/armv7m/scb.h"
+
+#include "runtime/ramcode.h"
+
+#include "vga/graphics_1.h"
+#include "vga/timing.h"
+#include "vga/vga.h"
+#include "vga/rast/bitmap_1.h"
+#include "vga/rast/text_10x16.h"
+
+using vga::rast::Bitmap_1;
+
+typedef vga::Rasterizer::Pixel Pixel;
+
+
+/*******************************************************************************
+ * Screen partitioning
+ */
+
+static constexpr unsigned text_cols = 800;
+static constexpr unsigned text_rows = 16 * 16;
+
+static constexpr unsigned gfx_cols = 800;
+static constexpr unsigned gfx_rows = 600 - text_rows;
+
+
+/*******************************************************************************
+ * The Graphics Parts
+ */
+
+static Bitmap_1 gfx_rast(gfx_cols, gfx_rows);
+
+static void set_ball(vga::Graphics1 &g, unsigned x, unsigned y) {
+  g.set_pixel(x, y);
+  g.set_pixel(x - 1, y);
+  g.set_pixel(x + 1, y);
+  g.set_pixel(x, y - 1);
+  g.set_pixel(x, y + 1);
+}
+
+static void clear_ball(vga::Graphics1 &g, unsigned x, unsigned y) {
+  g.clear_pixel(x, y);
+  g.clear_pixel(x - 1, y);
+  g.clear_pixel(x + 1, y);
+  g.clear_pixel(x, y - 1);
+  g.clear_pixel(x, y + 1);
+}
+
+static void step_ball(int &x, int &y,
+                      int other_x, int other_y,
+                      int &xi, int &yi) {
+  vga::Graphics1 g = gfx_rast.make_bg_graphics();
+
+  clear_ball(g, x, y);
+  x = other_x + xi;
+  y = other_y + yi;
+
+  if (x < 0) {
+    x = 0;
+    xi = -xi;
+  }
+
+  if (y < 0) {
+    y = 0;
+    yi = -yi;
+  }
+
+  if (x >= static_cast<int>(gfx_cols)) {
+    x = gfx_cols - 1;
+    xi = -xi;
+  }
+
+  if (y >= static_cast<int>(gfx_rows)) {
+    y = gfx_rows - 1;
+    yi = -yi;
+  }
+
+  set_ball(g, x, y);
+
+  ++yi;
+}
+
+
+/*******************************************************************************
+ * The Text Parts
+ */
+
+static vga::rast::Text_10x16 text_rast(text_cols, text_rows, gfx_rows);
+
+
+static constexpr unsigned t_right_margin = (text_cols + 9) / 10;
+static constexpr unsigned t_bottom_margin = (text_rows + 15) / 16;
+
+static unsigned t_row = 0, t_col = 0;
+
+static void type_raw(Pixel fore, Pixel back, char c) {
+  text_rast.put_char(t_col, t_row, fore, back, c);
+  ++t_col;
+  if (t_col == t_right_margin) {
+    t_col = 0;
+    ++t_row;
+    if (t_row == t_bottom_margin) t_row = 0;
+  }
+}
+
+static void type(Pixel fore, Pixel back, char c) {
+  switch (c) {
+    case '\n':
+      do {
+        type_raw(fore, back, ' ');
+      } while (t_col);
+      return;
+
+    default:
+      type_raw(fore, back, c);
+      return;
+  }
+}
+
+static void type(Pixel fore, Pixel back, char const *s) {
+  while (char c = *s++) {
+    type(fore, back, c);
+  }
+}
+
+static void rainbow_type(char const *s) {
+  unsigned x = 0;
+  while (char c = *s++) {
+    type(x & 0b111111, ~x & 0b111111, c);
+    ++x;
+  }
+}
+
+static void cursor_to(unsigned col, unsigned row) {
+  if (col >= t_right_margin) col = t_right_margin - 1;
+  if (row >= t_bottom_margin) row = t_bottom_margin - 1;
+
+  t_col = col;
+  t_row = row;
+}
+
+static void text_at(unsigned col, unsigned row,
+                    Pixel fore, Pixel back,
+                    char const *s) {
+  cursor_to(col, row);
+  type(fore, back, s);
+}
+
+static void text_centered(unsigned row, Pixel fore, Pixel back, char const *s) {
+  unsigned len = 0;
+  while (s[len]) ++len;
+
+  unsigned left_margin = 40 - len / 2;
+  unsigned right_margin = t_right_margin - len - left_margin;
+
+  cursor_to(0, row);
+  for (unsigned i = 0; i < left_margin; ++i) type(fore, back, ' ');
+  type(fore, back, s);
+  for (unsigned i = 0; i < right_margin; ++i) type(fore, back, ' ');
+}
+
+enum {
+  white   = 0b111111,
+  lt_gray = 0b101010,
+  dk_gray = 0b010101,
+  black   = 0b000000,
+
+  red     = 0b000011,
+  green   = 0b001100,
+  blue    = 0b110000,
+};
+
+
+/*******************************************************************************
+ * The Startup Routine
+ */
+
+void v7m_reset_handler() {
+  armv7m::crt0_init();
+  runtime::ramcode_init();
+
+  // Enable fault reporting.
+  armv7m::scb.write_shcsr(armv7m::scb.read_shcsr()
+                          .with_memfaultena(true)
+                          .with_busfaultena(true)
+                          .with_usgfaultena(true));
+
+  // Enable floating point automatic/lazy state preservation.
+  // The CONTROL bit governing FP will be set automatically when first used.
+  armv7m::scb_fp.write_fpccr(armv7m::scb_fp.read_fpccr()
+                             .with_aspen(true)
+                             .with_lspen(true));
+  armv7m::instruction_synchronization_barrier();  // Now please.
+
+  // Enable access to the floating point coprocessor.
+  armv7m::scb.write_cpacr(armv7m::scb.read_cpacr()
+                          .with_cp11(armv7m::Scb::CpAccess::full)
+                          .with_cp10(armv7m::Scb::CpAccess::full));
+
+  // It is now safe to use floating point.
+
+  vga::init();
+
+  gfx_rast.activate(vga::timing_vesa_800x600_60hz);
+  gfx_rast.set_fg_color(0b111111);
+  gfx_rast.set_bg_color(0b100000);
+
+  text_rast.activate(vga::timing_vesa_800x600_60hz);
+  text_rast.clear_framebuffer(0);
+
+  text_centered(0, white, dk_gray, "800x600 Mixed Graphics Modes Demo");
+  cursor_to(0, 2);
+  type(white, black, "Bitmap framebuffer combined with ");
+  type(black, white, "attributed");
+  type(red, black, " 256");
+  type(green, black, " color ");
+  type(blue, black, "text.");
+  cursor_to(0, 4);
+  rainbow_type("The quick brown fox jumped over the lazy dog. "
+               "0123456789!@#$%^{}");
+
+  text_at(0, 6, white, 0b100000,
+      "     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam ut\n"
+      "     tellus quam. Cras ornare facilisis sollicitudin. Quisque quis\n"
+      "     imperdiet mauris. Proin malesuada nibh dolor, eu luctus mauris\n"
+      "     ultricies vitae. Interdum et malesuada fames ac ante ipsum primis\n"
+      "     in faucibus. Aenean tincidunt viverra ultricies. Quisque rutrum\n"
+      "     vehicula pulvinar.\n");
+
+  text_at(0, 15, white, black, "60 fps / 40MHz pixel clock");
+  text_at(58, 36, white, black, "Frame number:");
+
+  vga::configure_band(0, gfx_rows, &gfx_rast);
+  vga::configure_band(gfx_rows, text_rows, &text_rast);
+  vga::configure_timing(vga::timing_vesa_800x600_60hz);
+
+  unsigned const num_balls = 60;
+  int x[num_balls][2], y[num_balls][2];
+  int xi[num_balls], yi[num_balls];
+
+  unsigned seed = 1118;
+  for (unsigned n = 0; n < num_balls; ++n) {
+    seed = (seed * 1664525) + 1013904223;
+    x[n][0] = x[n][1] = seed % gfx_cols;
+    seed = (seed * 1664525) + 1013904223;
+    y[n][0] = y[n][1] = seed % (gfx_rows*2/3);
+
+    seed = (seed * 1664525) + 1013904223;
+    xi[n] = seed % 9 - 5;
+    seed = (seed * 1664525) + 1013904223;
+    yi[n] = seed % 3 - 2;
+  }
+
+  char fc[9];
+  fc[8] = 0;
+  unsigned frame = 0;
+
+  while (1) {
+    unsigned f = ++frame;
+
+    for (unsigned i = 8; i > 0; --i) {
+      unsigned n = f & 0xF;
+      fc[i - 1] = n > 9 ? 'A' + n - 10 : '0' + n;
+      f >>= 4;
+    }
+    text_at(72, 15, red, black, fc);
+    for (unsigned n = 0; n < num_balls; ++n) {
+      step_ball(x[n][0], y[n][0], x[n][1], y[n][1], xi[n], yi[n]);
+    }
+    gfx_rast.flip();
+
+    f = ++frame;
+    for (unsigned i = 8; i > 0; --i) {
+      unsigned n = f & 0xF;
+      fc[i - 1] = n > 9 ? 'A' + n - 10 : '0' + n;
+      f >>= 4;
+    }
+    text_at(72, 15, red, black, fc);
+    for (unsigned n = 0; n < num_balls; ++n) {
+      step_ball(x[n][1], y[n][1], x[n][0], y[n][0], xi[n], yi[n]);
+    }
+    gfx_rast.flip();
+  }
+}
