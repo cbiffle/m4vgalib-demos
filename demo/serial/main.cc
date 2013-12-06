@@ -222,6 +222,10 @@ static void usart2_poll() {
   }
 }
 
+/*
+ * Interrupts!
+ */
+
 void v7m_reset_handler() {
   armv7m::crt0_init();
   runtime::ramcode_init();
@@ -253,7 +257,7 @@ void v7m_reset_handler() {
 
   rasterizer.activate(vga::timing_vesa_800x600_60hz);
   vga::configure_band(0, 600, &rasterizer);
-  vga::configure_timing(vga::timing_vesa_800x600_60hz, usart2_poll);
+  vga::configure_timing(vga::timing_vesa_800x600_60hz);
 
   usart2_init();
 
@@ -329,5 +333,12 @@ void v7m_reset_handler() {
 
     usart2_send(c);
     type(white, blue, c);
+  }
+}
+
+namespace vga {
+  __attribute__((section(".ramcode")))
+  void hblank_interrupt() {
+    usart2_poll();
   }
 }
