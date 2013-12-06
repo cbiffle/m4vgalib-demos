@@ -13,18 +13,40 @@ EXTERN(_ZN6armv7mL19v7m_exception_tableE)
 ENTRY(v7m_reset_handler)
 
 SECTIONS {
-  .v7m_vector_table : {
-    PROVIDE(_rom_vector_table_start = .);
+  /*
+   * The sram_image section is loaded at the base of ROM.  Early in boot, we
+   * copy it into SRAM to reduce access latency later.  This has an interesting
+   * implication: while the vector table is position independent and can be
+   * useful in both locations, the reset vector itself must not be in this
+   * section!
+   */
+  .sram_image : {
+    /* The vector table will exist in both locations after copy. */
     KEEP(*(.v7m_exception_table))
     KEEP(*(.stm32f4xx_interrupt_table))
-    PROVIDE(_rom_vector_table_end = .);
-  } >rom
+    /* Include any functions that have been explicitly placed here. */
+    KEEP(*(.ramcode*))
+    /* Include initialized data here, so we initialize it during the copy. */
+    *(.data*)
+    /* We use a word copy, so ensure alignment. */
+    . = ALIGN(4);
+  } >sram112_at_zero AT>rom
 
-  . = ALIGN(4);
+  /* Generate some symbols to direct the copying code. */
+  PROVIDE(_sram_image_start = LOADADDR(.sram_image));
+  PROVIDE(_sram_image_end = _sram_image_start + SIZEOF(.sram_image));
+  PROVIDE(_sram_image_dest = ORIGIN(sram112_at_zero));
 
+  /*
+   * Plain old .text contains functions without strict latency requirements,
+   * and rodata.  This implies that const data goes in high-latency Flash,
+   * and must be copied into RAM by any programs with latency requirements.
+   */
   .text : {
     *(.text*)
     . = ALIGN(4);
+
+    /* Unfortunately, gcc places vtables here, in Flash.  TODO. */
     *(.rodata*)
 
     . = ALIGN(4);
@@ -48,54 +70,47 @@ SECTIONS {
     _init_array_end = .;
   } >rom
 
-  . = ALIGN(4);
-  _etext = .;
-
-  .data : {
-    _data = .;
-    *(.data*)
-    . = ALIGN(4);
-    _edata = .;
-  } >ccm AT>rom
-
   .bss (NOLOAD) : {
     . = ALIGN(4);
     *(.bss*)
     *(COMMON)
     . = ALIGN(4);
-    _ebss = .;
-  } >ccm
-
-  .local (NOLOAD) : {
-    KEEP(*(.vga_local_ram))
-    . = ALIGN(4);
-    PROVIDE(_ccm_arena_start = .);
-  } >ccm
-
-  .ram_vectors (NOLOAD) : {
-    . = ALIGN(512);
-    PROVIDE(_ram_vector_table = .);
-    . = . + SIZEOF(.v7m_vector_table);
   } >sram112_at_zero
 
-  .ramcode : ALIGN(4) {
-    PROVIDE(_ramcode_start = .);
-    KEEP(*(.ramcode*))
+  PROVIDE(_bss_start = ADDR(.bss));
+  PROVIDE(_bss_end   = ADDR(.bss) + SIZEOF(.bss));
+
+  .arena_sram112 (NOLOAD) : {
     . = ALIGN(4);
-    PROVIDE(_ramcode_end = .);
     PROVIDE(_sram112_arena_start = .);
-  } >sram112_at_zero AT>rom
+    /* Exhaust the rest of this memory. */
+    . = ORIGIN(sram112_at_zero) + LENGTH(sram112_at_zero);
+  } >sram112_at_zero
 
-  PROVIDE(_ramcode_lma = LOADADDR(.ramcode));
+  .local (NOLOAD) : {
+    . += 1024;  /* Leave room for a stack. */
+    PROVIDE(v7m_initial_stack_top = .);
+    /* Allow stuff to be placed explicitly into CCM as needed. */
+    KEEP(*(.vga_local_ram))
+    . = ALIGN(4);
 
+    PROVIDE(_ccm_arena_start = .);
+    . += 60000;  /* Encourage a minimum arena size. */
+    /* Exhaust the rest of this memory. */
+    . = ORIGIN(ccm) + LENGTH(ccm);
+  } >ccm
+
+  /* Allow stuff to be placed explicitly into scanout RAM as needed. */
   .sram16 (NOLOAD) : {
     KEEP(*(.vga_scan_ram))
   } >sram16
 
+  /*
+   * Generate a table defining the boundaries of free RAM for the arenas. */
   .arena_regions : {
     PROVIDE(_arena_regions_start = .);
     LONG(_ccm_arena_start);
-    LONG(ORIGIN(ccm) + LENGTH(ccm) - 1024);
+    LONG(ORIGIN(ccm) + LENGTH(ccm));
     LONG(_sram112_arena_start);
     LONG(ORIGIN(sram112_at_zero) + LENGTH(sram112_at_zero));
     PROVIDE(_arena_regions_end = .);
@@ -103,5 +118,4 @@ SECTIONS {
 
 }
 
-PROVIDE(v7m_initial_stack_top = ORIGIN(ccm) + LENGTH(ccm));
 PROVIDE(_flash_base = ORIGIN(rom));

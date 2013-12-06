@@ -3,7 +3,7 @@ products := runtime default_traps
 
 runtime[type] := library
 
-runtime[cc_files] := ramcode.cc runtime.cc
+runtime[cc_files] := runtime.cc startup.cc
 
 runtime[cc_flags] := -std=gnu++0x
 
