@@ -112,7 +112,8 @@ static void update_particles() {
     p.step(g);
     p.nudge(0, 1);
   }
-  gfx_rast.flip();
+  vga::sync_to_vblank();
+  gfx_rast.copy_bg_to_fg();
 }
 
 
@@ -217,6 +218,11 @@ void v7m_reset_handler() {
   gfx_rast.activate(vga::timing_vesa_800x600_60hz);
   gfx_rast.set_fg_color(0b111111);
   gfx_rast.set_bg_color(0b100000);
+
+  if (!gfx_rast.can_bg_use_bitband()) {
+    gfx_rast.flip();
+    if (!gfx_rast.can_bg_use_bitband()) while (1);
+  }
 
   text_rast.activate(vga::timing_vesa_800x600_60hz);
   text_rast.clear_framebuffer(0);
