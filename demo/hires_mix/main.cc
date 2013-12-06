@@ -33,54 +33,89 @@ static constexpr unsigned gfx_rows = 600 - text_rows;
 
 static Bitmap_1 gfx_rast(gfx_cols, gfx_rows);
 
-static void set_ball(vga::Graphics1 &g, unsigned x, unsigned y) {
-  g.set_pixel(x, y);
-  g.set_pixel(x - 1, y);
-  g.set_pixel(x + 1, y);
-  g.set_pixel(x, y - 1);
-  g.set_pixel(x, y + 1);
-}
+class Particle {
+public:
+  static constexpr unsigned lifetime = 120;
+  static unsigned seed;
 
-static void clear_ball(vga::Graphics1 &g, unsigned x, unsigned y) {
-  g.clear_pixel(x, y);
-  g.clear_pixel(x - 1, y);
-  g.clear_pixel(x + 1, y);
-  g.clear_pixel(x, y - 1);
-  g.clear_pixel(x, y + 1);
-}
+  void randomize() {
+    _x[0] = _x[1] = rand() % gfx_cols;
+    _y[0] = _y[1] = rand() % (gfx_rows * 2/3);
+    _dx = rand() % 9 - 5;
+    _dy = rand() % 3 - 2;
+  }
 
-static void step_ball(int &x, int &y,
-                      int other_x, int other_y,
-                      int &xi, int &yi) {
+  void nudge(int ddx, int ddy) {
+    _dx += ddx;
+    _dy += ddy;
+  }
+
+  void step(vga::Graphics1 &g) {
+    g.clear_pixel(_x[1], _y[1]);
+    g.clear_pixel(_x[1] - 1, _y[1]);
+    g.clear_pixel(_x[1] + 1, _y[1]);
+    g.clear_pixel(_x[1], _y[1] - 1);
+    g.clear_pixel(_x[1], _y[1] + 1);
+
+    _x[1] = _x[0];
+    _y[1] = _y[0];
+
+    int x_ = _x[0] + _dx;
+    int y_ = _y[0] + _dy;
+
+    if (x_ < 0) {
+      x_ = 0;
+      _dx = -_dx;
+    }
+
+    if (y_ < 0) {
+      y_ = 0;
+      _dy = -_dy;
+    }
+
+    if (x_ >= static_cast<int>(gfx_cols)) {
+      x_ = gfx_cols - 1;
+      _dx = -_dx;
+    }
+
+    if (y_ >= static_cast<int>(gfx_rows)) {
+      y_ = gfx_rows - 1;
+      _dy = -_dy;
+    }
+
+    _x[0] = x_;
+    _y[0] = y_;
+
+    g.set_pixel(_x[0], _y[0]);
+    g.set_pixel(_x[0] - 1, _y[0]);
+    g.set_pixel(_x[0] + 1, _y[0]);
+    g.set_pixel(_x[0], _y[0] - 1);
+    g.set_pixel(_x[0], _y[0] + 1);
+  }
+
+private:
+  int _x[2], _y[2];
+  int _dx, _dy;
+
+  unsigned rand() {
+    seed = (seed * 1664525) + 1013904223;
+    return seed;
+  }
+};
+
+unsigned Particle::seed = 1118;
+
+static constexpr unsigned particle_count = 500;
+
+static Particle particles[particle_count];
+
+static void update_particles() {
   vga::Graphics1 g = gfx_rast.make_bg_graphics();
-
-  clear_ball(g, x, y);
-  x = other_x + xi;
-  y = other_y + yi;
-
-  if (x < 0) {
-    x = 0;
-    xi = -xi;
+  for (Particle &p : particles) {
+    p.step(g);
+    p.nudge(0, 1);
   }
-
-  if (y < 0) {
-    y = 0;
-    yi = -yi;
-  }
-
-  if (x >= static_cast<int>(gfx_cols)) {
-    x = gfx_cols - 1;
-    xi = -xi;
-  }
-
-  if (y >= static_cast<int>(gfx_rows)) {
-    y = gfx_rows - 1;
-    yi = -yi;
-  }
-
-  set_ball(g, x, y);
-
-  ++yi;
+  gfx_rast.flip();
 }
 
 
@@ -237,22 +272,7 @@ void v7m_reset_handler() {
   vga::configure_band(gfx_rows, text_rows, &text_rast);
   vga::configure_timing(vga::timing_vesa_800x600_60hz);
 
-  unsigned const num_balls = 60;
-  int x[num_balls][2], y[num_balls][2];
-  int xi[num_balls], yi[num_balls];
-
-  unsigned seed = 1118;
-  for (unsigned n = 0; n < num_balls; ++n) {
-    seed = (seed * 1664525) + 1013904223;
-    x[n][0] = x[n][1] = seed % gfx_cols;
-    seed = (seed * 1664525) + 1013904223;
-    y[n][0] = y[n][1] = seed % (gfx_rows*2/3);
-
-    seed = (seed * 1664525) + 1013904223;
-    xi[n] = seed % 9 - 5;
-    seed = (seed * 1664525) + 1013904223;
-    yi[n] = seed % 3 - 2;
-  }
+  for (Particle &p : particles) p.randomize();
 
   char fc[9];
   fc[8] = 0;
@@ -267,10 +287,7 @@ void v7m_reset_handler() {
       f >>= 4;
     }
     text_at(72, 15, red, black, fc);
-    for (unsigned n = 0; n < num_balls; ++n) {
-      step_ball(x[n][0], y[n][0], x[n][1], y[n][1], xi[n], yi[n]);
-    }
-    gfx_rast.flip();
+    update_particles();
 
     f = ++frame;
     for (unsigned i = 8; i > 0; --i) {
@@ -279,9 +296,6 @@ void v7m_reset_handler() {
       f >>= 4;
     }
     text_at(72, 15, red, black, fc);
-    for (unsigned n = 0; n < num_balls; ++n) {
-      step_ball(x[n][1], y[n][1], x[n][0], y[n][0], xi[n], yi[n]);
-    }
-    gfx_rast.flip();
+    update_particles();
   }
 }
