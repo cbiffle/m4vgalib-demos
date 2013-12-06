@@ -26,6 +26,8 @@ SECTIONS {
     KEEP(*(.stm32f4xx_interrupt_table))
     /* Include any functions that have been explicitly placed here. */
     KEEP(*(.ramcode*))
+    /* Include vtables. */
+    KEEP(*(.rodata._ZTV*))
     /* Include initialized data here, so we initialize it during the copy. */
     *(.data*)
     /* We use a word copy, so ensure alignment. */
@@ -45,11 +47,7 @@ SECTIONS {
   .text : {
     *(.text*)
     . = ALIGN(4);
-
-    /* Unfortunately, gcc places vtables here, in Flash.  TODO. */
     *(.rodata*)
-
-    . = ALIGN(4);
   } >rom
 
   .init : ALIGN(2) {
