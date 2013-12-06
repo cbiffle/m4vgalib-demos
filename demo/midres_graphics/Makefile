@@ -25,7 +25,7 @@ demo[libs] := \
   runtime:runtime \
   runtime:default_traps \
   vga:vga \
-  demo/hires_graphics:lib
+  demo/midres_graphics:lib
 
 demo[whole_archive] := \
   lib/armv7m:exception_table \
