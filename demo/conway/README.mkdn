@@ -1,0 +1,13 @@
+Conway's Game of Life
+=====================
+
+This demo runs Conway's Game of Life, a cellular automaton, at full screen
+resolution.  This demonstrates:
+
+ 1. Page-flipping 800x600x1 bitmap graphics.
+ 2. Running a computationally intensive task locked to vsync.
+ 3. The fastest Life algorithm I could find.
+
+This uses slightly less than 100% of the CPU and achieves 28.8 million cell
+updates per second -- or about 5.5 cycles per cell, since we underclock to
+160MHz for timing reasons.

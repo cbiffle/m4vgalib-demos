@@ -74,6 +74,14 @@ static INLINE unsigned col_step(unsigned above[3],
        & ~next1b.carry;
 }
 
+/*
+ * Advance the automaton.
+ *  - current_map is the framebuffer (or equivalent bitmap) holding the current
+ *    state.
+ *  - next_map is a framebuffer (bitmap) that will be filled in.
+ *  - width is the width of both buffers in words.
+ *  - height is the height of both buffers in lines.
+ */
 void step(unsigned const *current_map,
           unsigned *next_map,
           unsigned width,
@@ -89,6 +97,7 @@ void step(unsigned const *current_map,
           unsigned *next_map,
           unsigned width,
           unsigned height) {
+  // We keep sliding windows of state in these arrays.
   unsigned above[3] = { 0, 0, 0 };
   unsigned current[3] = { 0, 0, 0 };
   unsigned below[3] = { 0, 0, 0 };
