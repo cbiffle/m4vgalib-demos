@@ -18,49 +18,75 @@ static constexpr unsigned rows = 150;
 static constexpr unsigned texture_width = 64;
 static constexpr unsigned texture_height = 64;
 
-static constexpr unsigned distance_frac_bits = 6;
-static constexpr unsigned angle_frac_bits = 8;
+static constexpr float dspeed = 1.f;
+static constexpr float aspeed = 0.2f;
 
-static constexpr unsigned dfac = 1 << distance_frac_bits;
-static constexpr unsigned afac = 1 << angle_frac_bits;
+static constexpr unsigned dmult = 2;
+static constexpr unsigned amult = 2;
 
-static constexpr unsigned dspeed = 5;
-static constexpr unsigned aspeed = 5;
+static constexpr unsigned texture_repeats_d = 32;
+static constexpr unsigned texture_repeats_a = 2;
+
+static constexpr unsigned texture_period_a = texture_repeats_a * texture_width;
+static constexpr unsigned texture_period_d = texture_repeats_d * texture_height;
 
 static constexpr float pi = 3.1415926f;
 
 static Direct rasterizer(cols, rows);
 
-static unsigned short distance[rows / 2 * cols / 2];
-static unsigned short angle[rows / 2 * cols / 2];
+
+/*******************************************************************************
+ * We use two lookup tables to eliminate transcendentals from the render loop.
+ * Each table gives values for one quadrant of the screen; deriving values
+ * for the other quadrants is straightforward.
+ */
+
+/*
+ * Distance of each pixel in the quadrant from the near clip plane.  Modulo
+ * texture_height, this gives the v coordinate.
+ *
+ * Range: [0, Infinity)
+ */
+static float distance[rows / 2 * cols / 2];
+
+/*
+ * Angle of each pixel in the quadrant from the Y axis.  This is given for
+ * quadrant I, and can be flipped and offset for other quadrants.  Because we
+ * use the angles as the texture u coordinate, we scale the natural range of
+ * the trigonometric function used to a more convenient one.
+ *
+ * Range: [0, texture_width * texture_repeats_a)
+ */
+static float angle[rows / 2 * cols / 2];
 
 static void generate_lookup_tables() {
-  float r = 4;
   for (unsigned y = 0; y < rows/2; ++y) {
     float cy = y + 0.5f;
     for (unsigned x = 0; x < cols/2; ++x) {
       float cx = x + 0.5f;
 
-      unsigned short d = r * texture_height / sqrtf(cx * cx + cy * cy) * dfac;
-      unsigned short a =
-          texture_width * 0.5f * (atan2f(cy, cx) / pi + 1) * afac;
-
-      distance[y * cols/2 + x] = d;
-      angle   [y * cols/2 + x] = a;
+      unsigned i = y * cols/2 + x;
+      distance[i] = texture_period_d / sqrtf(cx * cx + cy * cy);
+      angle[i] = texture_period_a * 0.5f * (atan2f(cy, cx) / pi + 1);
     }
   }
 }
 
-static unsigned char color(unsigned distance, unsigned d, unsigned a) {
-  unsigned sel = (distance / (16*dfac));
-  sel = armv7m::usat<3>(sel);
-
-  unsigned char c = d^a;
-
-  return (c >> (0x01010000u >> (sel * 8))) & (0x5555AAFFu >> (sel * 8));
+static unsigned tex_fetch(float u, float v) {
+  return static_cast<unsigned>(u * dmult) ^ static_cast<unsigned>(v * amult);
 }
 
-static constexpr unsigned tex_period = texture_width;
+static unsigned shade(float distance, unsigned char pixel) {
+  unsigned sel = static_cast<unsigned>(distance) / (texture_repeats_d * 4);
+  sel = armv7m::usat<3>(sel);
+
+  return (pixel >> (0x01010000u >> (sel * 8)))
+      & (0x5555AAFFu >> (sel * 8));
+}
+
+static unsigned color(float distance, float fd, float fa) {
+  return shade(distance, tex_fetch(fd, fa));
+}
 
 __attribute__((noreturn))
 __attribute__((noinline))
@@ -84,20 +110,17 @@ static void rest() {
 
       // Quadrant II
       for (unsigned x = 0; x < cols/2; ++x) {
-        unsigned dx = cols/2 - x - 1;
-        unsigned i = dy * cols/2 + dx;
-        unsigned short d = (distance[i] + (frame << dspeed)) / dfac;
-        unsigned short a = (-angle[i] + ((tex_period/2) << angle_frac_bits)
-                              + (frame << aspeed)) / afac;
+        unsigned i = dy * cols/2 + (cols/2 - x - 1);
+        float d = distance[i] + frame*dspeed;
+        float a = -angle[i] + texture_period_a + frame*aspeed;
         fb[y * cols + x] = color(distance[i], d, a);
       }
 
       // Quadrant I
       for (unsigned x = cols/2; x < cols; ++x) {
-        unsigned dx = x - cols/2;
-        unsigned i = dy * cols/2 + dx;
-        unsigned short d = (distance[i] + (frame << dspeed)) / dfac;
-        unsigned short a = (angle[i] + (frame << aspeed)) / afac;
+        unsigned i = dy * cols/2 + (x - cols/2);
+        float d = distance[i] + frame*dspeed;
+        float a = angle[i] + frame*aspeed;
         fb[y * cols + x] = color(distance[i], d, a);
       }
     }
@@ -108,23 +131,17 @@ static void rest() {
 
       // Quadrant III
       for (unsigned x = 0; x < cols/2; ++x) {
-        unsigned dx = cols/2 - x - 1;
-        unsigned i = dy * cols/2 + dx;
-        
-        unsigned short d = (distance[i] + (frame << dspeed)) / dfac;
-        unsigned short a = (angle[i] + ((tex_period/2) << angle_frac_bits)
-                               + (frame << aspeed)) / afac;
+        unsigned i = dy * cols/2 + (cols/2 - x - 1);
+        float d = distance[i] + frame*dspeed;
+        float a = angle[i] + frame*aspeed;
         fb[y * cols + x] = color(distance[i], d, a);
       }
 
       // Quadrant IV
       for (unsigned x = cols/2; x < cols; ++x) {
-        unsigned dx = x - cols/2;
-        unsigned i = dy * cols/2 + dx;
-
-        unsigned short d = (distance[i] + (frame << dspeed)) / dfac;
-        unsigned short a = (-angle[i] + (tex_period << angle_frac_bits)
-                               + (frame << aspeed)) / afac;
+        unsigned i = dy * cols/2 + (x - cols/2);
+        float d = distance[i] + frame*dspeed;
+        float a = -angle[i] + texture_period_a + frame*aspeed;
         fb[y * cols + x] = color(distance[i], d, a);
       }
     }
