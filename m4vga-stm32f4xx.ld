@@ -86,7 +86,7 @@ SECTIONS {
   } >sram112_at_zero
 
   .local (NOLOAD) : {
-    . += 1024;  /* Leave room for a stack. */
+    . += 1536;  /* Leave room for a stack. */
     PROVIDE(v7m_initial_stack_top = .);
     /* Allow stuff to be placed explicitly into CCM as needed. */
     KEEP(*(.vga_local_ram))
