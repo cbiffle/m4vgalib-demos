@@ -1,7 +1,9 @@
 #include "lib/armv7m/exception_table.h"
+#include "lib/armv7m/instructions.h"
 
 #include "runtime/startup.h"
 
+#include "vga/measurement.h"
 #include "vga/timing.h"
 #include "vga/vga.h"
 #include "vga/rast/direct.h"
@@ -51,13 +53,11 @@ static void generate_lookup_tables() {
 
 static unsigned char color(unsigned distance, unsigned d, unsigned a) {
   unsigned sel = (distance / (16*dfac));
-  switch (sel) {
-    case 0: return d^a;
-    case 1: return (d^a) & 0b101010;
-    case 2: return ((d^a) >> 1) & 0b01010101;
-    case 3: return ((d^a) >> 1) & 0b01010101;
-    default: return 0;
-  }
+  sel = armv7m::usat<3>(sel);
+
+  unsigned char c = d^a;
+
+  return (c >> (0x01010000u >> (sel * 8))) & (0x5555AAFFu >> (sel * 8));
 }
 
 static constexpr unsigned tex_period = texture_width;
@@ -129,7 +129,9 @@ static void rest() {
       }
     }
 
+    vga::msig_a_clear();
     rasterizer.flip();
+    vga::msig_a_set();
   }
 }
 
