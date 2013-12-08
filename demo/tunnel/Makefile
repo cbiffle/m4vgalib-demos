@@ -15,7 +15,7 @@ demo[arch] := stm32f4xx
 
 demo[cc_files] := main.cc
 
-demo[cc_flags] := -std=gnu++0x
+demo[cc_flags] := -std=gnu++0x -O2
 
 demo[libs] := \
   lib/armv7m:armv7m \
