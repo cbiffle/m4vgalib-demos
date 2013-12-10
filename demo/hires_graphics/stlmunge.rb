@@ -85,9 +85,9 @@ end
   nx, ny, nz, x0, y0, z0, x1, y1, z1, x2, y2, z2, atts = parts
 
   points = [
-    Point3.new(x0, y0, z0),
-    Point3.new(x1, y1, z1),
-    Point3.new(x2, y2, z2)
+    Point3.new(x0, y0, z0 - 20),
+    Point3.new(x1, y1, z1 - 20),
+    Point3.new(x2, y2, z2 - 20)
   ]
 
   edges = [
