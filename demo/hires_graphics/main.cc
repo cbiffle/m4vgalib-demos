@@ -205,8 +205,8 @@ static void rest() {
     ++frame;
     vga::Graphics1 g = rasterizer.make_bg_graphics();
 
-    draw_edges(g, m, false);
     m = m * Mat4f::rotate_y(0.01);
+    g.clear_all();
     draw_edges(g, m, true);
 
     vga::msig_a_clear();
