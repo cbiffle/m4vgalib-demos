@@ -112,6 +112,7 @@ struct Mat4f {
   }
 };
 
+__attribute__((section(".ramcode")))
 static Vec4f operator*(Mat4f const &m, Vec4f v) {
   return { dot(m.r0, v),
            dot(m.r1, v),
@@ -149,6 +150,7 @@ struct EdgeList {
 
 extern unsigned char const edge_data[];
 
+__attribute__((section(".ramcode")))
 static void draw_edges(vga::Graphics1 &g, Mat4f const &m, bool set) {
   EdgeList const *list = reinterpret_cast<EdgeList const *>((void *) edge_data);
 
