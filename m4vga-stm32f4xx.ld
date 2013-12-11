@@ -25,9 +25,9 @@ SECTIONS {
     KEEP(*(.v7m_exception_table))
     KEEP(*(.stm32f4xx_interrupt_table))
     /* Include any functions that have been explicitly placed here. */
-    KEEP(*(.ramcode*))
+    *(.ramcode*)
     /* Include vtables. */
-    KEEP(*(.rodata._ZTV*))
+    *(.rodata._ZTV*)
     /* Include initialized data here, so we initialize it during the copy. */
     *(.data*)
     /* We use a word copy, so ensure alignment. */
@@ -89,7 +89,7 @@ SECTIONS {
     . += 1536;  /* Leave room for a stack. */
     PROVIDE(v7m_initial_stack_top = .);
     /* Allow stuff to be placed explicitly into CCM as needed. */
-    KEEP(*(.vga_local_ram))
+    *(.vga_local_ram)
     . = ALIGN(4);
 
     PROVIDE(_ccm_arena_start = .);
@@ -100,7 +100,7 @@ SECTIONS {
 
   /* Allow stuff to be placed explicitly into scanout RAM as needed. */
   .sram16 (NOLOAD) : {
-    KEEP(*(.vga_scan_ram))
+    *(.vga_scan_ram)
   } >sram16
 
   /*
