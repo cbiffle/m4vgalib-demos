@@ -21,11 +21,8 @@ static constexpr unsigned texture_height = 64;
 static constexpr float dspeed = 1.f;
 static constexpr float aspeed = 0.2f;
 
-static constexpr unsigned dmult = 2;
-static constexpr unsigned amult = 2;
-
 static constexpr unsigned texture_repeats_d = 32;
-static constexpr unsigned texture_repeats_a = 2;
+static constexpr unsigned texture_repeats_a = 4;
 
 static constexpr unsigned texture_period_a = texture_repeats_a * texture_width;
 static constexpr unsigned texture_period_d = texture_repeats_d * texture_height;
@@ -73,11 +70,11 @@ static void generate_lookup_tables() {
 }
 
 static unsigned tex_fetch(float u, float v) {
-  return static_cast<unsigned>(u * dmult) ^ static_cast<unsigned>(v * amult);
+  return static_cast<unsigned>(u) ^ static_cast<unsigned>(v);
 }
 
 static unsigned shade(float distance, unsigned char pixel) {
-  unsigned sel = static_cast<unsigned>(distance) / (texture_repeats_d * 4);
+  unsigned sel = static_cast<unsigned>(distance) / (texture_repeats_d * 2);
   sel = armv7m::usat<3>(sel);
 
   return (pixel >> (0x01010000u >> (sel * 8)))

@@ -184,7 +184,7 @@ static void rest() {
   vga::configure_timing(vga::timing_vesa_800x600_60hz);
 
   rasterizer.set_fg_color(0b111111);
-  rasterizer.set_bg_color(0b100000);
+  rasterizer.set_bg_color(0b010000);
 
   if (!rasterizer.can_bg_use_bitband()) {
     rasterizer.flip();
