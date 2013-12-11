@@ -4,6 +4,7 @@
 
 #include "vga/rast/bitmap_1.h"
 #include "vga/graphics_1.h"
+#include "vga/measurement.h"
 #include "vga/timing.h"
 #include "vga/vga.h"
 #include "demo/conway/conway.h"
@@ -55,9 +56,11 @@ void v7m_reset_handler() {
          conway_cols / 32,
          conway_rows);
 
+    vga::msig_a_clear();
     // We often complete the update inside of vblank, so we don't use flip(),
     // which syncs to the *start* of the vblank.
     vga::wait_for_vblank();
     rasterizer.flip_now();
+    vga::msig_a_set();
   }
 }
