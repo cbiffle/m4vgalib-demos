@@ -38,23 +38,55 @@ static Direct rasterizer(cols, rows);
  * for the other quadrants is straightforward.
  */
 
-/*
- * Distance of each pixel in the quadrant from the near clip plane.  Modulo
- * texture_height, this gives the v coordinate.
- *
- * Range: [0, Infinity)
- */
-static float distance[rows / 2 * cols / 2];
+struct Entry {
+  /*
+   * Distance of each pixel in the quadrant from the near clip plane.  Modulo
+   * texture_height, this gives the v coordinate.
+   *
+   * Range: [0, Infinity)
+   */
+  float distance;
+  /*
+   * Angle of each pixel in the quadrant from the Y axis.  This is given for
+   * quadrant I, and can be flipped and offset for other quadrants.  Because we
+   * use the angles as the texture u coordinate, we scale the natural range of
+   * the trigonometric function used to a more convenient one.
+   *
+   * Range: [0, texture_width * texture_repeats_a)
+   */
+  float angle;
+};
 
-/*
- * Angle of each pixel in the quadrant from the Y axis.  This is given for
- * quadrant I, and can be flipped and offset for other quadrants.  Because we
- * use the angles as the texture u coordinate, we scale the natural range of
- * the trigonometric function used to a more convenient one.
- *
- * Range: [0, texture_width * texture_repeats_a)
- */
-static float angle[rows / 2 * cols / 2];
+typedef unsigned PackedEntry;
+
+static PackedEntry table[rows / 2 * cols / 2];
+
+static Entry read_table(unsigned i) {
+  PackedEntry const *address = &table[i];
+  float distance, angle;
+  asm (
+    "  vldr.32 %[distance], [%[address]] \n"
+    "  vcvtt.f32.f16 %[angle], %[distance] \n"
+    "  vcvtb.f32.f16 %[distance], %[distance] \n"
+  : [distance] "=&w" (distance),
+    [angle]    "=&w" (angle)
+  : [address] "r" (address)
+  );
+  return { distance, angle };
+}
+
+static void write_table(unsigned i, Entry entry) {
+  PackedEntry const *address = &table[i];
+  asm (
+    "  vcvtb.f16.f32 %[distance], %[distance] \n"
+    "  vcvtt.f16.f32 %[distance], %[angle] \n"
+    "  vstr.32 %[distance], [%[address]] \n"
+  :
+  : [distance] "w" (entry.distance),
+    [angle]    "w" (entry.angle),
+    [address] "r" (address)
+  );
+}
 
 static void generate_lookup_tables() {
   for (unsigned y = 0; y < rows/2; ++y) {
@@ -63,8 +95,9 @@ static void generate_lookup_tables() {
       float cx = x + 0.5f;
 
       unsigned i = y * cols/2 + x;
-      distance[i] = texture_period_d / sqrtf(cx * cx + cy * cy);
-      angle[i] = texture_period_a * 0.5f * (atan2f(cy, cx) / pi + 1);
+      float d = texture_period_d / sqrtf(cx * cx + cy * cy);
+      float a = texture_period_a * 0.5f * (atan2f(cy, cx) / pi + 1);
+      write_table(i, { d, a });
     }
   }
 }
@@ -107,18 +140,18 @@ static void rest() {
 
       // Quadrant II
       for (unsigned x = 0; x < cols/2; ++x) {
-        unsigned i = dy * cols/2 + (cols/2 - x - 1);
-        float d = distance[i] + frame*dspeed;
-        float a = -angle[i] + texture_period_a + frame*aspeed;
-        fb[y * cols + x] = color(distance[i], d, a);
+        Entry e = read_table(dy * cols/2 + (cols/2 - x - 1));
+        float d = e.distance + frame*dspeed;
+        float a = -e.angle + texture_period_a + frame*aspeed;
+        fb[y * cols + x] = color(e.distance, d, a);
       }
 
       // Quadrant I
       for (unsigned x = cols/2; x < cols; ++x) {
-        unsigned i = dy * cols/2 + (x - cols/2);
-        float d = distance[i] + frame*dspeed;
-        float a = angle[i] + frame*aspeed;
-        fb[y * cols + x] = color(distance[i], d, a);
+        Entry e = read_table(dy * cols/2 + (x - cols/2));
+        float d = e.distance + frame*dspeed;
+        float a = e.angle + frame*aspeed;
+        fb[y * cols + x] = color(e.distance, d, a);
       }
     }
 
@@ -128,18 +161,18 @@ static void rest() {
 
       // Quadrant III
       for (unsigned x = 0; x < cols/2; ++x) {
-        unsigned i = dy * cols/2 + (cols/2 - x - 1);
-        float d = distance[i] + frame*dspeed;
-        float a = angle[i] + frame*aspeed;
-        fb[y * cols + x] = color(distance[i], d, a);
+        Entry e = read_table(dy * cols/2 + (cols/2 - x - 1));
+        float d = e.distance + frame*dspeed;
+        float a = e.angle + frame*aspeed;
+        fb[y * cols + x] = color(e.distance, d, a);
       }
 
       // Quadrant IV
       for (unsigned x = cols/2; x < cols; ++x) {
-        unsigned i = dy * cols/2 + (x - cols/2);
-        float d = distance[i] + frame*dspeed;
-        float a = -angle[i] + texture_period_a + frame*aspeed;
-        fb[y * cols + x] = color(distance[i], d, a);
+        Entry e = read_table(dy * cols/2 + (x - cols/2));
+        float d = e.distance + frame*dspeed;
+        float a = -e.angle + texture_period_a + frame*aspeed;
+        fb[y * cols + x] = color(e.distance, d, a);
       }
     }
 
