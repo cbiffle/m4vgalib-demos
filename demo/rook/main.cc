@@ -7,12 +7,12 @@
 #include "vga/measurement.h"
 #include "vga/vga.h"
 #include "vga/rast/bitmap_1.h"
+#include "vga/rast/text_10x16.h"
 
 #include <math.h>
 
-using vga::rast::Bitmap_1;
-
-static Bitmap_1 rasterizer(800, 600);
+static vga::rast::Bitmap_1 rasterizer(800, 600 - 17);
+static vga::rast::Text_10x16 text(800, 17, 600 - 17);
 
 
 /*******************************************************************************
@@ -173,6 +173,13 @@ static void draw_edges(vga::Graphics1 &g, Mat4f const &m, bool set) {
  * The main bits.
  */
 
+static void string(char const *s) {
+  unsigned col = 0;
+  while (char c = *s++) {
+    text.put_char(col++, 0, 0b111111, 0b010000, c);
+  }
+}
+
 __attribute__((noreturn))
 __attribute__((noinline))
 static void rest() {
@@ -180,11 +187,20 @@ static void rest() {
   vga::init();
 
   rasterizer.activate(vga::timing_vesa_800x600_60hz);
-  vga::configure_band(0, 600, &rasterizer);
-  vga::configure_timing(vga::timing_vesa_800x600_60hz);
-
   rasterizer.set_fg_color(0b111111);
   rasterizer.set_bg_color(0b010000);
+
+  text.activate(vga::timing_vesa_800x600_60hz);
+
+  text.clear_framebuffer(0b010000);
+  string("2450 triangles - 2.5Mpix/sec perspective projected fill rate "
+         "- 30fps @ 800x600");
+
+  vga::configure_band(0, 1, &rasterizer);
+  vga::configure_band(100, 600 - 17 - 100, &rasterizer);
+  vga::configure_band(600 - 17, 600, &text);
+  vga::configure_timing(vga::timing_vesa_800x600_60hz);
+
 
   if (!rasterizer.can_bg_use_bitband()) {
     rasterizer.flip();
@@ -210,7 +226,7 @@ static void rest() {
     draw_edges(g, m, true);
 
     vga::msig_a_clear();
-    vga::sync_to_vblank();
+    vga::wait_for_vblank();
     rasterizer.copy_bg_to_fg();
     vga::msig_a_set();
   }
