@@ -98,6 +98,9 @@ end
 
   edges.each { |e|
     next if e.trivial?
+    if unique_edges[e]
+      next
+    end
     unique_edges[e] = 1
     $ends[e.a] ||= []
     $ends[e.a] << e
