@@ -1,8 +1,12 @@
 #ifndef DEMO_CONWAY_CONWAY_H
 #define DEMO_CONWAY_CONWAY_H
 
-void step(unsigned const *current_map,
-          unsigned *next_map,
-          unsigned width, unsigned height);
+namespace demo {
+namespace conway {
+
+void run_demo(unsigned frame_count);
+
+}  // namespace conway
+}  // namespace demo
 
 #endif  // DEMO_CONWAY_CONWAY_H

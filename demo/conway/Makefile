@@ -8,7 +8,8 @@ lib[cc_files] := \
 
 lib[cc_flags] := -O1 -std=gnu++0x
 
-lib[libs] :=
+lib[libs] := \
+  vga:vga
 
 
 demo[type] := program

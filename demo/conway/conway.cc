@@ -1,5 +1,16 @@
+#include "demo/conway/conway.h"
 
 #include "lib/common/attribute_macros.h"
+
+#include "vga/rast/bitmap_1.h"
+#include "vga/arena.h"
+#include "vga/graphics_1.h"
+#include "vga/measurement.h"
+#include "vga/timing.h"
+#include "vga/vga.h"
+
+namespace demo {
+namespace conway {
 
 /*
  * Result of a bit-parallel addition operation: a pair of bit vectors
@@ -82,7 +93,7 @@ static INLINE unsigned col_step(unsigned above[3],
  *  - width is the width of both buffers in words.
  *  - height is the height of both buffers in lines.
  */
-void step(unsigned const *current_map,
+static void step(unsigned const *current_map,
           unsigned *next_map,
           unsigned width,
           unsigned height);
@@ -168,3 +179,67 @@ void step(unsigned const *current_map,
   ADV(current, 0);
   next_map[offset + width - 1] = col_step(above, current, below);
 }
+
+static constexpr unsigned conway_cols = 800;
+static constexpr unsigned conway_rows = 600;
+
+static vga::rast::Bitmap_1 rasterizer(conway_cols, conway_rows);
+
+// Cells will be set at boot when rand() is less than this.
+static unsigned constexpr set_threshold = 0x20000000;
+
+// Seed and state variable for random number generation.
+static unsigned seed = 1118;
+
+// A simple linear congruential random number generator.
+// (Coefficients borrowed from GCC.)
+static unsigned rand() {
+  seed = ((seed * 1103515245) + 12345) & 0x7FFFFFFF;
+  return seed;
+}
+
+static void set_random_cells() {
+  vga::Graphics1 g = rasterizer.make_bg_graphics();
+  for (unsigned y = 0; y < conway_rows; ++y) {
+    for (unsigned x = 0; x < conway_cols; ++x) {
+      if (rand() < set_threshold) g.set_pixel(x, y);
+    }
+  }
+  rasterizer.flip();
+}
+
+
+void run_demo(unsigned frame_count) {
+  vga::sync_to_vblank();
+  vga::msig_a_set();
+  rasterizer.activate(vga::timing_vesa_800x600_60hz);
+  rasterizer.set_fg_color(0b111111);
+  rasterizer.set_bg_color(0b010000);
+
+  vga::configure_band(0, 600, &rasterizer);
+  vga::msig_a_clear();
+
+  set_random_cells();
+
+  vga::video_on();
+
+  unsigned f = 0;
+  while (frame_count == 0 || f++ < frame_count) {
+    step(static_cast<unsigned const *>(rasterizer.get_fg_buffer()),
+         static_cast<unsigned *>(rasterizer.get_bg_buffer()),
+         conway_cols / 32,
+         conway_rows);
+    
+    vga::wait_for_vblank();
+    rasterizer.flip_now();
+  }
+
+  vga::video_off();
+
+  vga::configure_band(0, 600, 0);
+  vga::arena_reset();
+}
+
+}  // namespace conway
+}  // namespace demo
+
