@@ -3,11 +3,14 @@ products := lib demo
 
 lib[type] := library
 
-lib[cc_files] :=
+lib[cc_files] := rook.cc
 
-lib[cc_flags] := -std=gnu++0x
+lib[cc_flags] := -std=gnu++0x -O2
 
-lib[libs] :=
+lib[libs] := \
+  vga:vga
+
+lib[using_l_flags] := -lm
 
 
 demo[type] := program
@@ -15,7 +18,7 @@ demo[arch] := stm32f4xx
 
 demo[cc_files] := main.cc
 
-demo[cc_flags] := -std=gnu++0x -O2
+demo[cc_flags] := -std=gnu++0x
 
 demo[libs] := \
   lib/armv7m:armv7m \
@@ -32,7 +35,6 @@ demo[whole_archive] := \
   runtime:default_traps
 
 demo[l_flags] = \
-  -lm \
   -Wl,-Map=$(intermediate)/demo.map \
   -T$(shell pwd)/$(depth)/m4vga-stm32f4xx.ld \
   -nostartfiles
