@@ -154,7 +154,7 @@ static constexpr Mat4f operator*(Mat4f const &a, Mat4f const &b) {
 struct EdgeList {
   unsigned count;
   Vec3f vertex[];
-} __attribute__((packed)) ;
+} __attribute__((aligned(4)));
 
 extern unsigned char const edge_data[];
 
