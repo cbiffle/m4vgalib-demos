@@ -26,6 +26,8 @@ static void rest() {
   rasterizer.set_fg_color(0b111111);
   rasterizer.set_bg_color(0b010000);
 
+  rasterizer.make_bg_graphics().clear_all();
+
   vga::configure_band_list(&band);
   vga::configure_timing(vga::timing_vesa_800x600_60hz);
 

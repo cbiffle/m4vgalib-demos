@@ -27,11 +27,10 @@ static void clear_ball(vga::Graphics1 &g, unsigned x, unsigned y) {
   g.clear_pixel(x, y + 1);
 }
 
-static void step_ball(int &x, int &y,
+static void step_ball(vga::Graphics1 &g,
+                      int &x, int &y,
                       int other_x, int other_y,
                       int &xi, int &yi) {
-  vga::Graphics1 g = rasterizer.make_bg_graphics();
-
   clear_ball(g, x, y);
   x = other_x + xi;
   y = other_y + yi;
@@ -86,8 +85,11 @@ void v7m_reset_handler() {
 
   x[0] = x[1] = y[0] = y[1] = 0;
 
+  vga::Graphics1 g = rasterizer.make_bg_graphics();
+  g.clear_all();
+
   while (1) {
-    step_ball(x[0], y[0], x[1], y[1], xi, yi);
-    step_ball(x[1], y[1], x[0], y[0], xi, yi);
+    step_ball(g, x[0], y[0], x[1], y[1], xi, yi);
+    step_ball(g, x[1], y[1], x[0], y[0], xi, yi);
   }
 }

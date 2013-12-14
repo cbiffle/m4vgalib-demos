@@ -200,6 +200,7 @@ static unsigned rand() {
 
 static void set_random_cells() {
   vga::Graphics1 g = rasterizer.make_bg_graphics();
+  g.clear_all();
   for (unsigned y = 0; y < conway_rows; ++y) {
     for (unsigned x = 0; x < conway_cols; ++x) {
       if (rand() < set_threshold) g.set_pixel(x, y);

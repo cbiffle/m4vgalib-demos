@@ -229,6 +229,8 @@ void v7m_reset_handler() {
     if (!gfx_rast.can_bg_use_bitband()) while (1);
   }
 
+  gfx_rast.make_bg_graphics().clear_all();
+
   text_rast.activate(vga::timing_vesa_800x600_60hz);
   text_rast.clear_framebuffer(0);
 
