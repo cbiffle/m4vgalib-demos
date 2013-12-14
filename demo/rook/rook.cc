@@ -158,7 +158,7 @@ struct EdgeList {
 
 extern unsigned char const edge_data[];
 
-__attribute__((section(".ramcode")))
+__attribute__((section(".ramcode.draw_edges")))
 static void draw_edges(vga::Graphics1 &g, Mat4f const &m, bool set) {
   EdgeList const *list = reinterpret_cast<EdgeList const *>((void *) edge_data);
 
@@ -190,6 +190,7 @@ static void string(Pixel fore, Pixel back, char const *s) {
   }
 }
 
+__attribute__((section(".ramcode.rook_run")))
 void run(unsigned frame_count) {
   rasterizer.activate(vga::timing_vesa_800x600_60hz);
   rasterizer.set_fg_color(0b111111);
