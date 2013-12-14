@@ -1,26 +1,33 @@
 #include "demo/xor_pattern/xor.h"
 
-#include "vga/timing.h"
+#include "lib/armv7m/instructions.h"
 
-#include "demo/xor_pattern/pattern.h"
+#include "vga/arena.h"
+#include "vga/timing.h"
+#include "vga/vga.h"
+
+#include "demo/xor_pattern/rasterizer.h"
 
 namespace demo {
 namespace xor_pattern {
 
-void Xor::activate(vga::Timing const &timing) {
-  _frame = 0;
-  _width = timing.video_pixels;
-}
+static demo::xor_pattern::Rasterizer rasterizer;
+static vga::Band const band = { &rasterizer, 600, nullptr };
 
-__attribute__((section(".ramcode")))
-vga::Rasterizer::LineShape Xor::rasterize(unsigned line_number, Pixel *target) {
-  unsigned f = _frame;
+void run(unsigned frame_count) {
+  rasterizer.activate(vga::timing_vesa_800x600_60hz);
+  vga::configure_band_list(&band);
+  vga::video_on();
 
-  if (line_number == 0) _frame = ++f;
+  unsigned frame = 0;
+  while (frame_count == 0 || frame++ < frame_count) {
+    vga::sync_to_vblank();
+  }
 
-  pattern((line_number >> 2) + f, f, target, _width);
-
-  return { 0, _width };
+  vga::configure_band_list(nullptr);
+  vga::wait_for_vblank();
+  vga::video_off();
+  vga::arena_reset();
 }
 
 }  // namespace xor_pattern

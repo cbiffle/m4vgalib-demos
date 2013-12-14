@@ -4,6 +4,7 @@ products := lib demo
 lib[type] := library
 
 lib[cc_files] := \
+  rasterizer.cc \
   xor.cc
 
 lib[S_files] := \
@@ -12,7 +13,7 @@ lib[S_files] := \
 lib[cc_flags] := -std=gnu++0x
 
 lib[libs] := \
-  lib/stm32f4xx:stm32f4xx \
+  lib/armv7m:armv7m \
   vga:vga
 
 
