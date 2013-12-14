@@ -211,7 +211,7 @@ static void set_random_cells() {
 
 static vga::Band const band = { &rasterizer, 600, nullptr };
 
-void run_demo(unsigned frame_count) {
+void run_demo(unsigned frame_count, bool clear_first) {
   vga::sync_to_vblank();
   vga::msig_a_set();
   rasterizer.activate(vga::timing_vesa_800x600_60hz);
@@ -221,7 +221,7 @@ void run_demo(unsigned frame_count) {
   vga::configure_band_list(&band);
   vga::msig_a_clear();
 
-  set_random_cells();
+  if (clear_first) set_random_cells();
 
   vga::video_on();
 

@@ -4,7 +4,7 @@
 namespace demo {
 namespace conway {
 
-void run_demo(unsigned frame_count);
+void run_demo(unsigned frame_count, bool clear_first);
 
 }  // namespace conway
 }  // namespace demo
