@@ -182,10 +182,12 @@ static void draw_edges(vga::Graphics1 &g, Mat4f const &m, bool set) {
  * The main bits.
  */
 
-static void string(char const *s) {
-  unsigned col = 0;
+typedef vga::Rasterizer::Pixel Pixel;
+
+unsigned t_c = 0;
+static void string(Pixel fore, Pixel back, char const *s) {
   while (char c = *s++) {
-    text.put_char(col++, 0, 0b111111, 0b010000, c);
+    text.put_char(t_c++, 0, fore, back, c);
   }
 }
 
@@ -197,8 +199,11 @@ void run(unsigned frame_count) {
   text.activate(vga::timing_vesa_800x600_60hz);
 
   text.clear_framebuffer(0b010000);
-  string("2450 triangles - 2.5Mpix/sec perspective projected fill rate "
-         "- 30fps @ 800x600");
+  t_c = 0;
+  string(0b111111, 0b010000, "2450 triangles - ");
+  string(0b111111, 0b110000, "2.5Mpix/sec perspective projected fill rate");
+  string(0b111111, 0b010000, " - ");
+  string(0b000011, 0b010000, "30fps @ 800x600");
 
   vga::configure_band_list(&bands[0]);
 
