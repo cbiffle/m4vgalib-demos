@@ -159,16 +159,14 @@ struct EdgeList {
 extern unsigned char const edge_data[];
 
 __attribute__((section(".ramcode.draw_edges")))
-static void draw_edges(vga::Graphics1 &g, Mat4f const &m, bool set) {
+static void draw_edges(vga::Graphics1 &g, Mat4f const &m) {
   EdgeList const *list = reinterpret_cast<EdgeList const *>((void *) edge_data);
 
   while (list->count != 0) {  // Zero count signals end.
     Vec3f last = (m * static_cast<Vec4f>(list->vertex[0])).project();
     for (unsigned i = 1; i < list->count; ++i) {
       Vec3f p = (m * static_cast<Vec4f>(list->vertex[i])).project();
-      g.draw_line(last.x, last.y,
-                  p.x, p.y,
-                  set);
+      g.set_line(last.x, last.y, p.x, p.y);
       last = p;
     }
 
@@ -201,12 +199,13 @@ void run(unsigned frame_count) {
   text.clear_framebuffer(0b010000);
   t_c = 0;
   string(0b111111, 0b010000, "2450 triangles - ");
-  string(0b111111, 0b110000, "2.5Mpix/sec perspective projected fill rate");
+  string(0b111111, 0b110000, "4.3Mpix/sec perspective projected fill rate");
   string(0b111111, 0b010000, " - ");
   string(0b000011, 0b010000, "30fps @ 800x600");
 
   vga::configure_band_list(&bands[0]);
 
+  // Switch to whichever page has bitband support.
   if (!rasterizer.can_bg_use_bitband()) {
     rasterizer.flip();
     if (!rasterizer.can_bg_use_bitband()) while (1);
@@ -224,14 +223,16 @@ void run(unsigned frame_count) {
   // Translate world away from camera.
   m = m * Mat4f::translate(0, 0, -70);
 
+  // Because we copy, not flip, this can be hoisted out of loop.
+  vga::Graphics1 g = rasterizer.make_bg_graphics();
+
   unsigned frame = 0;
   while (frame_count == 0 || frame < frame_count) {
     ++frame;
-    vga::Graphics1 g = rasterizer.make_bg_graphics();
 
     m = m * Mat4f::rotate_y(0.01);
     g.clear_all();
-    draw_edges(g, m, true);
+    draw_edges(g, m);
 
     vga::msig_a_clear();
     vga::wait_for_vblank();
