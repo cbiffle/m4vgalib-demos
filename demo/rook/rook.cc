@@ -36,7 +36,7 @@ struct Vec4f {
   inline Vec3f project() const;
 };
 
-inline float dot(Vec4f const &a, Vec4f b) {
+inline constexpr float dot(Vec4f const &a, Vec4f b) {
   return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 }
 
@@ -122,19 +122,18 @@ struct Mat4f {
 };
 
 __attribute__((section(".ramcode")))
-static Vec4f operator*(Mat4f const &m, Vec4f v) {
+static constexpr Vec4f operator*(Mat4f const &m, Vec4f v) {
   return { dot(m.r0, v),
            dot(m.r1, v),
            dot(m.r2, v),
            dot(m.r3, v) };
 }
 
-static Mat4f operator*(Mat4f const &a, Mat4f const &b) {
-  Mat4f bt = b.transpose();
-  return { bt * a.r0,
-           bt * a.r1,
-           bt * a.r2,
-           bt * a.r3 };
+static constexpr Mat4f operator*(Mat4f const &a, Mat4f const &b) {
+  return { b.transpose() * a.r0,
+           b.transpose() * a.r1,
+           b.transpose() * a.r2,
+           b.transpose() * a.r3 };
 }
 
 
