@@ -252,6 +252,7 @@ void v7m_reset_handler() {
   vga::configure_band(0, gfx_rows, &gfx_rast);
   vga::configure_band(gfx_rows, text_rows, &text_rast);
   vga::configure_timing(vga::timing_vesa_800x600_60hz);
+  vga::video_on();
 
   for (Particle &p : particles) p.randomize();
 

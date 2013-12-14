@@ -129,6 +129,8 @@ static void rest() {
   vga::configure_band(0, rows * 4, &rasterizer);
   vga::configure_timing(vga::timing_vesa_800x600_60hz);
 
+  vga::video_on();
+
   unsigned frame = 0;
   while (1) {
     unsigned char *fb = rasterizer.get_bg_buffer();

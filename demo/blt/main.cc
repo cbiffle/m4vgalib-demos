@@ -57,6 +57,7 @@ static void rest() {
   vga::bitblt(b, 8, 0, d, { 4, 64, 700, 16});
 
   rasterizer.flip_now();
+  vga::video_on();
 
   while (1);  
 }

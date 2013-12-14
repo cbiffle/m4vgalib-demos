@@ -207,6 +207,8 @@ static void rest() {
     if (!rasterizer.can_bg_use_bitband()) while (1);
   }
 
+  vga::video_on();
+
   Mat4f m = Mat4f::identity();
   // Translate world-space to screen-space.
   m = m * Mat4f::translate(400, 300, 0);

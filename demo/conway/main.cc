@@ -50,6 +50,8 @@ void v7m_reset_handler() {
 
   set_random_cells();
 
+  vga::video_on();
+
   while (true) {
     step(static_cast<unsigned const *>(rasterizer.get_fg_buffer()),
          static_cast<unsigned *>(rasterizer.get_bg_buffer()),

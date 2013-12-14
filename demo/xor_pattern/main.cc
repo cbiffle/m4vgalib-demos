@@ -16,5 +16,6 @@ void v7m_reset_handler() {
   rasterizer.activate(vga::timing_vesa_800x600_60hz);
   vga::configure_band(0, 600, &rasterizer);
   vga::configure_timing(vga::timing_vesa_800x600_60hz);
+  vga::video_on();
   while (1);
 }

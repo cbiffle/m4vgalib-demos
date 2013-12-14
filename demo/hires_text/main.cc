@@ -160,6 +160,8 @@ void v7m_reset_handler() {
   text_at(0, 36, white, black, "60 fps / 40MHz pixel clock");
   text_at(58, 36, white, black, "Frame number:");
 
+  vga::video_on();
+
   char fc[9];
   fc[8] = 0;
   unsigned frame = 0;

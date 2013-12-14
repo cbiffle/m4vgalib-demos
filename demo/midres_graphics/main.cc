@@ -77,6 +77,8 @@ void v7m_reset_handler() {
     if (!rasterizer.can_bg_use_bitband()) while (1);
   }
 
+  vga::video_on();
+
   int x[2], y[2];
   int xi = 5, yi = 1;
 

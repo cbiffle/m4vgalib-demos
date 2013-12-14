@@ -287,6 +287,8 @@ void v7m_reset_handler() {
 
   cursor_to(0, 0);
 
+  vga::video_on();
+
   while (true) {
     unsigned char c;
     bool has_c = usart_rx_queue.take(c);
