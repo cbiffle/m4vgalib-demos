@@ -14,6 +14,8 @@
 
 static vga::rast::Bitmap_1 rasterizer(800, 600);
 
+static vga::Band const band = { &rasterizer, 600, nullptr };
+
 __attribute__((noreturn))
 __attribute__((noinline))
 static void rest() {
@@ -24,7 +26,7 @@ static void rest() {
   rasterizer.set_fg_color(0b111111);
   rasterizer.set_bg_color(0b010000);
 
-  vga::configure_band(0, 600, &rasterizer);
+  vga::configure_band_list(&band);
   vga::configure_timing(vga::timing_vesa_800x600_60hz);
 
   /*

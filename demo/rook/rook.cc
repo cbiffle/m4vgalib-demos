@@ -16,6 +16,13 @@ namespace rook {
 static vga::rast::Bitmap_1 rasterizer(800, 600 - 17);
 static vga::rast::Text_10x16 text(800, 17, 600 - 17);
 
+static vga::Band const bands[] = {
+  { &rasterizer, 1, &bands[1] },
+  { nullptr, 99, &bands[2] },
+  { &rasterizer, 600 - 17 - 100, &bands[3] },
+  { &text, 17, nullptr },
+};
+
 
 /*******************************************************************************
  * Vectors!
@@ -193,9 +200,7 @@ void run(unsigned frame_count) {
   string("2450 triangles - 2.5Mpix/sec perspective projected fill rate "
          "- 30fps @ 800x600");
 
-  vga::configure_band(0, 1, &rasterizer);
-  vga::configure_band(100, 600 - 17 - 100, &rasterizer);
-  vga::configure_band(600 - 17, 600, &text);
+  vga::configure_band_list(&bands[0]);
 
   if (!rasterizer.can_bg_use_bitband()) {
     rasterizer.flip();

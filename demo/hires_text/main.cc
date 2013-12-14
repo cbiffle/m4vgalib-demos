@@ -8,6 +8,8 @@
 
 static vga::rast::Text_10x16 rasterizer(800, 600);
 
+static vga::Band const band = { &rasterizer, 600, nullptr };
+
 typedef vga::Rasterizer::Pixel Pixel;
 
 /*******************************************************************************
@@ -103,7 +105,7 @@ void v7m_reset_handler() {
   vga::init();
 
   rasterizer.activate(vga::timing_vesa_800x600_60hz);
-  vga::configure_band(0, 600, &rasterizer);
+  vga::configure_band_list(&band);
   vga::configure_timing(vga::timing_vesa_800x600_60hz);
 
   rasterizer.clear_framebuffer(0);

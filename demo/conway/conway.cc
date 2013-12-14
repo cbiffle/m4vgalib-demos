@@ -208,6 +208,7 @@ static void set_random_cells() {
   rasterizer.flip();
 }
 
+static vga::Band const band = { &rasterizer, 600, nullptr };
 
 void run_demo(unsigned frame_count) {
   vga::sync_to_vblank();
@@ -216,7 +217,7 @@ void run_demo(unsigned frame_count) {
   rasterizer.set_fg_color(0b111111);
   rasterizer.set_bg_color(0b010000);
 
-  vga::configure_band(0, 600, &rasterizer);
+  vga::configure_band_list(&band);
   vga::msig_a_clear();
 
   set_random_cells();
@@ -236,7 +237,7 @@ void run_demo(unsigned frame_count) {
 
   vga::video_off();
 
-  vga::configure_band(0, 600, 0);
+  vga::configure_band_list(nullptr);
   vga::arena_reset();
 }
 

@@ -31,6 +31,7 @@ static constexpr float pi = 3.1415926f;
 
 static Direct rasterizer(cols, rows);
 
+static vga::Band const band = { &rasterizer, rows * 4, nullptr };
 
 /*******************************************************************************
  * We use two lookup tables to eliminate transcendentals from the render loop.
@@ -126,7 +127,7 @@ static void rest() {
   generate_lookup_tables();
 
   rasterizer.activate(vga::timing_vesa_800x600_60hz);
-  vga::configure_band(0, rows * 4, &rasterizer);
+  vga::configure_band_list(&band);
   vga::configure_timing(vga::timing_vesa_800x600_60hz);
 
   vga::video_on();

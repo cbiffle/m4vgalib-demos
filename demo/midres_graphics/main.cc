@@ -9,6 +9,8 @@
 
 static vga::rast::Bitmap_1 rasterizer(640, 480);
 
+static vga::Band const band = { &rasterizer, 480, nullptr };
+
 static void set_ball(vga::Graphics1 &g, unsigned x, unsigned y) {
   g.set_pixel(x, y);
   g.set_pixel(x - 1, y);
@@ -66,7 +68,7 @@ void v7m_reset_handler() {
   vga::init();
 
   rasterizer.activate(vga::timing_vesa_800x600_60hz);
-  vga::configure_band(0, 480, &rasterizer);
+  vga::configure_band_list(&band);
   vga::configure_timing(vga::timing_vesa_640x480_60hz);
 
   rasterizer.set_fg_color(0b111111);

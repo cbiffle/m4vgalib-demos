@@ -211,6 +211,11 @@ enum {
  * The Startup Routine
  */
 
+static vga::Band const bands[] = {
+  { &gfx_rast, gfx_rows, &bands[1] },
+  { &text_rast, text_rows, nullptr },
+};
+
 void v7m_reset_handler() {
   crt_init();
   vga::init();
@@ -249,8 +254,7 @@ void v7m_reset_handler() {
   text_at(0, 15, white, black, "60 fps / 40MHz pixel clock");
   text_at(58, 36, white, black, "Frame number:");
 
-  vga::configure_band(0, gfx_rows, &gfx_rast);
-  vga::configure_band(gfx_rows, text_rows, &text_rast);
+  vga::configure_band_list(&bands[0]);
   vga::configure_timing(vga::timing_vesa_800x600_60hz);
   vga::video_on();
 
