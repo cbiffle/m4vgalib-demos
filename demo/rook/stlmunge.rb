@@ -5,6 +5,8 @@ tri_count, = STDIN.read(4).unpack('V')
 
 STDERR.puts "#{tri_count} triangles"
 
+unique_points = {}
+
 unique_edges = {}
 $ends = {}
 
@@ -79,6 +81,9 @@ class Edge
   end
 end
 
+trivial_edges = 0
+duplicate_edges = 0
+
 0.upto(tri_count - 1) { |i|
   parts = STDIN.read(3*4 + 3*3*4 + 2).unpack("eee" + ("eee" + "eee" + "eee") + "v")
 
@@ -90,38 +95,48 @@ end
     Point3.new(x2, y2, z2 - 20)
   ]
 
+  point_indices = points.collect { |p|
+    i = unique_points[p]
+    if i == nil
+      i = unique_points.size
+      unique_points[p] = i
+    end
+    i
+  }
+
   edges = [
-    Edge.new(points[0], points[1]),
-    Edge.new(points[1], points[2]),
-    Edge.new(points[2], points[0])
+    Edge.new(point_indices[0], point_indices[1]),
+    Edge.new(point_indices[1], point_indices[2]),
+    Edge.new(point_indices[2], point_indices[0])
   ]
 
   edges.each { |e|
-    next if e.trivial?
-    if unique_edges[e]
+    if e.trivial?
+      trivial_edges += 1
       next
     end
+
+    if unique_edges[e]
+      duplicate_edges += 1
+      next
+    end
+
     unique_edges[e] = 1
     $ends[e.a] ||= []
     $ends[e.a] << e
     $ends[e.b] ||= []
     $ends[e.b] << e
-    raise 'noes' if $ends[e.a].equal? $ends[e.b]
   }
 }
 
+STDERR.puts "#{unique_points.size} unique points."
 STDERR.puts "#{unique_edges.size} unique edges."
-STDERR.puts "#{2*unique_edges.size} unique points."
+STDERR.puts "#{2*unique_edges.size} endpoints."
 STDERR.puts "#{unique_edges.size.to_f / (3*tri_count)} unique edges per input edge"
+STDERR.puts "#{trivial_edges} edges rejected as trivial."
+STDERR.puts "#{duplicate_edges} edges rejected as duplicate."
 
-#unique_edges.each_key { |e|
-#  puts "{"
-#  puts "  { #{e.a.x}f, #{e.a.y}f, #{e.a.z}f },"
-#  puts "  { #{e.b.x}f, #{e.b.y}f, #{e.b.z}f },"
-#  puts "},"
-#}
-
-STDERR.puts "Greedily constructing strips."
+STDERR.puts "Greedily constructing strips...."
 
 segments = []
 
@@ -185,11 +200,42 @@ STDERR.puts "#{segments.length} segments total."
 n =segments.inject(0) { |x, s| x + s.length }
 STDERR.puts "#{n} points total."
 
-segments.each { |seg|
-  STDOUT.write [ seg.length ].pack("V")
-  seg.each { |p|
-    STDOUT.write [ p.x, p.y, p.z ].pack("eee")
-  }
+STDERR.puts <<END
+Indexed edge rep requires:
+ - #{unique_points.size} matrix multiplies.
+ - #{unique_edges.size} line draw calls.
+ - #{unique_points.size * 12} bytes read from Flash.
+ - #{unique_points.size * 12 * 2 + unique_edges.size * 4} bytes read/write from RAM.
+
+Segment rep requires:
+ - #{n} matrix multiplies.
+ - #{n - segments.length} line draw calls.
+ - #{n * 12} bytes read from Flash.
+ - No significant non-display RAM traffic.
+END
+
+STDERR.puts "C representation on stdout."
+
+puts "static Vec3f const vertices[] = {"
+unique_points.sort { |a, b| a[1] <=> b[1] }.each { |p, i|
+  puts "  { #{p.x}, #{p.y}, #{p.z} },"
 }
-STDOUT.write [ 0 ].pack("V")
+puts "};"
+
+puts "static unsigned short const edges[][2] = {"
+unique_edges.keys.sort { |a, b| if a.a == b.a then a.b <=> b.b else a.a <=> b.a end }.each { |e|
+  puts "  { #{e.a}, #{e.b} },"
+}
+puts "};"
+
+puts "static constexpr unsigned vertex_count = #{unique_points.size};"
+puts "static constexpr unsigned edge_count = #{unique_edges.size};"
+
+#segments.each { |seg|
+#  STDOUT.write [ seg.length ].pack("V")
+#  seg.each { |p|
+#    STDOUT.write [ p.x, p.y, p.z ].pack("eee")
+#  }
+#}
+#STDOUT.write [ 0 ].pack("V")
 
