@@ -60,15 +60,14 @@ void crt_init() {
   armv7m::scb_fp.write_fpccr(armv7m::scb_fp.read_fpccr()
                              .with_aspen(true)
                              .with_lspen(true));
-  armv7m::instruction_synchronization_barrier();  // Now please.
 
   // Enable access to the floating point coprocessor.
   armv7m::scb.write_cpacr(armv7m::scb.read_cpacr()
                           .with_cp11(armv7m::Scb::CpAccess::full)
                           .with_cp10(armv7m::Scb::CpAccess::full));
+  armv7m::instruction_synchronization_barrier();  // Now please.
 
   // It is now safe to use floating point.
-
 
   // Remap SRAM.
   // Power on syscfg, so we can mess with its registers.
