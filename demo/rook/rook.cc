@@ -206,17 +206,48 @@ static void draw_edges(vga::Graphics1 &g) {
 
 
 /*******************************************************************************
- * The main bits.
+ * Text rendering for scrolling brag line
  */
+
+static char const spaces[80] = { ' ' };
+
+static unsigned message[81];
+
+static unsigned t_c = 0;
 
 typedef vga::Rasterizer::Pixel Pixel;
 
-unsigned t_c = 0;
 static void string(Pixel fore, Pixel back, char const *s) {
   while (char c = *s++) {
-    text.put_char(t_c++, 0, fore, back, c);
+    if (c == 0) break;
+    message[t_c++] = (fore << 16) | (back << 8) | c;
   }
 }
+
+static void prepare_message() {
+  t_c = 0;
+  string(0b111111, 0b010000, "2450 triangles - ");
+  string(0b111111, 0b110000, "5.9Mpix/sec perspective projected fill rate");
+  string(0b111111, 0b010000, " - ");
+  string(0b000011, 0b010000, "60fps @ 800x600");
+  string(0b111111, 0b010000, " - ");
+}
+
+static void show_msg(unsigned frame) {
+  frame %= 81;
+  text.clear_framebuffer(0b010000);
+  for (unsigned i = 0; i < 81 - frame; ++i) {
+    text.put_packed(i, 0, message[frame + i]);
+  }
+  for (unsigned i = 0; i < frame; ++i) {
+    text.put_packed(81 - frame + i, 0, message[i]);
+  }
+}
+
+/*******************************************************************************
+ * The main bits.
+ */
+
 
 __attribute__((section(".ramcode.rook_run")))
 void run(unsigned frame_count) {
@@ -227,13 +258,7 @@ void run(unsigned frame_count) {
   allocate_vertex_table();
 
   text.activate(vga::timing_vesa_800x600_60hz);
-
-  text.clear_framebuffer(0b010000);
-  t_c = 0;
-  string(0b111111, 0b010000, "2450 triangles - ");
-  string(0b111111, 0b110000, "5.9Mpix/sec perspective projected fill rate");
-  string(0b111111, 0b010000, " - ");
-  string(0b000011, 0b010000, "60fps @ 800x600");
+  prepare_message();
 
   vga::configure_band_list(&bands[0]);
 
@@ -261,6 +286,8 @@ void run(unsigned frame_count) {
   unsigned frame = 0;
   while (frame_count == 0 || frame < frame_count) {
     ++frame;
+
+    show_msg(frame / 5);
 
     m = m * Mat4f::rotate_y(0.01);
     g.clear_all();
