@@ -22,6 +22,7 @@ struct AdvTimer {
   #undef BFF_DEFINITION_FILE
 };
 
+extern AdvTimer tim1;
 extern AdvTimer tim8;
 
 }  // namespace stm32f4xx
