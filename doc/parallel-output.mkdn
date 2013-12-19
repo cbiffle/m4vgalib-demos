@@ -30,6 +30,12 @@ This amounted to HCLK/8.  In hindsight, I'll bet I can derive the /8 number
 rigorously: TIM8's ARR is providing a /2, leaving a /4 to track down, and (as
 we'll see in a minute) that's the highest throughput I've gotten.
 
+    Aside: the way the timers interact with DMA on this part is odd.  A timer
+    can influence a DMA transfer by generating an output-compare match, a
+    trigger output (which is a small superset of output-compares), an update
+    (counter crossing zero, etc.), or a commutation event.  We don't appear
+    to be able to generate a DRQ at every count event.
+
 
 Approach #2: bit-banging
 ------------------------
