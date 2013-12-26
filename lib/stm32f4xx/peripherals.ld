@@ -1,3 +1,5 @@
+_ZN9stm32f4xx4spi3E = 0x40003C00;
+
 _ZN9stm32f4xx6usart2E = 0x40004400;
 _ZN9stm32f4xx6usart3E = 0x40004800;
 

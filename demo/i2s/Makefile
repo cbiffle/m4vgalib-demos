@@ -15,7 +15,7 @@ demo[arch] := stm32f4xx
 
 demo[cc_files] := main.cc
 
-demo[cc_flags] := -std=gnu++0x -nostdinc
+demo[cc_flags] := -std=gnu++0x
 
 demo[libs] := \
   lib/armv7m:armv7m \
@@ -25,7 +25,7 @@ demo[libs] := \
   runtime:runtime \
   runtime:default_traps \
   vga:vga \
-  demo/iic:lib
+  demo/i2s:lib
 
 demo[whole_archive] := \
   lib/armv7m:exception_table \
@@ -35,7 +35,7 @@ demo[whole_archive] := \
 demo[l_flags] = \
   -Wl,-Map=$(intermediate)/demo.map \
   -T$(shell pwd)/$(depth)/m4vga-stm32f4xx.ld \
-  -nostdlib -nodefaultlibs
+  -nostartfiles
 
 
 include $(depth)/build/Makefile.rules

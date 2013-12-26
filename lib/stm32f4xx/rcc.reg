@@ -153,4 +153,7 @@ BFF_REG_RW(Word, csr, )
 BFF_REG_RESERVED(Word, 78, 2)
 
 BFF_REG_RW(Word, sscgr, )
-BFF_REG_RW(Word, plli2scfgr, )
+BFF_REG_RW(Word, plli2scfgr,
+  BFF_FIELD(30:28, unsigned, plli2sr)
+  BFF_FIELD(14: 6, unsigned, plli2sn)
+)
