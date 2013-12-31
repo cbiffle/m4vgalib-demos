@@ -14,7 +14,7 @@ void v7m_reset_handler() {
   vga::configure_timing(vga::timing_vesa_800x600_60hz);
 
   while (true) {
-    demo::tunnel::run(60);
+    demo::tunnel::run(0);
   }
 }
 
