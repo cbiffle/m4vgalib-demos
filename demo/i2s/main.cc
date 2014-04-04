@@ -4,10 +4,10 @@
 
 #include "etl/armv7m/exception_table.h"
 
-#include "lib/stm32f4xx/apb.h"
+#include "etl/stm32f4xx/apb.h"
 #include "lib/stm32f4xx/gpio.h"
 #include "lib/stm32f4xx/interrupts.h"
-#include "lib/stm32f4xx/rcc.h"
+#include "etl/stm32f4xx/rcc.h"
 #include "lib/stm32f4xx/spi.h"
 #include "lib/stm32f4xx/iic.h"
 
@@ -18,12 +18,14 @@
 
 using common::RangePtr;
 
+using etl::stm32f4xx::AhbPeripheral;
+using etl::stm32f4xx::ApbPeripheral;
 using stm32f4xx::gpioa;
 using stm32f4xx::gpiob;
 using stm32f4xx::gpioc;
 using stm32f4xx::gpiod;
-using stm32f4xx::Rcc;
-using stm32f4xx::rcc;
+using etl::stm32f4xx::Rcc;
+using etl::stm32f4xx::rcc;
 using stm32f4xx::Iic;
 using stm32f4xx::iic1;
 using stm32f4xx::Gpio;
@@ -32,9 +34,9 @@ using stm32f4xx::spi3;
 
 static void iic1_init() {
   // Turn on the IIC unit.
-  rcc.enable_clock(stm32f4xx::ApbPeripheral::i2c1);
+  rcc.enable_clock(ApbPeripheral::i2c1);
 
-  float clock_hz = rcc.get_clock_hz(stm32f4xx::ApbPeripheral::i2c1);
+  float clock_hz = rcc.get_clock_hz(ApbPeripheral::i2c1);
   iic1.write_cr2(Iic::cr2_value_t()
                  .with_freq(clock_hz / 1e6f));
   iic1.write_ccr(Iic::ccr_value_t()
@@ -47,7 +49,7 @@ static void iic1_init() {
   iic1.write_cr1(Iic::cr1_value_t().with_pe(true));
 
   // We'll be using GPIOB for IIC.
-  rcc.enable_clock(stm32f4xx::AhbPeripheral::gpiob);
+  rcc.enable_clock(AhbPeripheral::gpiob);
 
   unsigned short const iic_pins = Gpio::p6 | Gpio::p9;
   gpiob.set_output_type(iic_pins, Gpio::OutputType::open_drain);
@@ -113,9 +115,9 @@ static void i2s_init() {
 
   float i2sclk = 86e6f;
 
-  rcc.enable_clock(stm32f4xx::AhbPeripheral::gpioa);
-  rcc.enable_clock(stm32f4xx::AhbPeripheral::gpioc);
-  rcc.enable_clock(stm32f4xx::ApbPeripheral::spi3_i2s3);
+  rcc.enable_clock(AhbPeripheral::gpioa);
+  rcc.enable_clock(AhbPeripheral::gpioc);
+  rcc.enable_clock(ApbPeripheral::spi3_i2s3);
 
   spi3.write_i2scfgr(Spi::i2scfgr_value_t()
                      .with_i2smod(true)
@@ -233,7 +235,7 @@ static void rest() {
 
   iic1_init();
 
-  rcc.enable_clock(stm32f4xx::AhbPeripheral::gpiod);
+  rcc.enable_clock(AhbPeripheral::gpiod);
 
   gpiod.set_output_type(Gpio::p4, Gpio::OutputType::push_pull);
   gpiod.set_output_speed(Gpio::p4, Gpio::OutputSpeed::medium_25mhz);

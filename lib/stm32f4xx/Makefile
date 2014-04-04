@@ -7,13 +7,13 @@ stm32f4xx[type] := library
 stm32f4xx[cc_files] := \
   gpio.cc \
   interrupts.cc \
-  rcc.cc \
   usart.cc
 
 stm32f4xx[cc_flags] := -std=gnu++0x
 
 stm32f4xx[libs] := \
   etl/armv7m:armv7m \
+  etl/stm32f4xx:stm32f4xx \
   lib/biffield:biffield \
   lib/common:common
 

@@ -1,6 +1,8 @@
 #ifndef LIB_STM32F4XX_SYSCFG_H
 #define LIB_STM32F4XX_SYSCFG_H
 
+#include "lib/stm32f4xx/types.h"
+
 namespace stm32f4xx {
 
 struct SysCfg {

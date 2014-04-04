@@ -1,9 +1,10 @@
 #include "etl/armv7m/exception_table.h"
 
-#include "lib/stm32f4xx/apb.h"
+#include "etl/stm32f4xx/ahb.h"
+#include "etl/stm32f4xx/apb.h"
 #include "lib/stm32f4xx/gpio.h"
 #include "lib/stm32f4xx/interrupts.h"
-#include "lib/stm32f4xx/rcc.h"
+#include "etl/stm32f4xx/rcc.h"
 #include "lib/stm32f4xx/usart.h"
 
 #include "runtime/startup.h"
@@ -13,8 +14,10 @@
 #include "vga/timing.h"
 #include "vga/vga.h"
 
+using etl::stm32f4xx::AhbPeripheral;
+using etl::stm32f4xx::ApbPeripheral;
 using stm32f4xx::gpioa;
-using stm32f4xx::rcc;
+using etl::stm32f4xx::rcc;
 using stm32f4xx::Usart;
 using stm32f4xx::usart2;
 using stm32f4xx::Gpio;
@@ -139,16 +142,16 @@ enum {
  */
 
 static void usart2_init() {
-  rcc.enable_clock(stm32f4xx::AhbPeripheral::gpioa);
-  rcc.leave_reset(stm32f4xx::AhbPeripheral::gpioa);
+  rcc.enable_clock(AhbPeripheral::gpioa);
+  rcc.leave_reset(AhbPeripheral::gpioa);
 
-  rcc.enable_clock(stm32f4xx::ApbPeripheral::usart2);
-  rcc.leave_reset(stm32f4xx::ApbPeripheral::usart2);
+  rcc.enable_clock(ApbPeripheral::usart2);
+  rcc.leave_reset(ApbPeripheral::usart2);
 
   // Enable the USART before other actions.
   usart2.write_cr1(Usart::cr1_value_t().with_ue(true));
 
-  float clock = rcc.get_clock_hz(stm32f4xx::ApbPeripheral::usart2);
+  float clock = rcc.get_clock_hz(ApbPeripheral::usart2);
   unsigned brr = static_cast<unsigned>(clock / 115200.f + 0.5f);
   usart2.write_brr(Usart::brr_value_t()
                    .with_div_mantissa(brr >> 4)
