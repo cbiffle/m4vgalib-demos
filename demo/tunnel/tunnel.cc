@@ -1,6 +1,6 @@
 #include "demo/tunnel/tunnel.h"
 
-#include "lib/armv7m/instructions.h"
+#include "etl/armv7m/instructions.h"
 
 #include "vga/arena.h"
 #include "vga/measurement.h"
@@ -113,7 +113,7 @@ static unsigned tex_fetch(float u, float v) {
 
 static unsigned shade(float distance, unsigned char pixel) {
   unsigned sel = static_cast<unsigned>(distance) / (texture_repeats_d * 2);
-  sel = armv7m::usat<3>(sel);
+  sel = etl::armv7m::usat<3>(sel);
 
   return (pixel >> (0x01010000u >> (sel * 8)))
       & (0x5555AAFFu >> (sel * 8));

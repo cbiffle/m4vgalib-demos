@@ -7,12 +7,14 @@
 #include "etl/common/attribute_macros.h"
 
 #include "etl/armv7m/types.h"
-#include "lib/armv7m/instructions.h"
-#include "lib/armv7m/scb.h"
+#include "etl/armv7m/instructions.h"
+#include "etl/armv7m/scb.h"
+#include "etl/armv7m/scb_fp.h"
 
 #include "lib/stm32f4xx/rcc.h"
 #include "lib/stm32f4xx/syscfg.h"
 
+namespace armv7m = etl::armv7m;
 using etl::armv7m::Word;
 
 using armv7m::scb;

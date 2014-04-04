@@ -1,4 +1,4 @@
-#include "lib/armv7m/exception_table.h"
+#include "etl/armv7m/exception_table.h"
 
 /*
  * We don't use any of these vectors, nor expect the associated exceptions
@@ -6,7 +6,7 @@
  */
 
 #define TRAP(name) \
-  void v7m_ ## name ## _handler() { \
+  void etl_armv7m_ ## name ## _handler() { \
     while (1); \
   }
 

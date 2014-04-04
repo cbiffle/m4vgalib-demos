@@ -1,4 +1,4 @@
-#include "lib/armv7m/exception_table.h"
+#include "etl/armv7m/exception_table.h"
 
 #include "runtime/startup.h"
 
@@ -100,7 +100,7 @@ enum {
  * The actual demo.
  */
 
-void v7m_reset_handler() {
+void etl_armv7m_reset_handler() {
   crt_init();
   vga::init();
 

@@ -2,7 +2,7 @@
 
 #include "lib/common/range_ptr.h"
 
-#include "lib/armv7m/exception_table.h"
+#include "etl/armv7m/exception_table.h"
 
 #include "lib/stm32f4xx/apb.h"
 #include "lib/stm32f4xx/gpio.h"
@@ -259,7 +259,7 @@ namespace vga {
   }
 }
 
-void v7m_reset_handler() {
+void etl_armv7m_reset_handler() {
   crt_init();
   vga::init();
 

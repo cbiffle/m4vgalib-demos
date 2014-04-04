@@ -1,6 +1,8 @@
+#include "etl/armv7m/types.h"
 #include "lib/armv7m/crt0.h"
-#include "lib/armv7m/types.h"
 #include "lib/common/attribute_macros.h"
+
+using etl::armv7m::Word;
 
 namespace armv7m {
 

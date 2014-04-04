@@ -22,8 +22,8 @@ demo[cc_files] := main.cc
 demo[cc_flags] := -std=gnu++0x -nostdinc
 
 demo[libs] := \
-  lib/armv7m:armv7m \
-  lib/armv7m:exception_table \
+  etl/armv7m:armv7m \
+  etl/armv7m:exception_table \
   lib/stm32f4xx:interrupt_table \
   runtime:runtime \
   runtime:default_traps \
@@ -31,7 +31,7 @@ demo[libs] := \
   demo/horiz_tp:lib
 
 demo[whole_archive] := \
-  lib/armv7m:exception_table \
+  etl/armv7m:exception_table \
   lib/stm32f4xx:interrupt_table \
   runtime:default_traps
 

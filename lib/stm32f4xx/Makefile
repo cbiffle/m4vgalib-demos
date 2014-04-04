@@ -13,7 +13,7 @@ stm32f4xx[cc_files] := \
 stm32f4xx[cc_flags] := -std=gnu++0x
 
 stm32f4xx[libs] := \
-  lib/armv7m:armv7m \
+  etl/armv7m:armv7m \
   lib/biffield:biffield \
   lib/common:common
 

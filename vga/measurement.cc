@@ -1,7 +1,7 @@
 #include "vga/measurement.h"
 
-using armv7m::SysTick;
-using armv7m::sys_tick;
+using etl::armv7m::SysTick;
+using etl::armv7m::sys_tick;
 
 using stm32f4xx::Gpio;
 using stm32f4xx::gpioc;

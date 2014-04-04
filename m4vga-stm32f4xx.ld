@@ -8,9 +8,9 @@ MEMORY {
   sram16  (rwx) : ORIGIN = 0x2001c000, LENGTH =   16K
 }
 
-EXTERN(_ZN6armv7mL19v7m_exception_tableE)
+EXTERN(_ZN3etl6armv7mL15exception_tableE)
 
-ENTRY(v7m_reset_handler)
+ENTRY(etl_armv7m_reset_handler)
 
 SECTIONS {
   /*
@@ -22,7 +22,7 @@ SECTIONS {
    */
   .sram_image : {
     /* The vector table will exist in both locations after copy. */
-    KEEP(*(.v7m_exception_table))
+    KEEP(*(.etl_armv7m_exception_table*))
     KEEP(*(.stm32f4xx_interrupt_table))
     /* Include any functions that have been explicitly placed here. */
     *(.ramcode*)
@@ -87,7 +87,7 @@ SECTIONS {
 
   .local (NOLOAD) : {
     . += 1536;  /* Leave room for a stack. */
-    PROVIDE(v7m_initial_stack_top = .);
+    PROVIDE(etl_armv7m_initial_stack_top = .);
     /* Allow stuff to be placed explicitly into CCM as needed. */
     *(.vga_local_ram)
     . = ALIGN(4);

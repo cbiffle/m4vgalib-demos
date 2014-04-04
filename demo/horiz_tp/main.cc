@@ -1,4 +1,4 @@
-#include "lib/armv7m/exception_table.h"
+#include "etl/armv7m/exception_table.h"
 
 #include "runtime/startup.h"
 
@@ -21,7 +21,7 @@ public:
 static Nothing rasterizer;
 static vga::Band const band = { &rasterizer, 600, nullptr };
 
-void v7m_reset_handler() {
+void etl_armv7m_reset_handler() {
   crt_init();
   vga::init();
 

@@ -1,4 +1,4 @@
-#include "lib/armv7m/exception_table.h"
+#include "etl/armv7m/exception_table.h"
 
 #include "runtime/startup.h"
 
@@ -62,7 +62,7 @@ static void step_ball(vga::Graphics1 &g,
   rasterizer.copy_bg_to_fg();
 }
 
-void v7m_reset_handler() {
+void etl_armv7m_reset_handler() {
   crt_init();
   vga::init();
 

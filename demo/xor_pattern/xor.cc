@@ -1,6 +1,6 @@
 #include "demo/xor_pattern/xor.h"
 
-#include "lib/armv7m/instructions.h"
+#include "etl/armv7m/instructions.h"
 
 #include "vga/arena.h"
 #include "vga/timing.h"

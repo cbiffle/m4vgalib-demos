@@ -8,7 +8,7 @@ lib[cc_files] := tunnel.cc
 lib[cc_flags] := -std=gnu++0x -O2
 
 lib[libs] := \
-  lib/armv7m:armv7m \
+  etl/armv7m:armv7m \
   vga:vga
 
 lib[using_l_flags] := -lm
@@ -21,7 +21,7 @@ demo[cc_files] := main.cc
 demo[cc_flags] := -std=gnu++0x -O2
 
 demo[libs] := \
-  lib/armv7m:exception_table \
+  etl/armv7m:exception_table \
   lib/stm32f4xx:interrupt_table \
   runtime:runtime \
   runtime:default_traps \
@@ -29,7 +29,7 @@ demo[libs] := \
   demo/tunnel:lib
 
 demo[whole_archive] := \
-  lib/armv7m:exception_table \
+  etl/armv7m:exception_table \
   lib/stm32f4xx:interrupt_table \
   runtime:default_traps
 
