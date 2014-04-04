@@ -6,11 +6,11 @@
 #include "vga/measurement.h"
 #include "vga/timing.h"
 #include "vga/vga.h"
-#include "vga/rast/direct.h"
+#include "vga/rast/direct_4.h"
 
 #include <math.h>
 
-using vga::rast::Direct;
+using vga::rast::Direct_4;
 
 namespace demo {
 namespace tunnel {
@@ -32,7 +32,7 @@ static constexpr unsigned texture_period_d = texture_repeats_d * texture_height;
 
 static constexpr float pi = 3.1415926f;
 
-static Direct rasterizer(cols, rows);
+static Direct_4 rasterizer(cols, rows);
 
 static vga::Band const band = { &rasterizer, rows * 4, nullptr };
 
