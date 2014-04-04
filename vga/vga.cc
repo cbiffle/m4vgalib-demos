@@ -16,7 +16,7 @@
 #include "lib/stm32f4xx/flash.h"
 #include "lib/stm32f4xx/gpio.h"
 #include "lib/stm32f4xx/interrupts.h"
-#include "lib/stm32f4xx/syscfg.h"
+#include "etl/stm32f4xx/syscfg.h"
 
 #include "vga/arena.h"
 #include "vga/copy_words.h"
@@ -40,7 +40,7 @@ using stm32f4xx::gpioc;
 using stm32f4xx::gpioe;
 using stm32f4xx::Interrupt;
 using etl::stm32f4xx::rcc;
-using stm32f4xx::syscfg;
+using etl::stm32f4xx::syscfg;
 using stm32f4xx::tim1;
 using stm32f4xx::tim8;
 using stm32f4xx::Word;

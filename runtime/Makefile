@@ -9,7 +9,7 @@ runtime[cc_flags] := -std=gnu++0x
 
 runtime[libs] := \
   etl/armv7m:armv7m \
-  lib/stm32f4xx:stm32f4xx
+  etl/stm32f4xx:stm32f4xx
 
 
 default_traps[type] := library

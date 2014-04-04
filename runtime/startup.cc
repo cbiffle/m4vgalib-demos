@@ -12,7 +12,7 @@
 #include "etl/armv7m/scb_fp.h"
 
 #include "etl/stm32f4xx/rcc.h"
-#include "lib/stm32f4xx/syscfg.h"
+#include "etl/stm32f4xx/syscfg.h"
 
 namespace armv7m = etl::armv7m;
 using etl::armv7m::Word;
@@ -21,8 +21,8 @@ using armv7m::scb;
 
 using etl::stm32f4xx::ApbPeripheral;
 using etl::stm32f4xx::rcc;
-using stm32f4xx::SysCfg;
-using stm32f4xx::syscfg;
+using etl::stm32f4xx::SysCfg;
+using etl::stm32f4xx::syscfg;
 
 typedef void (*InitFnPtr)();
 
