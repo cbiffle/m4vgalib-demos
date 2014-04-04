@@ -1,6 +1,6 @@
 #include <math.h>
 
-#include "lib/common/range_ptr.h"
+#include "etl/data/range_ptr.h"
 
 #include "etl/armv7m/exception_table.h"
 
@@ -16,7 +16,7 @@
 #include "vga/timing.h"
 #include "vga/vga.h"
 
-using common::RangePtr;
+using etl::data::RangePtr;
 
 using etl::stm32f4xx::AhbPeripheral;
 using etl::stm32f4xx::ApbPeripheral;
