@@ -6,7 +6,7 @@
 
 #include "etl/stm32f4xx/apb.h"
 #include "etl/stm32f4xx/gpio.h"
-#include "lib/stm32f4xx/interrupts.h"
+#include "etl/stm32f4xx/interrupts.h"
 #include "etl/stm32f4xx/rcc.h"
 #include "lib/stm32f4xx/spi.h"
 #include "lib/stm32f4xx/iic.h"
@@ -26,6 +26,7 @@ using etl::stm32f4xx::gpioc;
 using etl::stm32f4xx::gpiod;
 using etl::stm32f4xx::Rcc;
 using etl::stm32f4xx::rcc;
+using etl::stm32f4xx::Interrupt;
 using stm32f4xx::Iic;
 using stm32f4xx::iic1;
 using etl::stm32f4xx::Gpio;
@@ -230,8 +231,8 @@ __attribute__((noreturn))
 __attribute__((noinline))
 static void rest() {
   vga::configure_timing(vga::timing_vesa_800x600_60hz);
-  disable_irq(stm32f4xx::Interrupt::tim1_cc);
-  disable_irq(stm32f4xx::Interrupt::tim8_cc);
+  disable_irq(Interrupt::tim1_cc);
+  disable_irq(Interrupt::tim8_cc);
 
   iic1_init();
 

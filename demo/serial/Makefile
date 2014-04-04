@@ -21,7 +21,7 @@ demo[libs] := \
   etl/armv7m:armv7m \
   etl/armv7m:exception_table \
   lib/stm32f4xx:stm32f4xx \
-  lib/stm32f4xx:interrupt_table \
+  etl/stm32f4xx:interrupt_table \
   runtime:runtime \
   runtime:default_traps \
   vga:vga \
@@ -29,7 +29,7 @@ demo[libs] := \
 
 demo[whole_archive] := \
   etl/armv7m:exception_table \
-  lib/stm32f4xx:interrupt_table \
+  etl/stm32f4xx:interrupt_table \
   runtime:default_traps
 
 demo[l_flags] = \

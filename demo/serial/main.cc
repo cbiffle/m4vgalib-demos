@@ -3,7 +3,7 @@
 #include "etl/stm32f4xx/ahb.h"
 #include "etl/stm32f4xx/apb.h"
 #include "etl/stm32f4xx/gpio.h"
-#include "lib/stm32f4xx/interrupts.h"
+#include "etl/stm32f4xx/interrupts.h"
 #include "etl/stm32f4xx/rcc.h"
 #include "lib/stm32f4xx/usart.h"
 

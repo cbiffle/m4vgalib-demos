@@ -23,7 +23,7 @@ SECTIONS {
   .sram_image : {
     /* The vector table will exist in both locations after copy. */
     KEEP(*(.etl_armv7m_exception_table*))
-    KEEP(*(.stm32f4xx_interrupt_table))
+    KEEP(*(.etl_stm32f4xx_interrupt_table))
     /* Include any functions that have been explicitly placed here. */
     *(.ramcode*)
     /* Include vtables. */

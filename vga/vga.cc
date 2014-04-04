@@ -15,7 +15,8 @@
 #include "etl/stm32f4xx/dma.h"
 #include "etl/stm32f4xx/flash.h"
 #include "etl/stm32f4xx/gpio.h"
-#include "lib/stm32f4xx/interrupts.h"
+#include "etl/stm32f4xx/interrupt_table.h"
+#include "etl/stm32f4xx/interrupts.h"
 #include "etl/stm32f4xx/syscfg.h"
 
 #include "vga/arena.h"
@@ -38,7 +39,7 @@ using etl::stm32f4xx::flash;
 using etl::stm32f4xx::Gpio;
 using etl::stm32f4xx::gpioc;
 using etl::stm32f4xx::gpioe;
-using stm32f4xx::Interrupt;
+using etl::stm32f4xx::Interrupt;
 using etl::stm32f4xx::rcc;
 using etl::stm32f4xx::syscfg;
 using etl::stm32f4xx::tim1;
@@ -467,7 +468,7 @@ static void end_of_active_video() {
   scb.write_icsr(Scb::icsr_value_t().with_pendsvset(true));
 }
 
-RAM_CODE void stm32f4xx_tim1_cc_handler() {
+RAM_CODE void etl_stm32f4xx_tim1_cc_handler() {
   // We access this APB2 timer through the bridge on AHB1.  This implies
   // both wait states and resource conflicts with scanout.  Get done fast.
   tim1.write_sr(tim1.read_sr().with_cc2if(false));
@@ -479,7 +480,7 @@ RAM_CODE void stm32f4xx_tim1_cc_handler() {
   etl::armv7m::wait_for_interrupt();
 }
 
-RAM_CODE void stm32f4xx_tim8_cc_handler() {
+RAM_CODE void etl_stm32f4xx_tim8_cc_handler() {
   // We have to clear our interrupt flags, or this will recur.
   auto sr = tim8.read_sr();
 
