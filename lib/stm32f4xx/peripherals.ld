@@ -10,8 +10,5 @@ _ZN9stm32f4xx6usart3E = 0x40004800;
 
 _ZN9stm32f4xx4iic1E = 0x40005400;
 
-_ZN9stm32f4xx4tim1E = 0x40010000;
-_ZN9stm32f4xx4tim8E = 0x40010400;
-
 _ZN9stm32f4xx6usart1E = 0x40011000;
 _ZN9stm32f4xx6usart6E = 0x40011400;

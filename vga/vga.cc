@@ -8,7 +8,7 @@
 
 #include "etl/stm32f4xx/rcc.h"
 
-#include "lib/stm32f4xx/adv_timer.h"
+#include "etl/stm32f4xx/adv_timer.h"
 #include "etl/stm32f4xx/ahb.h"
 #include "etl/stm32f4xx/apb.h"
 #include "etl/stm32f4xx/dbg.h"
@@ -27,7 +27,7 @@
 using etl::armv7m::Scb;
 using etl::armv7m::scb;
 
-using stm32f4xx::AdvTimer;
+using etl::stm32f4xx::AdvTimer;
 using etl::stm32f4xx::AhbPeripheral;
 using etl::stm32f4xx::ApbPeripheral;
 using etl::stm32f4xx::Dbg;
@@ -41,9 +41,9 @@ using etl::stm32f4xx::gpioe;
 using stm32f4xx::Interrupt;
 using etl::stm32f4xx::rcc;
 using etl::stm32f4xx::syscfg;
-using stm32f4xx::tim1;
-using stm32f4xx::tim8;
-using stm32f4xx::Word;
+using etl::stm32f4xx::tim1;
+using etl::stm32f4xx::tim8;
+using etl::stm32f4xx::Word;
 
 #define IN_SCAN_RAM SECTION(".vga_scan_ram")
 #define IN_LOCAL_RAM SECTION(".vga_local_ram")
