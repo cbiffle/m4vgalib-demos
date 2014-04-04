@@ -1,41 +1,41 @@
-BFF_REG_RW(Word, cr1, )
-BFF_REG_RW(Word, cr2, )
-BFF_REG_RW(Word, sr,
-  BFF_FIELD( 1: 1, bool, txe)
+ETL_BFF_REG_RW(Word, cr1, )
+ETL_BFF_REG_RW(Word, cr2, )
+ETL_BFF_REG_RW(Word, sr,
+  ETL_BFF_FIELD( 1: 1, bool, txe)
 )
-BFF_REG_RW(Word, dr, )
-BFF_REG_RW(Word, crcpr, )
-BFF_REG_RW(Word, rxcrcr, )
-BFF_REG_RW(Word, txcrcr, )
-BFF_REG_RW(Word, i2scfgr,
-  BFF_FIELD  (11:11, bool, i2smod)
-  BFF_FIELD  (10:10, bool, i2se)
-  BFF_FIELD_E( 9: 8, unsigned, i2scfg,
-    BFF_ENUM(0b00, slave_tx)
-    BFF_ENUM(0b01, slave_rx)
-    BFF_ENUM(0b10, master_tx)
-    BFF_ENUM(0b11, master_rx)
+ETL_BFF_REG_RW(Word, dr, )
+ETL_BFF_REG_RW(Word, crcpr, )
+ETL_BFF_REG_RW(Word, rxcrcr, )
+ETL_BFF_REG_RW(Word, txcrcr, )
+ETL_BFF_REG_RW(Word, i2scfgr,
+  ETL_BFF_FIELD  (11:11, bool, i2smod)
+  ETL_BFF_FIELD  (10:10, bool, i2se)
+  ETL_BFF_FIELD_E( 9: 8, unsigned, i2scfg,
+    ETL_BFF_ENUM(0b00, slave_tx)
+    ETL_BFF_ENUM(0b01, slave_rx)
+    ETL_BFF_ENUM(0b10, master_tx)
+    ETL_BFF_ENUM(0b11, master_rx)
   )
-  BFF_FIELD  ( 7: 7, bool, pcmsync)
-  BFF_FIELD_E( 5: 4, unsigned, i2sstd,
-    BFF_ENUM(0b00, i2s)
-    BFF_ENUM(0b01, left_justified)
-    BFF_ENUM(0b10, right_justified)
-    BFF_ENUM(0b11, pcm)
+  ETL_BFF_FIELD  ( 7: 7, bool, pcmsync)
+  ETL_BFF_FIELD_E( 5: 4, unsigned, i2sstd,
+    ETL_BFF_ENUM(0b00, i2s)
+    ETL_BFF_ENUM(0b01, left_justified)
+    ETL_BFF_ENUM(0b10, right_justified)
+    ETL_BFF_ENUM(0b11, pcm)
   )
-  BFF_FIELD  ( 3: 3, bool, ckpol)
-  BFF_FIELD_E( 2: 1, unsigned, datlen,
-    BFF_ENUM(0b00, bits_16)
-    BFF_ENUM(0b01, bits_24)
-    BFF_ENUM(0b10, bits_32)
+  ETL_BFF_FIELD  ( 3: 3, bool, ckpol)
+  ETL_BFF_FIELD_E( 2: 1, unsigned, datlen,
+    ETL_BFF_ENUM(0b00, bits_16)
+    ETL_BFF_ENUM(0b01, bits_24)
+    ETL_BFF_ENUM(0b10, bits_32)
   )
-  BFF_FIELD_E( 0: 0, bool, chlen,
-    BFF_ENUM(false, bits_16)
-    BFF_ENUM(true,  bits_32)
+  ETL_BFF_FIELD_E( 0: 0, bool, chlen,
+    ETL_BFF_ENUM(false, bits_16)
+    ETL_BFF_ENUM(true,  bits_32)
   )
 )
-BFF_REG_RW(Word, i2spr,
-  BFF_FIELD( 9: 9, bool, mckoe)
-  BFF_FIELD( 8: 8, bool, odd)
-  BFF_FIELD( 7: 0, unsigned, i2sdiv)
+ETL_BFF_REG_RW(Word, i2spr,
+  ETL_BFF_FIELD( 9: 9, bool, mckoe)
+  ETL_BFF_FIELD( 8: 8, bool, odd)
+  ETL_BFF_FIELD( 7: 0, unsigned, i2sdiv)
 )

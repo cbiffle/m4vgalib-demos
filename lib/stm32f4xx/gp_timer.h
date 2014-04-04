@@ -19,9 +19,9 @@ struct GpTimer {
     pwm2 = 0b111,
   };
 
-  #define BFF_DEFINITION_FILE lib/stm32f4xx/adv_timer.reg
-  #include <biffield/generate.h>
-  #undef BFF_DEFINITION_FILE
+  #define ETL_BFF_DEFINITION_FILE lib/stm32f4xx/adv_timer.reg
+  #include "etl/biffield/generate.h"
+  #undef ETL_BFF_DEFINITION_FILE
 };
 
 extern GpTimer tim2;
