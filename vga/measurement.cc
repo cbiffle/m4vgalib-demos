@@ -3,8 +3,8 @@
 using etl::armv7m::SysTick;
 using etl::armv7m::sys_tick;
 
-using stm32f4xx::Gpio;
-using stm32f4xx::gpioc;
+using etl::stm32f4xx::Gpio;
+using etl::stm32f4xx::gpioc;
 
 namespace vga {
 

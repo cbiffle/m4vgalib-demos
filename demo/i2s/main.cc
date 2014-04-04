@@ -5,7 +5,7 @@
 #include "etl/armv7m/exception_table.h"
 
 #include "etl/stm32f4xx/apb.h"
-#include "lib/stm32f4xx/gpio.h"
+#include "etl/stm32f4xx/gpio.h"
 #include "lib/stm32f4xx/interrupts.h"
 #include "etl/stm32f4xx/rcc.h"
 #include "lib/stm32f4xx/spi.h"
@@ -20,15 +20,15 @@ using common::RangePtr;
 
 using etl::stm32f4xx::AhbPeripheral;
 using etl::stm32f4xx::ApbPeripheral;
-using stm32f4xx::gpioa;
-using stm32f4xx::gpiob;
-using stm32f4xx::gpioc;
-using stm32f4xx::gpiod;
+using etl::stm32f4xx::gpioa;
+using etl::stm32f4xx::gpiob;
+using etl::stm32f4xx::gpioc;
+using etl::stm32f4xx::gpiod;
 using etl::stm32f4xx::Rcc;
 using etl::stm32f4xx::rcc;
 using stm32f4xx::Iic;
 using stm32f4xx::iic1;
-using stm32f4xx::Gpio;
+using etl::stm32f4xx::Gpio;
 using stm32f4xx::Spi;
 using stm32f4xx::spi3;
 
