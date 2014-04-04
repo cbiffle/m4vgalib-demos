@@ -4,16 +4,17 @@
 
 #include "runtime/startup.h"
 
-#include "lib/common/attribute_macros.h"
+#include "etl/common/attribute_macros.h"
 
-#include "lib/armv7m/types.h"
+#include "etl/armv7m/types.h"
 #include "lib/armv7m/instructions.h"
 #include "lib/armv7m/scb.h"
 
 #include "lib/stm32f4xx/rcc.h"
 #include "lib/stm32f4xx/syscfg.h"
 
-using armv7m::Word;
+using etl::armv7m::Word;
+
 using armv7m::scb;
 
 using stm32f4xx::ApbPeripheral;
@@ -112,12 +113,12 @@ void crt_init() {
   }
 }
 
-SECTION(".init_prologue")
-NAKED void _init() {
+ETL_SECTION(".init_prologue")
+ETL_NAKED void _init() {
   asm volatile ("push {r4-r11, lr}");
 }
 
-SECTION(".init_epilogue")
-NAKED void init_epilogue() {
+ETL_SECTION(".init_epilogue")
+ETL_NAKED void init_epilogue() {
   asm volatile ("pop {r4-r11, pc}");
 }

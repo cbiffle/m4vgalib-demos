@@ -1,20 +1,24 @@
 #ifndef LIB_KTL_ATTRIBUTE_MACROS_H
 #define LIB_KTL_ATTRIBUTE_MACROS_H
 
-#define NORETURN __attribute__((noreturn))
+#include "etl/common/attribute_macros.h"
+
+// TODO(cbiffle): this is a temporary compatibility header!
+
+#define NORETURN ETL_NORETURN
 
 #define IMPLICIT /* implicit */
 
-#define PACKED __attribute__((packed))
+#define PACKED ETL_PACKED
 
-#define SECTION(s) __attribute__((section(s)))
+#define SECTION(s) ETL_SECTION(s)
 
-#define NAKED __attribute__((naked))
+#define NAKED ETL_NAKED
 
-#define USED __attribute__((used))
+#define USED ETL_USED
 
-#define INLINE inline __attribute__((always_inline))
+#define INLINE ETL_INLINE
 
-#define ALIGNED(n) __attribute__((aligned(n)))
+#define ALIGNED(n) ETL_ALIGNED(n)
 
 #endif  // LIB_KTL_ATTRIBUTE_MACROS_H
