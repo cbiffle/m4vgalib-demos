@@ -1,11 +1,13 @@
 #ifndef LIB_STM32F4XX_GP_TIMER_H
 #define LIB_STM32F4XX_GP_TIMER_H
 
-#include "lib/stm32f4xx/types.h"
+#include "etl/stm32f4xx/types.h"
 
 namespace stm32f4xx {
 
 struct GpTimer {
+  typedef etl::stm32f4xx::Word Word;
+
   enum class OcMode {
     frozen = 0b000,
     ch1_active_on_match = 0b001,
