@@ -11,7 +11,7 @@
 #include "lib/stm32f4xx/adv_timer.h"
 #include "etl/stm32f4xx/ahb.h"
 #include "etl/stm32f4xx/apb.h"
-#include "lib/stm32f4xx/dbg.h"
+#include "etl/stm32f4xx/dbg.h"
 #include "lib/stm32f4xx/dma.h"
 #include "lib/stm32f4xx/flash.h"
 #include "lib/stm32f4xx/gpio.h"
@@ -30,8 +30,8 @@ using etl::armv7m::scb;
 using stm32f4xx::AdvTimer;
 using etl::stm32f4xx::AhbPeripheral;
 using etl::stm32f4xx::ApbPeripheral;
-using stm32f4xx::Dbg;
-using stm32f4xx::dbg;
+using etl::stm32f4xx::Dbg;
+using etl::stm32f4xx::dbg;
 using stm32f4xx::Dma;
 using stm32f4xx::dma2;
 using stm32f4xx::flash;

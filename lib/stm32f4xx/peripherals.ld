@@ -26,5 +26,3 @@ _ZN9stm32f4xx5flashE = 0x40023c00;
 
 _ZN9stm32f4xx4dma1E = 0x40026000;
 _ZN9stm32f4xx4dma2E = 0x40026400;
-
-_ZN9stm32f4xx3dbgE = 0xE0042000;
