@@ -13,7 +13,7 @@
 #include "etl/stm32f4xx/apb.h"
 #include "etl/stm32f4xx/dbg.h"
 #include "lib/stm32f4xx/dma.h"
-#include "lib/stm32f4xx/flash.h"
+#include "etl/stm32f4xx/flash.h"
 #include "lib/stm32f4xx/gpio.h"
 #include "lib/stm32f4xx/interrupts.h"
 #include "etl/stm32f4xx/syscfg.h"
@@ -34,7 +34,7 @@ using etl::stm32f4xx::Dbg;
 using etl::stm32f4xx::dbg;
 using stm32f4xx::Dma;
 using stm32f4xx::dma2;
-using stm32f4xx::flash;
+using etl::stm32f4xx::flash;
 using stm32f4xx::Gpio;
 using stm32f4xx::gpioc;
 using stm32f4xx::gpioe;
