@@ -1,6 +1,6 @@
 #include "demo/conway/conway.h"
 
-#include "lib/common/attribute_macros.h"
+#include "etl/common/attribute_macros.h"
 
 #include "vga/rast/bitmap_1.h"
 #include "vga/arena.h"
@@ -25,7 +25,7 @@ struct AddResult {
  * Bit-parallel half adder: adds corresponding bits of two 32-bit vectors,
  * producing sum and carry vectors.
  */
-static INLINE AddResult half_add(unsigned a, unsigned b) {
+static ETL_INLINE AddResult half_add(unsigned a, unsigned b) {
   return { a ^ b, a & b };
 }
 
@@ -33,7 +33,7 @@ static INLINE AddResult half_add(unsigned a, unsigned b) {
  * Bit-parallel full adder: add corresponding bits of *three* 32-bit vectors,
  * producing sum and carry vectors.
  */
-static INLINE AddResult full_add(unsigned a, unsigned b, unsigned c) {
+static ETL_INLINE AddResult full_add(unsigned a, unsigned b, unsigned c) {
   AddResult r0 = half_add(a, b);
   AddResult r1 = half_add(r0.sum, c);
   return { r1.sum, r0.carry | r1.carry };
@@ -44,7 +44,7 @@ static INLINE AddResult full_add(unsigned a, unsigned b, unsigned c) {
  * neighboring bit vectors for context.
  */
 __attribute__((section(".ramcode")))
-static INLINE unsigned col_step(unsigned above[3],
+static ETL_INLINE unsigned col_step(unsigned above[3],
                                 unsigned current[3],
                                 unsigned below[3]) {
   /*
