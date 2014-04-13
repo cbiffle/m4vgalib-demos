@@ -23,7 +23,7 @@ demo[cc_flags] := -std=gnu++0x -O2
 demo[libs] := \
   etl/armv7m:exception_table \
   etl/stm32f4xx:interrupt_table \
-  runtime:crt \
+  etl/armv7m:manual_crt0 \
   runtime:runtime \
   runtime:default_traps \
   vga:vga \

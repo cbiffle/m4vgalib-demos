@@ -11,7 +11,7 @@
 #include "etl/stm32f4xx/spi.h"
 #include "etl/stm32f4xx/iic.h"
 
-#include "runtime/crt.h"
+#include "etl/armv7m/crt0.h"
 
 #include "vga/timing.h"
 #include "vga/vga.h"
@@ -263,7 +263,7 @@ namespace vga {
 }
 
 void etl_armv7m_reset_handler() {
-  crt_init();
+  etl::armv7m::crt0_init();
   vga::init();
 
   rest();

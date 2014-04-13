@@ -25,7 +25,7 @@ demo[libs] := \
   etl/armv7m:armv7m \
   etl/armv7m:exception_table \
   etl/stm32f4xx:interrupt_table \
-  runtime:crt \
+  etl/armv7m:manual_crt0 \
   runtime:runtime \
   runtime:default_traps \
   vga:vga \

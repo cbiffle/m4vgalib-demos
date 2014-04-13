@@ -1,6 +1,6 @@
 #include "etl/armv7m/exception_table.h"
 
-#include "runtime/crt.h"
+#include "etl/armv7m/crt0.h"
 
 #include "vga/graphics_1.h"
 #include "vga/timing.h"
@@ -217,7 +217,7 @@ static vga::Band const bands[] = {
 };
 
 void etl_armv7m_reset_handler() {
-  crt_init();
+  etl::armv7m::crt0_init();
   vga::init();
 
   gfx_rast.activate(vga::timing_vesa_800x600_60hz);

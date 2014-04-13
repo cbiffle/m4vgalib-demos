@@ -7,7 +7,7 @@
 #include "etl/stm32f4xx/rcc.h"
 #include "etl/stm32f4xx/usart.h"
 
-#include "runtime/crt.h"
+#include "etl/armv7m/crt0.h"
 
 #include "vga/arena.h"
 #include "vga/rast/text_10x16.h"
@@ -229,7 +229,7 @@ static void usart2_poll() {
  */
 
 void etl_armv7m_reset_handler() {
-  crt_init();
+  etl::armv7m::crt0_init();
   vga::init();
 
   rasterizer.activate(vga::timing_vesa_800x600_60hz);

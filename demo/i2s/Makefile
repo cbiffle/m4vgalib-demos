@@ -23,7 +23,7 @@ demo[libs] := \
   etl/stm32f4xx:stm32f4xx \
   etl/stm32f4xx:interrupt_table \
   etl/data:data \
-  runtime:crt \
+  etl/armv7m:manual_crt0 \
   runtime:runtime \
   runtime:default_traps \
   vga:vga \
