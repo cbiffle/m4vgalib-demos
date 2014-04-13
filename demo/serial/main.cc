@@ -5,7 +5,7 @@
 #include "etl/stm32f4xx/gpio.h"
 #include "etl/stm32f4xx/interrupts.h"
 #include "etl/stm32f4xx/rcc.h"
-#include "lib/stm32f4xx/usart.h"
+#include "etl/stm32f4xx/usart.h"
 
 #include "runtime/startup.h"
 
@@ -18,8 +18,8 @@ using etl::stm32f4xx::AhbPeripheral;
 using etl::stm32f4xx::ApbPeripheral;
 using etl::stm32f4xx::gpioa;
 using etl::stm32f4xx::rcc;
-using stm32f4xx::Usart;
-using stm32f4xx::usart2;
+using etl::stm32f4xx::Usart;
+using etl::stm32f4xx::usart2;
 using etl::stm32f4xx::Gpio;
 
 static vga::rast::Text_10x16 rasterizer(800, 600);

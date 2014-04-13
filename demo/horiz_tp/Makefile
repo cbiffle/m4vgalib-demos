@@ -10,7 +10,7 @@ lib[S_files] :=
 lib[cc_flags] := -std=gnu++0x
 
 lib[libs] := \
-  lib/stm32f4xx:stm32f4xx \
+  etl/stm32f4xx:stm32f4xx \
   vga:vga
 
 

@@ -8,8 +8,8 @@
 #include "etl/stm32f4xx/gpio.h"
 #include "etl/stm32f4xx/interrupts.h"
 #include "etl/stm32f4xx/rcc.h"
-#include "lib/stm32f4xx/spi.h"
-#include "lib/stm32f4xx/iic.h"
+#include "etl/stm32f4xx/spi.h"
+#include "etl/stm32f4xx/iic.h"
 
 #include "runtime/startup.h"
 
@@ -27,11 +27,11 @@ using etl::stm32f4xx::gpiod;
 using etl::stm32f4xx::Rcc;
 using etl::stm32f4xx::rcc;
 using etl::stm32f4xx::Interrupt;
-using stm32f4xx::Iic;
-using stm32f4xx::iic1;
+using etl::stm32f4xx::Iic;
+using etl::stm32f4xx::iic1;
 using etl::stm32f4xx::Gpio;
-using stm32f4xx::Spi;
-using stm32f4xx::spi3;
+using etl::stm32f4xx::Spi;
+using etl::stm32f4xx::spi3;
 
 static void iic1_init() {
   // Turn on the IIC unit.
