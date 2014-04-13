@@ -1,6 +1,6 @@
 #include "etl/armv7m/exception_table.h"
 
-#include "runtime/startup.h"
+#include "runtime/crt.h"
 
 #include "vga/rast/text_10x16.h"
 #include "vga/timing.h"

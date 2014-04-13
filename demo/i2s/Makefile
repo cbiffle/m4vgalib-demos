@@ -23,6 +23,7 @@ demo[libs] := \
   etl/stm32f4xx:stm32f4xx \
   etl/stm32f4xx:interrupt_table \
   etl/data:data \
+  runtime:crt \
   runtime:runtime \
   runtime:default_traps \
   vga:vga \
@@ -31,7 +32,8 @@ demo[libs] := \
 demo[whole_archive] := \
   etl/armv7m:exception_table \
   etl/stm32f4xx:interrupt_table \
-  runtime:default_traps
+  runtime:default_traps \
+  runtime:runtime
 
 demo[l_flags] = \
   -Wl,-Map=$(intermediate)/demo.map \

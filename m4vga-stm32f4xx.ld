@@ -36,7 +36,7 @@ SECTIONS {
 
   /* Generate some symbols to direct the copying code. */
   PROVIDE(_sram_image_start = LOADADDR(.sram_image));
-  PROVIDE(_sram_image_end = _sram_image_start + SIZEOF(.sram_image));
+  PROVIDE(_sram_image_end = LOADADDR(.sram_image) + SIZEOF(.sram_image));
   PROVIDE(_sram_image_dest = ORIGIN(sram112_at_zero));
 
   /*
@@ -44,7 +44,7 @@ SECTIONS {
    * appears at two locations, so we can copy the SRAM image *before* remapping
    * by pretending it's initialized data.
    */
-  PROVIDE(_data_init_image_start = _sram_image_start);
+  PROVIDE(_data_init_image_start = LOADADDR(.sram_image));
   PROVIDE(_data_start = ORIGIN(sram112));
   PROVIDE(_data_end = ORIGIN(sram112) + SIZEOF(.sram_image));
 
@@ -84,8 +84,18 @@ SECTIONS {
     . = ALIGN(4);
   } >sram112_at_zero
 
-  PROVIDE(_bss_start = ADDR(.bss));
-  PROVIDE(_bss_end   = ADDR(.bss) + SIZEOF(.bss));
+  /*
+   * We'd like software to be able to access bss using small addresses
+   * around zero.  This ensures that such accesses are issued on the
+   * processor's D bus, rather than having to go out the S bus.
+   * However, at init time, we need to describe the BSS boundaries in
+   * terms of the *pre-remap* address space.  The ridiculousness below
+   * translates the address space shapes.
+   */
+  PROVIDE(_bss_start = ORIGIN(sram112)
+                     + (ADDR(.bss) - ORIGIN(sram112_at_zero)));
+  PROVIDE(_bss_end = ORIGIN(sram112)
+                   + (ADDR(.bss) + SIZEOF(.bss) - ORIGIN(sram112_at_zero)));
 
   .arena_sram112 (NOLOAD) : {
     . = ALIGN(4);

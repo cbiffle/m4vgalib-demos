@@ -7,7 +7,7 @@
 #include "etl/stm32f4xx/rcc.h"
 #include "etl/stm32f4xx/usart.h"
 
-#include "runtime/startup.h"
+#include "runtime/crt.h"
 
 #include "vga/arena.h"
 #include "vga/rast/text_10x16.h"

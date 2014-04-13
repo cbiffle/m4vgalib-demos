@@ -1,6 +1,6 @@
 #include "etl/armv7m/exception_table.h"
 
-#include "runtime/startup.h"
+#include "runtime/crt.h"
 
 #include "vga/bitmap.h"
 #include "vga/font_10x16.h"
@@ -19,7 +19,6 @@ static vga::Band const band = { &rasterizer, 600, nullptr };
 __attribute__((noreturn))
 __attribute__((noinline))
 static void rest() {
-  crt_init();
   vga::init();
 
   rasterizer.activate(vga::timing_vesa_800x600_60hz);

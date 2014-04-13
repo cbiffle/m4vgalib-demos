@@ -11,7 +11,7 @@
 #include "etl/stm32f4xx/spi.h"
 #include "etl/stm32f4xx/iic.h"
 
-#include "runtime/startup.h"
+#include "runtime/crt.h"
 
 #include "vga/timing.h"
 #include "vga/vga.h"
