@@ -21,7 +21,6 @@ demo[cc_flags] := -std=gnu++0x -nostdinc
 
 demo[libs] := \
   etl/armv7m:armv7m \
-  etl/armv7m:manual_crt0 \
   etl/armv7m:exception_table \
   etl/stm32f4xx:interrupt_table \
   runtime:runtime \
