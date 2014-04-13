@@ -4,3 +4,6 @@
 [submodule "etl"]
 	path = etl
 	url = cliffle.com:git/etl.git
+[submodule "vga"]
+	path = vga
+	url = cliffle.com:git/m4vgalib.git
