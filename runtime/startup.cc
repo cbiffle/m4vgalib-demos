@@ -51,13 +51,7 @@ extern "C" {
   void init_epilogue();
 }
 
-void crt_init() {
-  // Enable fault reporting.
-  armv7m::scb.write_shcsr(armv7m::scb.read_shcsr()
-                          .with_memfaultena(true)
-                          .with_busfaultena(true)
-                          .with_usgfaultena(true));
-
+static void enable_floating_point() {
   // Enable floating point automatic/lazy state preservation.
   // The CONTROL bit governing FP will be set automatically when first used.
   armv7m::scb_fp.write_fpccr(armv7m::scb_fp.read_fpccr()
@@ -69,9 +63,9 @@ void crt_init() {
                           .with_cp11(armv7m::Scb::CpAccess::full)
                           .with_cp10(armv7m::Scb::CpAccess::full));
   armv7m::instruction_synchronization_barrier();  // Now please.
+}
 
-  // It is now safe to use floating point.
-
+static void remap_sram() {
   // Remap SRAM.
   // Power on syscfg, so we can mess with its registers.
   rcc.enable_clock(ApbPeripheral::syscfg);
@@ -89,9 +83,16 @@ void crt_init() {
   syscfg.write_memrmp(syscfg.read_memrmp()
                       .with_mem_mode(mode));
   armv7m::data_synchronization_barrier();  // Write it now.
-  armv7m::instruction_synchronization_barrier();  // Flush pipeline just in cas
+  armv7m::instruction_synchronization_barrier();  // Flush pipeline just in case
+}
 
-  // Copy image into SRAM.
+void crt_init() {
+  armv7m::scb.enable_faults();
+  enable_floating_point();
+  remap_sram();
+
+  // Copy image into SRAM.  Note that this covers both initialized data and
+  // RAM-resident code.
   for (Word *src = &_sram_image_start, *dest = &_sram_image_dest;
        src != &_sram_image_end;
        ++src, ++dest) {
