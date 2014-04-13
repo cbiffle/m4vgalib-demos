@@ -31,11 +31,11 @@ typedef void (*InitFnPtr)();
  */
 extern "C" {
   // Start of image to be copied.
-  extern Word _sram_image_start;
-  // End of image to be copied.
-  extern Word _sram_image_end;
+  extern Word _data_init_image_start;
   // Destination for copy (RAM).
-  extern Word _sram_image_dest;
+  extern Word _data_start;
+  // End of destination
+  extern Word _data_end;
 
   // Start/end of memory to be zeroed.
   extern Word _bss_start, _bss_end;
@@ -74,7 +74,7 @@ static void remap_sram() {
   // But now things are about to change.
   // Interrupts are disabled, but to be safe in case we fault (due to a bug),
   // go ahead and give VTOR the true address of the Flash table.
-  scb.write_vtor(reinterpret_cast<unsigned>(&_sram_image_dest));
+  scb.write_vtor(reinterpret_cast<unsigned>(&_data_start));
   armv7m::data_synchronization_barrier();  // Write it now.
   armv7m::instruction_synchronization_barrier();  // Flush pipeline just in case
 
@@ -89,15 +89,18 @@ static void remap_sram() {
 void crt_init() {
   armv7m::scb.enable_faults();
   enable_floating_point();
-  remap_sram();
 
   // Copy image into SRAM.  Note that this covers both initialized data and
   // RAM-resident code.
-  for (Word *src = &_sram_image_start, *dest = &_sram_image_dest;
-       src != &_sram_image_end;
-       ++src, ++dest) {
-    *dest = *src;
+  {
+    Word const *src = &_data_init_image_start;
+    Word *dest = &_data_start;
+    while (dest < &_data_end) {
+      *dest++ = *src++;
+    }
   }
+
+  remap_sram();
 
   // Zero BSS.
   for (Word *dest = &_bss_start; dest != &_bss_end; ++dest) {

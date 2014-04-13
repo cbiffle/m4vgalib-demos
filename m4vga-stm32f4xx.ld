@@ -40,6 +40,15 @@ SECTIONS {
   PROVIDE(_sram_image_dest = ORIGIN(sram112_at_zero));
 
   /*
+   * Compatibility symbols for ETL crt0.  This exploits the fact that the SRAM
+   * appears at two locations, so we can copy the SRAM image *before* remapping
+   * by pretending it's initialized data.
+   */
+  PROVIDE(_data_init_image_start = _sram_image_start);
+  PROVIDE(_data_start = ORIGIN(sram112));
+  PROVIDE(_data_end = ORIGIN(sram112) + SIZEOF(.sram_image));
+
+  /*
    * Plain old .text contains functions without strict latency requirements,
    * and rodata.  This implies that const data goes in high-latency Flash,
    * and must be copied into RAM by any programs with latency requirements.
