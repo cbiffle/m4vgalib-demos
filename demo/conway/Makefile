@@ -20,6 +20,7 @@ demo[cc_files] := main.cc
 demo[cc_flags] := -std=gnu++0x -nostdinc
 
 demo[libs] := \
+  etl:etl \
   etl/armv7m:armv7m \
   etl/armv7m:exception_table \
   etl/stm32f4xx:interrupt_table \

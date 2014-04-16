@@ -8,6 +8,7 @@ runtime[cc_files] := runtime.cc startup.cc
 runtime[cc_flags] := -std=gnu++0x
 
 runtime[libs] := \
+  etl:etl \
   etl/armv7m:armv7m \
   etl/stm32f4xx:stm32f4xx
 

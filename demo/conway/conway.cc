@@ -1,6 +1,6 @@
 #include "demo/conway/conway.h"
 
-#include "etl/common/attribute_macros.h"
+#include "etl/attribute_macros.h"
 
 #include "vga/rast/bitmap_1.h"
 #include "vga/arena.h"

@@ -1,4 +1,4 @@
-#include "etl/common/attribute_macros.h"
+#include "etl/attribute_macros.h"
 
 #include "etl/armv7m/types.h"
 #include "etl/armv7m/instructions.h"
