@@ -189,8 +189,8 @@ __attribute__((section(".ramcode.transform_vertices")))
 static void transform_vertices(Mat4f const &m) {
   for (unsigned i = 0; i < vertex_count; ++i) {
     Vec3f v = (m * static_cast<Vec4f>(vertices[i])).project();
-    transformed_vertices[i] = { static_cast<unsigned>(v.x),
-                                static_cast<unsigned>(v.y) };
+    transformed_vertices[i] = { static_cast<int>(v.x),
+                                static_cast<int>(v.y) };
   }
 }
 

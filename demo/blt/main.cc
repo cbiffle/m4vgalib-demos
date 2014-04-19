@@ -37,7 +37,11 @@ static void rest() {
   }
   */
   unsigned n = 256 - ' ';
-  vga::Bitmap b = { (unsigned *) (void *) &vga::font_10x16[' '],
+  // TODO(cbiffle): this is gross.  Bitmap wants a writable unsigned* as an
+  // alignment indicator, but we have a const UInt8 *.
+  auto font = const_cast<void *>(
+      static_cast<void const *>(&vga::font_10x16[' ']));
+  vga::Bitmap b = { (unsigned *) font,
                     n * 8,
                     16,
                     256/4 };
