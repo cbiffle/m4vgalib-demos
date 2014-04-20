@@ -11,6 +11,12 @@
 
 #include <math.h>
 
+using etl::stm32f4xx::AhbPeripheral;
+using etl::stm32f4xx::rcc;
+using etl::stm32f4xx::Gpio;
+using etl::stm32f4xx::gpioa;
+using etl::stm32f4xx::gpiob;
+
 namespace demo {
 namespace rook {
 
@@ -271,6 +277,14 @@ void run(unsigned frame_count) {
   vga::wait_for_vblank();
   vga::video_on();
 
+  rcc.enable_clock(AhbPeripheral::gpioa);
+  gpioa.set_mode(Gpio::p6 | Gpio::p4, Gpio::Mode::input);
+  gpioa.set_pull(Gpio::p6 | Gpio::p4, Gpio::Pull::up);
+
+  rcc.enable_clock(AhbPeripheral::gpiob);
+  gpiob.set_mode(Gpio::p14 | Gpio::p15, Gpio::Mode::input);
+  gpiob.set_pull(Gpio::p14 | Gpio::p15, Gpio::Pull::up);
+
   Mat4f m = Mat4f::identity();
   // Translate world-space to screen-space.
   m = m * Mat4f::translate(400, 200, 0);
@@ -279,6 +293,8 @@ void run(unsigned frame_count) {
   m = m * Mat4f::persp(-10, -10, 10, 10, 20, 100);
   // Translate world away from camera.
   m = m * Mat4f::translate(0, 0, -70);
+
+  Mat4f m2 = Mat4f::identity();
 
   // Because we copy, not flip, this can be hoisted out of loop.
   vga::Graphics1 g = rasterizer.make_bg_graphics();
@@ -289,9 +305,20 @@ void run(unsigned frame_count) {
 
     show_msg(frame / 5);
 
-    m = m * Mat4f::rotate_y(0.01);
+    if (!gpioa.read_idr().get_id(4)) {
+      m2 = m2 * Mat4f::rotate_z(0.01);
+    } else if (!gpiob.read_idr().get_id(14)) {
+      m2 = m2 * Mat4f::rotate_z(-0.01);
+    }
+
+    if (!gpioa.read_idr().get_id(6)) {
+      m = m * Mat4f::rotate_y(-0.01);
+    } else if (!gpiob.read_idr().get_id(15)) {
+      m = m * Mat4f::rotate_y(0.01);
+    }
+
     g.clear_all();
-    transform_vertices(m);
+    transform_vertices(m * m2);
     vga::msig_a_set();
     draw_edges(g);
     vga::msig_a_clear();
