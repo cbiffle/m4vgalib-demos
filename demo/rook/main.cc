@@ -15,7 +15,7 @@ static void rest() {
   vga::configure_timing(vga::timing_vesa_800x600_60hz);
 
   while (1) {
-    demo::rook::run(0);
+    demo::rook::run();
   }
 }
 

@@ -255,7 +255,7 @@ static void show_msg(unsigned frame) {
 
 
 __attribute__((section(".ramcode.rook_run")))
-void run(unsigned frame_count) {
+void run() {
   rasterizer.activate(vga::timing_vesa_800x600_60hz);
   rasterizer.set_fg_color(0b111111);
   rasterizer.set_bg_color(0b010000);
@@ -293,7 +293,7 @@ void run(unsigned frame_count) {
   vga::Graphics1 g = rasterizer.make_bg_graphics();
 
   unsigned frame = 0;
-  while (frame_count == 0 || frame < frame_count) {
+  while (!user_button_pressed()) {
     ++frame;
 
     show_msg(frame);
@@ -324,6 +324,7 @@ void run(unsigned frame_count) {
 
   vga::wait_for_vblank();
   vga::video_off();
+  vga::configure_band_list(nullptr);
   vga::arena_reset();
 }
 

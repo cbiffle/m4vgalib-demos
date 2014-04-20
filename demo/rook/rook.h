@@ -4,7 +4,7 @@
 namespace demo {
 namespace rook {
 
-void run(unsigned frame_count);
+void run();
 
 }  // namespace rook
 }  // namespace demo
