@@ -9,13 +9,9 @@
 #include "vga/timing.h"
 #include "vga/vga.h"
 
-#include <math.h>
+#include "demo/input.h"
 
-using etl::stm32f4xx::AhbPeripheral;
-using etl::stm32f4xx::rcc;
-using etl::stm32f4xx::Gpio;
-using etl::stm32f4xx::gpioa;
-using etl::stm32f4xx::gpiob;
+#include <math.h>
 
 namespace demo {
 namespace rook {
@@ -280,13 +276,7 @@ void run(unsigned frame_count) {
   vga::wait_for_vblank();
   vga::video_on();
 
-  rcc.enable_clock(AhbPeripheral::gpioa);
-  gpioa.set_mode(Gpio::p6 | Gpio::p4, Gpio::Mode::input);
-  gpioa.set_pull(Gpio::p6 | Gpio::p4, Gpio::Pull::up);
-
-  rcc.enable_clock(AhbPeripheral::gpiob);
-  gpiob.set_mode(Gpio::p14 | Gpio::p15, Gpio::Mode::input);
-  gpiob.set_pull(Gpio::p14 | Gpio::p15, Gpio::Pull::up);
+  input_init();
 
   Mat4f m = Mat4f::identity();
   // Translate world-space to screen-space.
@@ -308,15 +298,17 @@ void run(unsigned frame_count) {
 
     show_msg(frame);
 
-    if (!gpioa.read_idr().get_id(4)) {
-      m2 = m2 * Mat4f::rotate_z(0.01);
-    } else if (!gpiob.read_idr().get_id(14)) {
+    auto j = read_joystick();
+
+    if (j & JoyBits::up) {
       m2 = m2 * Mat4f::rotate_z(-0.01);
+    } else if (j & JoyBits::down) {
+      m2 = m2 * Mat4f::rotate_z(0.01);
     }
 
-    if (!gpioa.read_idr().get_id(6)) {
+    if (j & JoyBits::left) {
       m = m * Mat4f::rotate_y(-0.01);
-    } else if (!gpiob.read_idr().get_id(15)) {
+    } else if (j & JoyBits::right) {
       m = m * Mat4f::rotate_y(0.01);
     }
 

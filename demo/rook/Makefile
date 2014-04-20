@@ -28,6 +28,7 @@ demo[libs] := \
   runtime:runtime \
   runtime:default_traps \
   vga:vga \
+  demo:demo \
   demo/rook:lib
 
 demo[whole_archive] := \
