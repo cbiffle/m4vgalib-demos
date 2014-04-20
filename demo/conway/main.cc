@@ -12,6 +12,6 @@ void etl_armv7m_reset_handler() {
   vga::configure_timing(vga::timing_vesa_800x600_60hz);
 
   while (true) {
-    demo::conway::run_demo(10 * 60, true);
+    demo::conway::run(true);
   }
 }

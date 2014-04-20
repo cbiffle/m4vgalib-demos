@@ -28,6 +28,7 @@ demo[libs] := \
   runtime:runtime \
   runtime:default_traps \
   vga:vga \
+  demo:demo \
   demo/conway:lib
 
 demo[whole_archive] := \

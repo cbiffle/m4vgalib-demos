@@ -9,6 +9,8 @@
 #include "vga/timing.h"
 #include "vga/vga.h"
 
+#include "demo/input.h"
+
 namespace demo {
 namespace conway {
 
@@ -186,7 +188,7 @@ static constexpr unsigned conway_rows = 600;
 static vga::rast::Bitmap_1 rasterizer(conway_cols, conway_rows);
 
 // Cells will be set at boot when rand() is less than this.
-static unsigned constexpr set_threshold = 0x20000000;
+static unsigned constexpr boot_threshold = 0x20000000;
 
 // Seed and state variable for random number generation.
 static unsigned seed = 1118;
@@ -198,40 +200,50 @@ static unsigned rand() {
   return seed;
 }
 
-static void set_random_cells() {
+static void set_random_cells(unsigned threshold) {
   vga::Graphics1 g = rasterizer.make_bg_graphics();
-  g.clear_all();
   for (unsigned y = 0; y < conway_rows; ++y) {
     for (unsigned x = 0; x < conway_cols; ++x) {
-      if (rand() < set_threshold) g.set_pixel(x, y);
+      if (rand() < threshold) g.set_pixel(x, y);
     }
   }
-  rasterizer.flip();
 }
 
 static vga::Band const band = { &rasterizer, 600, nullptr };
 
-void run_demo(unsigned frame_count, bool clear_first) {
+void run(bool clear_first) {
   vga::sync_to_vblank();
-  vga::msig_a_set();
   rasterizer.activate(vga::timing_vesa_800x600_60hz);
   rasterizer.set_fg_color(0b111111);
   rasterizer.set_bg_color(0b010000);
 
   vga::configure_band_list(&band);
-  vga::msig_a_clear();
 
-  if (clear_first) set_random_cells();
+  if (clear_first) {
+    vga::Graphics1 g = rasterizer.make_bg_graphics();
+    g.clear_all();
+    set_random_cells(boot_threshold);
+    rasterizer.flip();
+  }
 
+  input_init();
+  vga::msigs_init();
   vga::video_on();
 
-  unsigned f = 0;
-  while (frame_count == 0 || f++ < frame_count) {
+  while (!user_button_pressed()) {
+    vga::msig_a_set();
+
     step(static_cast<unsigned const *>(rasterizer.get_fg_buffer()),
          static_cast<unsigned *>(rasterizer.get_bg_buffer()),
          conway_cols / 32,
          conway_rows);
-    
+  
+    vga::msig_a_clear();
+
+    if (rasterizer.can_bg_use_bitband()) {
+      if (center_button_pressed()) set_random_cells(0x10000000);
+    }
+
     vga::wait_for_vblank();
     rasterizer.flip_now();
   }
