@@ -3,7 +3,7 @@ products := lib demo
 
 lib[type] := library
 
-lib[cc_files] :=
+lib[cc_files] := hires_text.cc
 
 lib[cc_flags] := -std=gnu++0x
 
@@ -25,6 +25,7 @@ demo[libs] := \
   runtime:runtime \
   runtime:default_traps \
   vga:vga \
+  demo:demo \
   demo/hires_text:lib
 
 demo[whole_archive] := \
