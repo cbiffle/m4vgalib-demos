@@ -30,7 +30,7 @@ namespace rook {
  */
 static vga::rast::SolidColor blue(800, 0b010000);
 static vga::rast::Bitmap_1 rasterizer(800, 500 - 17, 100);
-static vga::rast::Text_10x16 text(800, 17, 600 - 17);
+static vga::rast::Text_10x16 text(800 - 10, 17, 600 - 17);
 
 static vga::Band const bands[] = {
   { &blue, 1, &bands[1] },
@@ -240,6 +240,9 @@ static void prepare_message() {
 }
 
 static void show_msg(unsigned frame) {
+  text.set_x_adj(9 - (frame % 10));
+
+  frame /= 10;
   frame %= 81;
   text.clear_framebuffer(0b010000);
   for (unsigned i = 0; i < 81 - frame; ++i) {
@@ -303,7 +306,7 @@ void run(unsigned frame_count) {
   while (frame_count == 0 || frame < frame_count) {
     ++frame;
 
-    show_msg(frame / 5);
+    show_msg(frame);
 
     if (!gpioa.read_idr().get_id(4)) {
       m2 = m2 * Mat4f::rotate_z(0.01);
