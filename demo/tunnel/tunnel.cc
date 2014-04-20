@@ -8,6 +8,8 @@
 #include "vga/vga.h"
 #include "vga/rast/direct_4.h"
 
+#include "demo/input.h"
+
 #include <math.h>
 
 using vga::rast::Direct_4;
@@ -123,7 +125,8 @@ static unsigned color(float distance, float fd, float fa) {
   return shade(distance, tex_fetch(fd, fa));
 }
 
-void run(unsigned frame_count) {
+void run() {
+  input_init();
   generate_lookup_tables();
 
   rasterizer.activate(vga::timing_vesa_800x600_60hz);
@@ -132,7 +135,7 @@ void run(unsigned frame_count) {
   bool video_on = false;
 
   unsigned frame = 0;
-  while (frame_count == 0 || frame < frame_count) {
+  while (!user_button_pressed()) {
     unsigned char *fb = rasterizer.get_bg_buffer();
     ++frame;
 

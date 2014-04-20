@@ -27,6 +27,7 @@ demo[libs] := \
   runtime:runtime \
   runtime:default_traps \
   vga:vga \
+  demo:demo \
   demo/tunnel:lib
 
 demo[whole_archive] := \

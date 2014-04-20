@@ -4,7 +4,7 @@
 namespace demo {
 namespace tunnel {
 
-void run(unsigned frame_count);
+void run();
 
 }  // namespace tunnel
 }  // namespace demo
