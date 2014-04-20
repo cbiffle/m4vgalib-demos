@@ -248,6 +248,7 @@ void run(bool clear_first) {
     rasterizer.flip_now();
   }
 
+  vga::sync_to_vblank();
   vga::video_off();
 
   vga::configure_band_list(nullptr);
