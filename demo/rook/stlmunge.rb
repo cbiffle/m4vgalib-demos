@@ -192,7 +192,7 @@ while not $ends.empty?
     end
   end
 
-  STDERR.puts "Built segment of #{segment.length} pieces"
+  # STDERR.puts "Built segment of #{segment.length} pieces"
   segments << segment
 end
 
@@ -214,28 +214,49 @@ Segment rep requires:
  - No significant non-display RAM traffic.
 END
 
-STDERR.puts "C representation on stdout."
-
-puts "static Vec3f const vertices[] = {"
-unique_points.sort { |a, b| a[1] <=> b[1] }.each { |p, i|
-  puts "  { #{p.x}, #{p.y}, #{p.z} },"
+File.open('model.h', 'w') { |f|
+  f.puts '#ifndef DEMO_ROOK_MODEL_H'
+  f.puts '#define DEMO_ROOK_MODEL_H'
+  f.puts
+  f.puts '#include "etl/types.h"'
+  f.puts '#include "demo/rook/geometry.h"'
+  f.puts
+  f.puts 'namespace demo {'
+  f.puts 'namespace rook {'
+  f.puts
+  f.puts "static constexpr unsigned vertex_count = #{unique_points.size};"
+  f.puts "static constexpr unsigned edge_count = #{unique_edges.size};"
+  f.puts
+  f.puts 'extern Vec3f const vertices[vertex_count];'
+  f.puts 'extern etl::UInt16 const edges[edge_count][2];'
+  f.puts
+  f.puts '}  // namespace rook'
+  f.puts '}  // namespace demo'
+  f.puts
+  f.puts '#endif  // DEMO_ROOK_MODEL_H'
 }
-puts "};"
 
-puts "static unsigned short const edges[][2] = {"
-unique_edges.keys.sort { |a, b| if a.a == b.a then a.b <=> b.b else a.a <=> b.a end }.each { |e|
-  puts "  { #{e.a}, #{e.b} },"
+File.open('model.cc', 'w') { |f|
+  f.puts '#include "demo/rook/model.h"'
+  f.puts
+  f.puts 'namespace demo {'
+  f.puts 'namespace rook {'
+  f.puts
+  f.puts "Vec3f const vertices[vertex_count] = {"
+  unique_points.sort { |a, b| a[1] <=> b[1] }.each { |p, i|
+    f.puts "  { #{p.x}, #{p.y}, #{p.z} },"
+  }
+  f.puts "};"
+
+  f.puts "etl::UInt16 const edges[][2] = {"
+  unique_edges.keys.sort { |a, b|
+    if a.a == b.a then a.b <=> b.b else a.a <=> b.a end
+  }.each { |e|
+    f.puts "  { #{e.a}, #{e.b} },"
+  }
+  f.puts "};"
+
+  f.puts
+  f.puts '}  // namespace rook'
+  f.puts '}  // namespace demo'
 }
-puts "};"
-
-puts "static constexpr unsigned vertex_count = #{unique_points.size};"
-puts "static constexpr unsigned edge_count = #{unique_edges.size};"
-
-#segments.each { |seg|
-#  STDOUT.write [ seg.length ].pack("V")
-#  seg.each { |p|
-#    STDOUT.write [ p.x, p.y, p.z ].pack("eee")
-#  }
-#}
-#STDOUT.write [ 0 ].pack("V")
-

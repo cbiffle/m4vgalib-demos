@@ -3,7 +3,7 @@ products := lib demo
 
 lib[type] := library
 
-lib[cc_files] := rook.cc
+lib[cc_files] := rook.cc model.cc
 
 lib[cc_flags] := -std=gnu++0x -O2
 
@@ -54,3 +54,6 @@ flash: $(intermediate)/demo
                 -c "reset halt" \
                 -c "resume" \
                 -c "shutdown"
+
+model.cc model.h: rook.stl stlmunge.rb
+	ruby stlmunge.rb <rook.stl
