@@ -315,9 +315,7 @@ void etl_armv7m_reset_handler() {
   }
 }
 
-namespace vga {
-  __attribute__((section(".ramcode")))
-  void hblank_interrupt() {
-    usart2_poll();
-  }
+__attribute__((section(".ramcode")))
+void vga_hblank_interrupt() {
+  usart2_poll();
 }

@@ -255,11 +255,9 @@ static void rest() {
 
 }
 
-namespace vga {
-  __attribute__((section(".ramcode")))
-  void hblank_interrupt() {
-    // iic1_poll();
-  }
+__attribute__((section(".ramcode")))
+void vga_hblank_interrupt() {
+  // iic1_poll();
 }
 
 void etl_armv7m_reset_handler() {
