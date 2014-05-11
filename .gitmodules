@@ -1,6 +1,3 @@
-[submodule "build"]
-	path = build
-	url = cliffle.com:git/3p/socialhacker-build
 [submodule "etl"]
 	path = etl
 	url = cliffle.com:git/etl.git
