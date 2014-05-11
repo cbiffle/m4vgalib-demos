@@ -14,13 +14,8 @@ c_library('lib',
 )
 
 c_binary('demo',
-  environment = 'target',
+  environment = 'target-standalone',
   sources = [ 'main.cc' ],
-  extra = {
-    'c_flags': [ '-nostdinc' ],
-    'cxx_flags': [ '-nostdinc' ],
-    'link_flags': [ '-nostdlib', '-nodefaultlibs' ],
-  },
   deps = [
     ':lib',
 

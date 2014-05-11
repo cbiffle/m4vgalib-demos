@@ -10,8 +10,6 @@
 #include "vga/vga.h"
 #include "vga/rast/bitmap_1.h"
 
-#include <math.h>
-
 static vga::rast::Bitmap_1 rasterizer(800, 600);
 
 static vga::Band const band = { &rasterizer, 600, nullptr };

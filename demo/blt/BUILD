@@ -1,11 +1,10 @@
 c_library('lib')
 
 c_binary('demo',
-  environment = 'target',
+  environment = 'target-standalone',
   sources = [ 'main.cc' ],
   local = {
     'cxx_flags': [ '-O2' ],
-    'link_flags': [ '-nostartfiles' ],
   },
   deps = [
     ':lib',

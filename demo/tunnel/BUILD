@@ -20,9 +20,6 @@ c_binary('demo',
     # TODO(cbiffle): probably not necessary
     'cxx_flags': [ '-O2' ],
   },
-  extra = {
-    'link_flags': [ '-nostartfiles' ],
-  },
   deps = [
     ':lib',
 

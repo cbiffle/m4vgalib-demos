@@ -15,7 +15,4 @@ c_binary('reel',
     '//demo/hires_text:lib',
     '//demo/rook:lib',
   ],
-  extra = {
-    'link_flags': [ '-nostartfiles' ],
-  },
 )

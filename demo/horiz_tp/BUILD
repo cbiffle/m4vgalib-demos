@@ -1,13 +1,8 @@
 c_library('lib')  # TODO(cbiffle): present for consistency with Makefile
 
 c_binary('demo',
-  environment = 'target',
+  environment = 'target-standalone',
   sources = [ 'main.cc' ],
-  extra = {
-    'c_flags': [ '-nostdinc'],
-    'cxx_flags': [ '-nostdinc' ],
-    'link_flags': [ '-nostdlib', '-nodefaultlibs' ],
-  },
   deps = [
     '//etl/armv7m',
     '//etl/armv7m:exception_table',

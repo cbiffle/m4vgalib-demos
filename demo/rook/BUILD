@@ -27,9 +27,6 @@ c_binary('demo',
     '//runtime:default_traps',
     '//vga',
   ],
-  extra = {
-    'link_flags': [ '-nostartfiles' ],
-  },
 )
 
 compile_stl('rook_stl_model',

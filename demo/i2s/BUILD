@@ -14,9 +14,7 @@ c_binary('demo',
     '//etl/armv7m:manual_crt0',
     '//runtime',
     '//runtime:default_traps',
+    '//sys:libm',
     '//vga',
   ],
-  local = {
-    'link_flags': [ '-nostartfiles' ],
-  },
 )
