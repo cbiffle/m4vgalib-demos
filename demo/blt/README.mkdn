@@ -1,0 +1,5 @@
+This exercises m4vgalib's support for blitting in 1bpp framebuffers.  It's
+somewhat buggy and needs work.
+
+It uses the standard 10x16 font as a data source, which is why it looks
+suspiciously like a character graphics demo.

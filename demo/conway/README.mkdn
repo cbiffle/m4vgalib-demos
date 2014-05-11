@@ -8,6 +8,6 @@ resolution.  This demonstrates:
  2. Running a computationally intensive task locked to vsync.
  3. The fastest Life algorithm I could find.
 
-This uses slightly less than 100% of the CPU and achieves 28.8 million cell
-updates per second -- or about 5.5 cycles per cell, since we underclock to
-160MHz for timing reasons.
+One cell per pixel at 800x600 and 60fps means 28.8 million cell updates per
+second.  This implementation idles the CPU 13.2% of the time (under GCC 4.8.3),
+meaning that each cell update costs just 4.8 cycles at our underclocked 160MHz.

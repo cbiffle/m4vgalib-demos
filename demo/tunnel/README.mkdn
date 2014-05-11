@@ -1,0 +1,9 @@
+Old-skool tunnel effect.
+
+This demonstrates:
+
+ - Dividing down resolution to save on memory and computation time (in this
+   case, pixels are handled in 4x4 groups).
+ - Using half-precision floating point to store precomputed tables more
+   cheaply.
+ - Rendering tricks handed down through the ages.

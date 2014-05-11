@@ -1,0 +1,7 @@
+Demonstrates a 640x480x1 graphics mode.  This has advantages and disadvantages
+compared to the 800x600 mode:
+
+ - For raster graphics, it uses less memory, but...
+ - It requires the CPU to be underclocked significantly, to 100.7 MHz.
+
+This demo exists primarily to ensure that the support for 640x480 doesn't rot.

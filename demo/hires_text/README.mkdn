@@ -1,0 +1,14 @@
+This demonstrates an 80x37 attributed character display.
+
+The scanout resolution is 800x600, so each character occupies a 10x16-pixel
+cell.  This uses m4vgalib's stock 10x16 font.  Each character can be assigned
+an individual 8-bit foreground and background color.  Despite the numerous
+indirections involved in rendering attributed text, this leaves the CPU 44.2%
+idle.
+
+Note that the text rasterizers could be extended to 10xY-pixel cells easily.
+Switching to 8-pixel-wide cells would improve performance slightly at some loss
+in glyph resolution -- this would require changes to the scanout unpack routine.
+
+Because character graphics are effectively a compression algorithm, m4vgalib's
+text modes can accomodate *lots* of alternate screens or fonts.

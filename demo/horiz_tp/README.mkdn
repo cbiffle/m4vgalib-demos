@@ -1,0 +1,3 @@
+Generates a test pattern of alternating black/white stripes.  This is useful
+when checking for jitter or timing problems.  It's also just about the simplest
+application of m4vgalib.

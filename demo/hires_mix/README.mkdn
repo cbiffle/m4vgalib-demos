@@ -1,0 +1,6 @@
+This demonstrates assigning different rasterizers to groups of scanlines,
+to implement split-screen mode or raster effects.
+
+m4vgalib supports this use case natively, removing the need for the application
+to carefully switch rasterizer pointers during hsync.  (Though it still can if
+it wants to.)

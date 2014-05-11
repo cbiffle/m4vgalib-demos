@@ -1,0 +1,11 @@
+Demonstrates serial communication during video output.
+
+Using an APB-attached peripheral during video generation takes a bit of finesse,
+since the processor accesses the APB through a bridge attached to AHB1 -- and
+the scanout mechanism requires exclusive access to AHB1 during active video.
+
+Applications can avoid conflicts by accessing the APB only during vblank, which
+is easy to program but restricts minimum response time to events.  This demo
+instead handles APB updates during hblank, which ensures that it can keep up
+with a 115200 bps serial data stream, despite this processor's sadistic lack of
+FIFOs.

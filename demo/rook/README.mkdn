@@ -1,0 +1,13 @@
+Renders a wireframe chess piece, plus a scrolling line of text for good
+measure.  You can rotate the chess piece using the joystick.
+
+This demonstrates:
+
+ - m4vgalib's fast bilevel line drawing code.
+ - Perspective projection in single-precision floating point.
+ - Mixed text and graphics.
+ - Smooth scrolling of text.
+
+This is the most CPU-intensive demo in the set, idling the CPU only 5.14% of the
+time.  I've used a couple hacks to keep it locked to 60fps...see if you can
+spot them.

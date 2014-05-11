@@ -39,6 +39,10 @@ To clean:
 Tour of the Demos
 =================
 
+Each demo has its own `README` file.  To learn more about a demo and which
+parts of m4vgalib it exercises, see `demo/*/README.mkdn`.  Here's a brief
+overview of each.
+
 All of the demos are stable at 60fps unless otherwise noted.
 
  - **blt**: a boring demo of m4vgalib's bitblt support (somewhat buggy).

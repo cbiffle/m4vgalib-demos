@@ -1,0 +1,2 @@
+This demonstrates a custom rasterizer producing procedural output -- proof that
+you don't need a framebuffer to have a good time.
