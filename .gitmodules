@@ -3,7 +3,7 @@
 	url = https://github.com/cbiffle/etl.git
 [submodule "vga"]
 	path = vga
-	url = cliffle.com:git/m4vgalib.git
+	url = https://github.com/cbiffle/m4vgalib.git
 [submodule "cobble"]
 	path = cobble
 	url = https://github.com/cbiffle/cobble-build.git
