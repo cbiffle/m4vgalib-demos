@@ -56,4 +56,4 @@ flash: $(intermediate)/demo
                 -c "shutdown"
 
 model.cc model.h: rook.stl stlmunge.rb
-	ruby stlmunge.rb <rook.stl
+	ruby stlmunge.rb . <rook.stl

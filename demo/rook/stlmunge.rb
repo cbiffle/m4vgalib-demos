@@ -1,5 +1,7 @@
 #!/usr/bin/ruby
 
+OUT = ARGV[0]
+
 STDIN.read(80)
 tri_count, = STDIN.read(4).unpack('V')
 
@@ -214,7 +216,9 @@ Segment rep requires:
  - No significant non-display RAM traffic.
 END
 
-File.open('model.h', 'w') { |f|
+STDERR.puts "Output going into #{OUT}"
+
+File.open(OUT + '/model.h', 'w') { |f|
   f.puts '#ifndef DEMO_ROOK_MODEL_H'
   f.puts '#define DEMO_ROOK_MODEL_H'
   f.puts
@@ -236,7 +240,7 @@ File.open('model.h', 'w') { |f|
   f.puts '#endif  // DEMO_ROOK_MODEL_H'
 }
 
-File.open('model.cc', 'w') { |f|
+File.open(OUT + '/model.cc', 'w') { |f|
   f.puts '#include "demo/rook/model.h"'
   f.puts
   f.puts 'namespace demo {'
