@@ -1,0 +1,21 @@
+c_binary('reel',
+  environment = 'target',
+  sources = [ 'main.cc' ],
+  deps = [
+    '//etl/armv7m:armv7m',
+    '//etl/armv7m:exception_table',
+    '//etl/stm32f4xx:interrupt_table',
+    '//etl/armv7m:manual_crt0',
+    '//runtime:runtime',
+    '//runtime:default_traps',
+    '//vga:vga',
+    '//demo:demo',
+    '//demo/tunnel:lib',
+    '//demo/conway:lib',
+    '//demo/hires_text:lib',
+    '//demo/rook:lib',
+  ],
+  extra = {
+    'link_flags': [ '-nostartfiles' ],
+  },
+)
