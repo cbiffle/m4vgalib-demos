@@ -1,0 +1,85 @@
+This is a collection of demos which, together, show how to use [m4vgalib] to
+produce high-quality graphics on an STM32F4 with few external components.
+
+For more information about the approach used, see [m4vgalib].
+
+
+Using the Demos
+===============
+
+To prepare a fresh clone:
+
+    $ ./bootstrap.sh
+
+To build:
+
+    $ cd build
+    $ ./cobble build
+
+Firmware images will be left in `build/demo/*/demo`.
+
+To clean:
+
+    $ rm -rf build
+    $ ./bootstrap.sh
+
+Flashing a binary will depend on what board/programmer combination you're using.
+An `openocd.cfg` configuration that works with the STM32F4DISCOVERY board is
+provided.
+
+
+Tour of the Demos
+=================
+
+All of the demos are stable at 60fps unless otherwise noted.
+
+ - **blt**: a boring demo of m4vgalib's bitblt support (somewhat buggy).
+ - **conway**: cellular automata demonstration, achieving almost 29 million
+   cell updates per second while generating 800x600 video.
+ - **hires_mix**: mixed character and pixel graphics at 800x600.
+ - **hires_text**: 80x37 high-res attributed character mode.
+ - **horiz_tp**: alternating white/black vertical stripes, which is sometimes
+   useful for getting an ornery monitor to sync properly.
+ - **midres_graphics**: simple pixel graphics at 640x480.  This exercises
+   m4vgalib's 640x480 mode support, but it's not very interesting because I'm
+   way more excited about the hires modes.
+ - **rook**: realtime wireframe rendering of a piece from [my chess set].
+   Perspective projection, rotation, etc.
+ - **serial**: a basic "glass teletype."  Accepts input on a UART, prints it
+   on the display.
+ - **tunnel**: old-school demoscene animation, rendered using chunky pixel
+   graphics inside an 800x600 mode.
+ - **xor_pattern**: full-screen procedural texture generation.
+
+
+Connections
+===========
+
+The demos assume an 8MHz oscillator, which happens to be the type used on the
+STM32F4DISCOVERY board.
+
+[m4vgalib] assumes the following connections:
+
+Pin(s) | Signal | Description
+-------|--------|------------
+C6     | HSYNC  | governs monitor's horizontal timing
+C7     | VSYNC  | governs monitor's vertical timing
+C8     | sig B  | used for benchmarking
+C9     | sig A  | used for benchmarking
+E15:8  | video  | feed to video DAC
+
+The demos further assume that only the bottom six pins of video are connected,
+and that they have the following roles:
+
+Pin(s) | Signal | Description
+-------|--------|------------
+E9:8   | R1:0   | red channel
+E11:10 | G1:0   | green channel
+E13:12 | B1:0   | blue channel
+
+So while m4vgalib can do 256-color modes, these demos assume 64-color mode.
+This makes it a lot easier to breadboard a resistor DAC.
+
+
+[m4vgalib]: https://github.com/cbiffle/m4vgalib
+[my chess set]: http://cliffle.com/thing/chess-set-i/
