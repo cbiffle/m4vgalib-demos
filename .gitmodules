@@ -4,3 +4,6 @@
 [submodule "vga"]
 	path = vga
 	url = cliffle.com:git/m4vgalib.git
+[submodule "cobble"]
+	path = cobble
+	url = https://github.com/cbiffle/cobble-build.git
