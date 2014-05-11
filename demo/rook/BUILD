@@ -4,7 +4,7 @@ c_library('lib',
     '@demo/rook/model.cc',
   ],
   local = {
-    'cxx_flags': [ '-O2' ],
+    'cxx_flags': [ '-O2', '-Igen' ],
   },
   deps = [
     '//demo',
