@@ -16,16 +16,24 @@ To build:
     $ cd build
     $ ./cobble build
 
-Firmware images will be left in `build/demo/*/demo`.
+Firmware images will be left in `build/demo/*/demo`.  To flash one onto an
+STM32F4DISCOVERY board:
+
+    $ ./flash.sh build/latest/demo/rook/demo
+
+(Note that you will need to have wired up the video circuit, described below,
+to see any results.)
+
+To do the same through GDB, which is more useful if you're hacking on a demo:
+
+    $ openocd &
+    $ ./gdb.sh build/latest/demo/rook/demo
+    gdb> flash
 
 To clean:
 
     $ rm -rf build
     $ ./bootstrap.sh
-
-Flashing a binary will depend on what board/programmer combination you're using.
-An `openocd.cfg` configuration that works with the STM32F4DISCOVERY board is
-provided.
 
 
 Tour of the Demos
@@ -77,8 +85,8 @@ E9:8   | R1:0   | red channel
 E11:10 | G1:0   | green channel
 E13:12 | B1:0   | blue channel
 
-So while m4vgalib can do 256-color modes, these demos assume 64-color mode.
-This makes it a lot easier to breadboard a resistor DAC.
+So while m4vgalib can do 256-color modes, these demos assume 64-color mode,
+largely to allow use of a trivial six-resistor R2R ladder DAC on a breadboard.
 
 
 [m4vgalib]: https://github.com/cbiffle/m4vgalib
