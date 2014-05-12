@@ -7,6 +7,10 @@ c_library('lib',
     'cxx_flags': [ '-O2', '-Igen' ],
   },
   deps = [
+    # Ensure that the ordering dependency on model.h's generation gets
+    # propagated to the compilation of rook.cc.
+    ':rook_stl_model',
+
     '//demo',
     '//vga',
     '//sys:libm',
