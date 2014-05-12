@@ -13,7 +13,7 @@ fi
 echo "initializing Cobble buildroot in build/"
 mkdir build
 cd build
-../cobble/wrapper.py init ..
+../cobble/cobble init ..
 cd ..
 
 echo "Done."
