@@ -4,6 +4,18 @@ produce high-quality graphics on an STM32F4 with few external components.
 For more information about the approach used, see [m4vgalib].
 
 
+Prerequisites
+=============
+
+I've tested this code most thoroughly using GCC 4.6.3 produced by the
+[summon-arm-toolchain script].  I've finished initial tests using GCC 4.8.3
+built using the [GCC ARM Embedded] 2014q1 recipe.  These demos do not rely
+heavily on the C library, so the fact that the GCC ARM Embedded folks have
+chosen a very unusual Newlib configuration won't hurt you.
+
+I have not tried building this with CLang.
+
+
 Using the Demos
 ===============
 
@@ -95,3 +107,5 @@ largely to allow use of a trivial six-resistor R2R ladder DAC on a breadboard.
 
 [m4vgalib]: https://github.com/cbiffle/m4vgalib
 [my chess set]: http://cliffle.com/thing/chess-set-i/
+[summon-arm-toolchain script]: https://github.com/esden/summon-arm-toolchain
+[GCC ARM Embedded]: https://launchpad.net/gcc-arm-embedded
