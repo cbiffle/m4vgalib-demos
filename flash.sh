@@ -11,8 +11,8 @@
 
 openocd -f openocd.cfg \
   -c "init" \
-  -c "reset init"
+  -c "reset init" \
   -c "flash write_image erase $1" \
-  -c "reset halt"
-  -c "resume"
+  -c "reset halt" \
+  -c "resume" \
   -c "shutdown"
