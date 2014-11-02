@@ -95,7 +95,7 @@ static void write_table(unsigned i, Entry entry) {
 }
 
 static void generate_lookup_tables() {
-  table = new PackedEntry[rows/2 * cols/2];
+  table = vga::arena_new_array<PackedEntry>(rows/2 * cols/2);
   for (unsigned y = 0; y < rows/2; ++y) {
     float cy = y + 0.5f;
     for (unsigned x = 0; x < cols/2; ++x) {

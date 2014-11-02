@@ -60,7 +60,7 @@ static vga::Band const bands[] = {
 static Vec2i *transformed_vertices;
 
 static void allocate_vertex_table() {
-  transformed_vertices = new Vec2i[vertex_count];
+  transformed_vertices = vga::arena_new_array<Vec2i>(vertex_count);
 }
 
 __attribute__((section(".ramcode.transform_vertices")))
