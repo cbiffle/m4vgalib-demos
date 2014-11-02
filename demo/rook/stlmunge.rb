@@ -222,7 +222,7 @@ File.open(OUT + '/model.h', 'w') { |f|
   f.puts '#ifndef DEMO_ROOK_MODEL_H'
   f.puts '#define DEMO_ROOK_MODEL_H'
   f.puts
-  f.puts '#include "etl/types.h"'
+  f.puts '#include <cstdint>'
   f.puts '#include "demo/rook/geometry.h"'
   f.puts
   f.puts 'namespace demo {'
@@ -232,7 +232,7 @@ File.open(OUT + '/model.h', 'w') { |f|
   f.puts "static constexpr unsigned edge_count = #{unique_edges.size};"
   f.puts
   f.puts 'extern Vec3f const vertices[vertex_count];'
-  f.puts 'extern etl::UInt16 const edges[edge_count][2];'
+  f.puts 'extern std::uint16_t const edges[edge_count][2];'
   f.puts
   f.puts '}  // namespace rook'
   f.puts '}  // namespace demo'
@@ -252,7 +252,7 @@ File.open(OUT + '/model.cc', 'w') { |f|
   }
   f.puts "};"
 
-  f.puts "etl::UInt16 const edges[][2] = {"
+  f.puts "std::uint16_t const edges[][2] = {"
   unique_edges.keys.sort { |a, b|
     if a.a == b.a then a.b <=> b.b else a.a <=> b.a end
   }.each { |e|

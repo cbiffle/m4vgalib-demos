@@ -1,5 +1,7 @@
 #include "demo/conway/conway.h"
 
+#include <cstdint>
+
 #include "etl/attribute_macros.h"
 
 #include "vga/rast/bitmap_1.h"
@@ -11,6 +13,8 @@
 
 #include "demo/input.h"
 
+using std::uint32_t;
+
 namespace demo {
 namespace conway {
 
@@ -19,15 +23,15 @@ namespace conway {
  * representing sum and carry.
  */
 struct AddResult {
-  unsigned sum;
-  unsigned carry;
+  uint32_t sum;
+  uint32_t carry;
 };
 
 /*
  * Bit-parallel half adder: adds corresponding bits of two 32-bit vectors,
  * producing sum and carry vectors.
  */
-static ETL_INLINE AddResult half_add(unsigned a, unsigned b) {
+static ETL_INLINE AddResult half_add(uint32_t a, uint32_t b) {
   return { a ^ b, a & b };
 }
 
@@ -35,7 +39,7 @@ static ETL_INLINE AddResult half_add(unsigned a, unsigned b) {
  * Bit-parallel full adder: add corresponding bits of *three* 32-bit vectors,
  * producing sum and carry vectors.
  */
-static ETL_INLINE AddResult full_add(unsigned a, unsigned b, unsigned c) {
+static ETL_INLINE AddResult full_add(uint32_t a, uint32_t b, uint32_t c) {
   AddResult r0 = half_add(a, b);
   AddResult r1 = half_add(r0.sum, c);
   return { r1.sum, r0.carry | r1.carry };
@@ -46,9 +50,9 @@ static ETL_INLINE AddResult full_add(unsigned a, unsigned b, unsigned c) {
  * neighboring bit vectors for context.
  */
 __attribute__((section(".ramcode")))
-static ETL_INLINE unsigned col_step(unsigned above[3],
-                                unsigned current[3],
-                                unsigned below[3]) {
+static ETL_INLINE uint32_t col_step(uint32_t above[3],
+                                    uint32_t current[3],
+                                    uint32_t below[3]) {
   /*
    * Compute row-wise influence sums.  This produces 96 2-bit sums (represented
    * as three pairs of 32-vectors) giving the number of live cells in the 1D
@@ -95,10 +99,10 @@ static ETL_INLINE unsigned col_step(unsigned above[3],
  *  - width is the width of both buffers in words.
  *  - height is the height of both buffers in lines.
  */
-static void step(unsigned const *current_map,
-          unsigned *next_map,
-          unsigned width,
-          unsigned height);
+static void step(uint32_t const *current_map,
+          uint32_t *next_map,
+          uint32_t width,
+          uint32_t height);
 
 #define ADV(name, next) \
   name[0] = name[1]; \
@@ -106,14 +110,14 @@ static void step(unsigned const *current_map,
   name[2] = (next)
 
 __attribute__((section(".ramcode")))
-void step(unsigned const *current_map,
-          unsigned *next_map,
-          unsigned width,
-          unsigned height) {
+void step(uint32_t const *current_map,
+          uint32_t *next_map,
+          uint32_t width,
+          uint32_t height) {
   // We keep sliding windows of state in these arrays.
-  unsigned above[3] = { 0, 0, 0 };
-  unsigned current[3] = { 0, 0, 0 };
-  unsigned below[3] = { 0, 0, 0 };
+  uint32_t above[3] = { 0, 0, 0 };
+  uint32_t current[3] = { 0, 0, 0 };
+  uint32_t below[3] = { 0, 0, 0 };
 
   // Bootstrap for first column of first row.
   current[0] = current[1] = 0;
@@ -233,8 +237,8 @@ void run(bool clear_first) {
   while (!user_button_pressed()) {
     vga::msig_a_set();
 
-    step(static_cast<unsigned const *>(rasterizer.get_fg_buffer()),
-         static_cast<unsigned *>(rasterizer.get_bg_buffer()),
+    step(static_cast<uint32_t const *>(rasterizer.get_fg_buffer()),
+         static_cast<uint32_t *>(rasterizer.get_bg_buffer()),
          conway_cols / 32,
          conway_rows);
   
