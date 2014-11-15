@@ -1,6 +1,7 @@
 #include "demo/conway/conway.h"
 
 #include <cstdint>
+#include <climits>
 
 #include "etl/attribute_macros.h"
 
@@ -13,25 +14,28 @@
 
 #include "demo/input.h"
 
-using std::uint32_t;
-
 namespace demo {
 namespace conway {
+
+typedef std::uint32_t Unit;
+static constexpr unsigned bits = 32;
+static_assert(sizeof(Unit) * CHAR_BIT == bits,
+              "Unit and bits must be adjusted together.");
 
 /*
  * Result of a bit-parallel addition operation: a pair of bit vectors
  * representing sum and carry.
  */
 struct AddResult {
-  uint32_t sum;
-  uint32_t carry;
+  Unit sum;
+  Unit carry;
 };
 
 /*
  * Bit-parallel half adder: adds corresponding bits of two 32-bit vectors,
  * producing sum and carry vectors.
  */
-static ETL_INLINE AddResult half_add(uint32_t a, uint32_t b) {
+static constexpr ETL_INLINE AddResult half_add(Unit a, Unit b) {
   return { a ^ b, a & b };
 }
 
@@ -39,7 +43,7 @@ static ETL_INLINE AddResult half_add(uint32_t a, uint32_t b) {
  * Bit-parallel full adder: add corresponding bits of *three* 32-bit vectors,
  * producing sum and carry vectors.
  */
-static ETL_INLINE AddResult full_add(uint32_t a, uint32_t b, uint32_t c) {
+static ETL_INLINE AddResult full_add(Unit a, Unit b, Unit c) {
   AddResult r0 = half_add(a, b);
   AddResult r1 = half_add(r0.sum, c);
   return { r1.sum, r0.carry | r1.carry };
@@ -49,24 +53,25 @@ static ETL_INLINE AddResult full_add(uint32_t a, uint32_t b, uint32_t c) {
  * Step the automaton for the 32 cells contained in current[1], using the
  * neighboring bit vectors for context.
  */
-__attribute__((section(".ramcode")))
-static ETL_INLINE uint32_t col_step(uint32_t above[3],
-                                    uint32_t current[3],
-                                    uint32_t below[3]) {
+ETL_SECTION(".ramcode")
+ETL_INLINE
+static Unit col_step(Unit above[3],
+                     Unit current[3],
+                     Unit below[3]) {
   /*
    * Compute row-wise influence sums.  This produces 96 2-bit sums (represented
    * as three pairs of 32-vectors) giving the number of live cells in the 1D
    * Moore neighborhood around each position.
    */
-  AddResult a_inf = full_add((above[1] << 1) | (above[0] >> 31),
+  AddResult a_inf = full_add((above[1] << 1) | (above[0] >> (bits - 1)),
                              above[1],
-                             (above[1] >> 1) | (above[2] << 31));
-  AddResult c_inf = half_add((current[1] << 1) | (current[0] >> 31),
+                             (above[1] >> 1) | (above[2] << (bits - 1)));
+  AddResult c_inf = half_add((current[1] << 1) | (current[0] >> (bits - 1)),
                              /* middle bits of current[1] don't count */
-                             (current[1] >> 1) | (current[2] << 31));
-  AddResult b_inf = full_add((below[1] << 1) | (below[0] >> 31),
+                             (current[1] >> 1) | (current[2] << (bits - 1)));
+  AddResult b_inf = full_add((below[1] << 1) | (below[0] >> (bits - 1)),
                              below[1],
-                             (below[1] >> 1) | (below[2] << 31));
+                             (below[1] >> 1) | (below[2] << (bits - 1)));
 
   /*
    * Sum the row-wise sums into a two-dimensional Moore neighborhood population
@@ -99,25 +104,15 @@ static ETL_INLINE uint32_t col_step(uint32_t above[3],
  *  - width is the width of both buffers in words.
  *  - height is the height of both buffers in lines.
  */
-static void step(uint32_t const *current_map,
-          uint32_t *next_map,
-          uint32_t width,
-          uint32_t height);
-
-#define ADV(name, next) \
-  name[0] = name[1]; \
-  name[1] = name[2]; \
-  name[2] = (next)
-
-__attribute__((section(".ramcode")))
-void step(uint32_t const *current_map,
-          uint32_t *next_map,
-          uint32_t width,
-          uint32_t height) {
+ETL_SECTION(".ramcode")
+static void step(Unit const *current_map,
+                 Unit *next_map,
+                 Unit width,
+                 Unit height) {
   // We keep sliding windows of state in these arrays.
-  uint32_t above[3] = { 0, 0, 0 };
-  uint32_t current[3] = { 0, 0, 0 };
-  uint32_t below[3] = { 0, 0, 0 };
+  Unit above[3] { 0, 0, 0 };
+  Unit current[3] { 0, 0, 0 };
+  Unit below[3] { 0, 0, 0 };
 
   // Bootstrap for first column of first row.
   current[0] = current[1] = 0;
@@ -125,6 +120,11 @@ void step(uint32_t const *current_map,
 
   below[0] = below[1] = 0;
   below[2] = current_map[width];
+
+  #define ADV(name, next) \
+    name[0] = name[1]; \
+    name[1] = name[2]; \
+    name[2] = (next)
 
   // First row, wherein above[x] = 0, less final column
   for (unsigned x = 0; x < width - 1; ++x) {
@@ -184,6 +184,8 @@ void step(uint32_t const *current_map,
   ADV(above, 0);
   ADV(current, 0);
   next_map[offset + width - 1] = col_step(above, current, below);
+
+  #undef ADV
 }
 
 static constexpr unsigned conway_cols = 800;
@@ -213,7 +215,7 @@ static void set_random_cells(unsigned threshold) {
   }
 }
 
-static vga::Band const band = { &rasterizer, 600, nullptr };
+static vga::Band const band { &rasterizer, 600, nullptr };
 
 void run(bool clear_first) {
   vga::sync_to_vblank();
@@ -237,9 +239,9 @@ void run(bool clear_first) {
   while (!user_button_pressed()) {
     vga::msig_a_set();
 
-    step(static_cast<uint32_t const *>(rasterizer.get_fg_buffer()),
-         static_cast<uint32_t *>(rasterizer.get_bg_buffer()),
-         conway_cols / 32,
+    step(static_cast<Unit const *>(rasterizer.get_fg_buffer()),
+         static_cast<Unit *>(rasterizer.get_bg_buffer()),
+         conway_cols / bits,
          conway_rows);
   
     vga::msig_a_clear();
