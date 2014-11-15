@@ -3,6 +3,7 @@
 #include "etl/scope_guard.h"
 
 #include "etl/armv7m/instructions.h"
+#include "etl/armv7m/types.h"
 
 #include "vga/arena.h"
 #include "vga/measurement.h"
@@ -11,117 +12,28 @@
 #include "vga/rast/direct_4.h"
 
 #include "demo/input.h"
+#include "demo/tunnel/config.h"
+#include "demo/tunnel/table.h"
 
-#include <math.h>
+#define TABLE_IN_ROM 1
 
 using vga::rast::Direct_4;
 
 namespace demo {
 namespace tunnel {
 
-static constexpr unsigned cols = 200;
-static constexpr unsigned rows = 150;
+static Direct_4 rasterizer(config::cols, config::rows);
 
-static constexpr unsigned texture_width = 64;
-static constexpr unsigned texture_height = 64;
+static vga::Band const band { &rasterizer, config::rows * 4, nullptr };
 
-static constexpr float dspeed = 1.f;
-static constexpr float aspeed = 0.2f;
-
-static constexpr unsigned texture_repeats_d = 32;
-static constexpr unsigned texture_repeats_a = 4;
-
-static constexpr unsigned texture_period_a = texture_repeats_a * texture_width;
-static constexpr unsigned texture_period_d = texture_repeats_d * texture_height;
-
-static constexpr float pi = 3.1415926f;
-
-static Direct_4 rasterizer(cols, rows);
-
-static vga::Band const band { &rasterizer, rows * 4, nullptr };
-
-/*******************************************************************************
- * We use two lookup tables to eliminate transcendentals from the render loop.
- * Each table gives values for one quadrant of the screen; deriving values
- * for the other quadrants is straightforward.
- */
-
-/*
- * Abstractly, each table entry contains a distance and angle value as floating
- * point.  In practice, they are not stored this way in memory; see PackedEntry
- * below.
- */
-struct Entry {
-  /*
-   * Distance of each pixel in the quadrant from the near clip plane.  Modulo
-   * texture_height, this gives the v coordinate.
-   *
-   * Range: [0, Infinity)
-   */
-  float distance;
-  /*
-   * Angle of each pixel in the quadrant from the Y axis.  This is given for
-   * quadrant I, and can be flipped and offset for other quadrants.  Because we
-   * use the angles as the texture u coordinate, we scale the natural range of
-   * the trigonometric function used to a more convenient one.
-   *
-   * Range: [0, texture_width * texture_repeats_a)
-   */
-  float angle;
-};
-
-typedef unsigned PackedEntry;
-
-static PackedEntry *table;
-
-static Entry read_table(unsigned i) {
-  PackedEntry const *address = &table[i];
-  float distance, angle;
-  asm (
-    "  vldr.32 %[distance], [%[address]] \n"
-    "  vcvtt.f32.f16 %[angle], %[distance] \n"
-    "  vcvtb.f32.f16 %[distance], %[distance] \n"
-  : [distance] "=&w" (distance),
-    [angle]    "=&w" (angle)
-  : [address] "r" (address)
-  );
-  return { distance, angle };
-}
-
-static void write_table(unsigned i, Entry entry) {
-  PackedEntry const *address = &table[i];
-  asm (
-    "  vcvtb.f16.f32 %[distance], %[distance] \n"
-    "  vcvtt.f16.f32 %[distance], %[angle] \n"
-    "  vstr.32 %[distance], [%[address]] \n"
-  :
-  : [distance] "w" (entry.distance),
-    [angle]    "w" (entry.angle),
-    [address] "r" (address)
-  );
-}
-
-static void generate_lookup_tables() {
-  table = vga::arena_new_array<PackedEntry>(rows/2 * cols/2);
-  for (unsigned y = 0; y < rows/2; ++y) {
-    float cy = y + 0.5f;
-    for (unsigned x = 0; x < cols/2; ++x) {
-      float cx = x + 0.5f;
-
-      unsigned i = y * cols/2 + x;
-      float d = texture_period_d / sqrtf(cx * cx + cy * cy);
-      float a = texture_period_a * 0.5f * (atan2f(cy, cx) / pi + 1);
-      write_table(i, { d, a });
-    }
-  }
-}
+static table::Table * tab;
 
 static unsigned tex_fetch(float u, float v) {
   return static_cast<unsigned>(u) ^ static_cast<unsigned>(v);
 }
 
 static unsigned shade(float distance, unsigned char pixel) {
-  unsigned sel = static_cast<unsigned>(distance) / (texture_repeats_d * 2);
+  unsigned sel = unsigned(distance) / (config::texture_repeats_d * 2);
   sel = etl::armv7m::usat<3>(sel);
 
   return (pixel >> (0x01010000u >> (sel * 8)))
@@ -133,11 +45,15 @@ static unsigned color(float distance, float fd, float fa) {
 }
 
 void run() {
+#if TABLE_IN_ROM == 0
+  tab = vga::arena_new<table::Table>();
+#else
+  tab = vga::arena_new<table::Table>(table::Table::compile_time_table);
+#endif
+
   ETL_ON_SCOPE_EXIT { vga::arena_reset(); };
 
   input_init();
-  generate_lookup_tables();
-
   rasterizer.activate(vga::timing_vesa_800x600_60hz);
   vga::configure_band_list(&band);
   ETL_ON_SCOPE_EXIT { vga::configure_band_list(nullptr); };
@@ -151,44 +67,44 @@ void run() {
     ++frame;
 
     // Quadrants II, I
-    for (unsigned y = 0; y < rows/2; ++y) {
-      unsigned dy = rows/2 - y - 1;
+    for (unsigned y = 0; y < config::rows/2; ++y) {
+      unsigned dy = config::rows/2 - y - 1;
 
       // Quadrant II
-      for (unsigned x = 0; x < cols/2; ++x) {
-        Entry e = read_table(dy * cols/2 + (cols/2 - x - 1));
-        float d = e.distance + frame*dspeed;
-        float a = -e.angle + texture_period_a + frame*aspeed;
-        fb[y * cols + x] = color(e.distance, d, a);
+      for (unsigned x = 0; x < config::cols/2; ++x) {
+        auto e = tab->get(config::cols/2 - x - 1, dy);
+        float d = e.distance + frame*config::dspeed;
+        float a = -e.angle + config::texture_period_a + frame*config::aspeed;
+        fb[y * config::cols + x] = color(e.distance, d, a);
       }
 
       // Quadrant I
-      for (unsigned x = cols/2; x < cols; ++x) {
-        Entry e = read_table(dy * cols/2 + (x - cols/2));
-        float d = e.distance + frame*dspeed;
-        float a = e.angle + frame*aspeed;
-        fb[y * cols + x] = color(e.distance, d, a);
+      for (unsigned x = config::cols/2; x < config::cols; ++x) {
+        auto e = tab->get(x - config::cols/2, dy);
+        float d = e.distance + frame*config::dspeed;
+        float a = e.angle + frame*config::aspeed;
+        fb[y * config::cols + x] = color(e.distance, d, a);
       }
     }
 
     // Quadrants III, IV
-    for (unsigned y = rows/2; y < rows; ++y) {
-      unsigned dy = y - rows/2;
+    for (unsigned y = config::rows/2; y < config::rows; ++y) {
+      unsigned dy = y - config::rows/2;
 
       // Quadrant III
-      for (unsigned x = 0; x < cols/2; ++x) {
-        Entry e = read_table(dy * cols/2 + (cols/2 - x - 1));
-        float d = e.distance + frame*dspeed;
-        float a = e.angle + frame*aspeed;
-        fb[y * cols + x] = color(e.distance, d, a);
+      for (unsigned x = 0; x < config::cols/2; ++x) {
+        auto e = tab->get(config::cols/2 - x - 1, dy);
+        float d = e.distance + frame*config::dspeed;
+        float a = e.angle + frame*config::aspeed;
+        fb[y * config::cols + x] = color(e.distance, d, a);
       }
 
       // Quadrant IV
-      for (unsigned x = cols/2; x < cols; ++x) {
-        Entry e = read_table(dy * cols/2 + (x - cols/2));
-        float d = e.distance + frame*dspeed;
-        float a = -e.angle + texture_period_a + frame*aspeed;
-        fb[y * cols + x] = color(e.distance, d, a);
+      for (unsigned x = config::cols/2; x < config::cols; ++x) {
+        auto e = tab->get(x - config::cols/2, dy);
+        float d = e.distance + frame*config::dspeed;
+        float a = -e.angle + config::texture_period_a + frame*config::aspeed;
+        fb[y * config::cols + x] = color(e.distance, d, a);
       }
     }
 

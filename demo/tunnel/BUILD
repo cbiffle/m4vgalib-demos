@@ -1,5 +1,6 @@
 c_library('lib',
   sources = [
+    'table.cc',
     'tunnel.cc',
   ],
   local = {
