@@ -36,7 +36,7 @@ static constexpr float pi = 3.1415926f;
 
 static Direct_4 rasterizer(cols, rows);
 
-static vga::Band const band = { &rasterizer, rows * 4, nullptr };
+static vga::Band const band { &rasterizer, rows * 4, nullptr };
 
 /*******************************************************************************
  * We use two lookup tables to eliminate transcendentals from the render loop.
@@ -44,6 +44,11 @@ static vga::Band const band = { &rasterizer, rows * 4, nullptr };
  * for the other quadrants is straightforward.
  */
 
+/*
+ * Abstractly, each table entry contains a distance and angle value as floating
+ * point.  In practice, they are not stored this way in memory; see PackedEntry
+ * below.
+ */
 struct Entry {
   /*
    * Distance of each pixel in the quadrant from the near clip plane.  Modulo
