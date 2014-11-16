@@ -1,5 +1,7 @@
 #include "demo/tunnel/tunnel.h"
 
+#include "etl/scope_guard.h"
+
 #include "etl/armv7m/instructions.h"
 
 #include "vga/arena.h"
@@ -131,13 +133,17 @@ static unsigned color(float distance, float fd, float fa) {
 }
 
 void run() {
+  ETL_ON_SCOPE_EXIT { vga::arena_reset(); };
+
   input_init();
   generate_lookup_tables();
 
   rasterizer.activate(vga::timing_vesa_800x600_60hz);
   vga::configure_band_list(&band);
+  ETL_ON_SCOPE_EXIT { vga::configure_band_list(nullptr); };
 
   bool video_on = false;
+  ETL_ON_SCOPE_EXIT { vga::video_off(); };
 
   unsigned frame = 0;
   while (!user_button_pressed()) {
@@ -194,10 +200,6 @@ void run() {
     }
     vga::msig_a_set();
   }
-
-  vga::video_off();
-  vga::configure_band_list(nullptr);
-  vga::arena_reset();
 }
 
 }  // namespace tunnel
