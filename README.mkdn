@@ -104,6 +104,22 @@ E13:12 | B1:0   | blue channel
 So while m4vgalib can do 256-color modes, these demos assume 64-color mode,
 largely to allow use of a trivial six-resistor R2R ladder DAC on a breadboard.
 
+The interactive demos assume a five-way switch joystick and an action button,
+all of which are normally open and pull to ground when pressed.
+
+Pin | Signal | Description
+----|--------|------------
+A4  | Left   | Joystick Left
+A6  | Up     | Joystick Up
+B15 | Down   | Joystick Down
+B14 | Right  | Joystick Right
+B13 | Center | Joystick Press
+A0  | User   | User (Action) Button
+
+The Joystick pins are identical to those used on the WaveShare Open407V-D board,
+with the exception of Right, which must be jumpered.
+
+The User Button is the blue button on the STM32F4DISCOVERY board.
 
 [m4vgalib]: https://github.com/cbiffle/m4vgalib
 [my chess set]: http://cliffle.com/thing/chess-set-i/
