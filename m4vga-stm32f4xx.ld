@@ -126,10 +126,15 @@ SECTIONS {
    * Generate a table defining the boundaries of free RAM for the arenas. */
   .arena_regions : {
     PROVIDE(_arena_regions_start = .);
+
+    PROVIDE(_ccm_arena_end = ORIGIN(ccm) + LENGTH(ccm));
     LONG(_ccm_arena_start);
-    LONG(ORIGIN(ccm) + LENGTH(ccm));
+    LONG(_ccm_arena_end - _ccm_arena_start);
+
+    PROVIDE(_sram112_arena_end = ORIGIN(sram112_at_zero)
+                               + LENGTH(sram112_at_zero));
     LONG(_sram112_arena_start);
-    LONG(ORIGIN(sram112_at_zero) + LENGTH(sram112_at_zero));
+    LONG(_sram112_arena_end - _sram112_arena_start);
     PROVIDE(_arena_regions_end = .);
   } >rom
 
