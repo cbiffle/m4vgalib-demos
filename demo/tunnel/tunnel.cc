@@ -15,8 +15,6 @@
 #include "demo/tunnel/config.h"
 #include "demo/tunnel/table.h"
 
-#define TABLE_IN_ROM 1
-
 using vga::rast::Direct_4;
 
 namespace demo {
