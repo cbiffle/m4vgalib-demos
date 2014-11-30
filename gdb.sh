@@ -5,4 +5,6 @@
 # Note that you must have started openocd separately for this to work.
 # Once inside gdb, the gdbconfig gives you a 'flash' command.
 
-arm-none-eabi-gdb -x gdbconfig $1
+ROOT="$(dirname "$0")"
+
+arm-none-eabi-gdb -x "$ROOT/gdbconfig" $1

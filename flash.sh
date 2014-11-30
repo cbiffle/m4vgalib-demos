@@ -9,7 +9,9 @@
 # if you need to flash repeatedly, you'll have better luck running a single
 # continuous openocd session and using gdb.sh.
 
-openocd -f openocd.cfg \
+ROOT="$(dirname "$0")"
+
+openocd -f "$ROOT/openocd.cfg" \
   -c "init" \
   -c "reset init" \
   -c "flash write_image erase $1" \
