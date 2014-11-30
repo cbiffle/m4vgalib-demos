@@ -4,6 +4,7 @@
 #include <climits>
 
 #include "etl/attribute_macros.h"
+#include "etl/scope_guard.h"
 
 #include "vga/rast/bitmap_1.h"
 #include "vga/arena.h"
@@ -188,52 +189,62 @@ static void step(Unit const *current_map,
   #undef ADV
 }
 
-static constexpr unsigned conway_cols = 800;
-static constexpr unsigned conway_rows = 600;
+struct Conway {
+  static constexpr unsigned
+    cols = 800,
+    rows = 600;
 
-static vga::rast::Bitmap_1 rasterizer(conway_cols, conway_rows);
+  vga::rast::Bitmap_1 rasterizer{cols, rows};
+
+  vga::Band const band { &rasterizer, rows, nullptr };
+
+  // Seed and state variable for random number generation.
+  unsigned seed = 1118;
+
+  Conway() {
+    rasterizer.set_fg_color(0b111111);
+    rasterizer.set_bg_color(0b010000);
+  }
+
+  // A simple linear congruential random number generator.
+  // (Coefficients borrowed from GCC.)
+  unsigned rand() {
+    seed = ((seed * 1103515245) + 12345) & 0x7FFFFFFF;
+    return seed;
+  }
+
+  void set_random_cells(unsigned threshold) {
+    vga::Graphics1 g = rasterizer.make_bg_graphics();
+    for (unsigned y = 0; y < rows; ++y) {
+      for (unsigned x = 0; x < cols; ++x) {
+        if (rand() < threshold) g.set_pixel(x, y);
+      }
+    }
+  }
+};
 
 // Cells will be set at boot when rand() is less than this.
 static unsigned constexpr boot_threshold = 0x20000000;
 
-// Seed and state variable for random number generation.
-static unsigned seed = 1118;
-
-// A simple linear congruential random number generator.
-// (Coefficients borrowed from GCC.)
-static unsigned rand() {
-  seed = ((seed * 1103515245) + 12345) & 0x7FFFFFFF;
-  return seed;
-}
-
-static void set_random_cells(unsigned threshold) {
-  vga::Graphics1 g = rasterizer.make_bg_graphics();
-  for (unsigned y = 0; y < conway_rows; ++y) {
-    for (unsigned x = 0; x < conway_cols; ++x) {
-      if (rand() < threshold) g.set_pixel(x, y);
-    }
-  }
-}
-
-static vga::Band const band { &rasterizer, 600, nullptr };
-
 void run(bool clear_first) {
-  vga::sync_to_vblank();
-  rasterizer.activate(vga::timing_vesa_800x600_60hz);
-  rasterizer.set_fg_color(0b111111);
-  rasterizer.set_bg_color(0b010000);
+  vga::arena_reset();
+  input_init();
+  vga::msigs_init();
 
-  vga::configure_band_list(&band);
+  auto d = vga::arena_make<Conway>();
+
+  auto & rasterizer = d->rasterizer;
 
   if (clear_first) {
     vga::Graphics1 g = rasterizer.make_bg_graphics();
     g.clear_all();
-    set_random_cells(boot_threshold);
+    d->set_random_cells(boot_threshold);
     rasterizer.flip();
   }
 
-  input_init();
-  vga::msigs_init();
+  vga::sync_to_vblank();
+  vga::configure_band_list(&d->band);
+  ETL_ON_SCOPE_EXIT { vga::clear_band_list(); };
   vga::video_on();
 
   while (!user_button_pressed()) {
@@ -241,13 +252,15 @@ void run(bool clear_first) {
 
     step(static_cast<Unit const *>(rasterizer.get_fg_buffer()),
          static_cast<Unit *>(rasterizer.get_bg_buffer()),
-         conway_cols / bits,
-         conway_rows);
-  
+         Conway::cols / bits,
+         Conway::rows);
+
     vga::msig_a_clear();
 
     if (rasterizer.can_bg_use_bitband()) {
-      if (center_button_pressed()) set_random_cells(0x10000000);
+      if (center_button_pressed()) d->set_random_cells(0x10000000);
+    } else {
+      // Luck of the arena; we can't provide this feature, it seems.
     }
 
     vga::wait_for_vblank();
@@ -256,9 +269,6 @@ void run(bool clear_first) {
 
   vga::sync_to_vblank();
   vga::video_off();
-
-  vga::configure_band_list(nullptr);
-  vga::arena_reset();
 }
 
 }  // namespace conway

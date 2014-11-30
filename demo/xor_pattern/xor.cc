@@ -1,5 +1,6 @@
 #include "demo/xor_pattern/xor.h"
 
+#include "etl/scope_guard.h"
 #include "etl/armv7m/instructions.h"
 
 #include "vga/arena.h"
@@ -11,12 +12,19 @@
 namespace demo {
 namespace xor_pattern {
 
-static demo::xor_pattern::Rasterizer rasterizer;
-static vga::Band const band = { &rasterizer, 600, nullptr };
+struct Demo {
+  Rasterizer rasterizer{vga::timing_vesa_800x600_60hz};
+  vga::Band const band{&rasterizer, 600, nullptr};
+};
 
 void run(unsigned frame_count) {
-  rasterizer.activate(vga::timing_vesa_800x600_60hz);
-  vga::configure_band_list(&band);
+  vga::arena_reset();
+
+  auto d = vga::arena_make<Demo>();
+
+  vga::configure_band_list(&d->band);
+  ETL_ON_SCOPE_EXIT { vga::clear_band_list(); };
+
   vga::video_on();
 
   unsigned frame = 0;
@@ -24,10 +32,8 @@ void run(unsigned frame_count) {
     vga::sync_to_vblank();
   }
 
-  vga::configure_band_list(nullptr);
   vga::wait_for_vblank();
   vga::video_off();
-  vga::arena_reset();
 }
 
 }  // namespace xor_pattern

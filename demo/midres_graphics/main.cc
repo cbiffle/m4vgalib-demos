@@ -1,15 +1,29 @@
-#include "etl/armv7m/exception_table.h"
+#include "etl/assert.h"
+#include "etl/scope_guard.h"
 
 #include "etl/armv7m/crt0.h"
+#include "etl/armv7m/exception_table.h"
 
+#include "vga/arena.h"
 #include "vga/graphics_1.h"
 #include "vga/rast/bitmap_1.h"
 #include "vga/timing.h"
 #include "vga/vga.h"
 
-static vga::rast::Bitmap_1 rasterizer(640, 480);
+struct Demo {
+  vga::rast::Bitmap_1 rasterizer{640, 480};
+  vga::Band const band { &rasterizer, 480, nullptr };
 
-static vga::Band const band = { &rasterizer, 480, nullptr };
+  Demo() {
+    rasterizer.set_fg_color(0b111111);
+    rasterizer.set_bg_color(0b100000);
+
+    if (!rasterizer.can_bg_use_bitband()) {
+      rasterizer.flip();
+      ETL_ASSERT(rasterizer.can_bg_use_bitband());
+    }
+  }
+};
 
 static void set_ball(vga::Graphics1 &g, unsigned x, unsigned y) {
   g.set_pixel(x, y);
@@ -58,25 +72,20 @@ static void step_ball(vga::Graphics1 &g,
   set_ball(g, x, y);
 
   ++yi;
-  vga::sync_to_vblank();
-  rasterizer.copy_bg_to_fg();
 }
 
 void etl_armv7m_reset_handler() {
   etl::armv7m::crt0_init();
   vga::init();
-
-  rasterizer.activate(vga::timing_vesa_800x600_60hz);
-  vga::configure_band_list(&band);
   vga::configure_timing(vga::timing_vesa_640x480_60hz);
 
-  rasterizer.set_fg_color(0b111111);
-  rasterizer.set_bg_color(0b100000);
+  auto d = vga::arena_make<Demo>();
 
-  if (!rasterizer.can_bg_use_bitband()) {
-    rasterizer.flip();
-    if (!rasterizer.can_bg_use_bitband()) while (1);
-  }
+  vga::Graphics1 g = d->rasterizer.make_bg_graphics();
+  g.clear_all();
+
+  vga::configure_band_list(&d->band);
+  ETL_ON_SCOPE_EXIT { vga::clear_band_list(); };
 
   vga::video_on();
 
@@ -85,11 +94,13 @@ void etl_armv7m_reset_handler() {
 
   x[0] = x[1] = y[0] = y[1] = 0;
 
-  vga::Graphics1 g = rasterizer.make_bg_graphics();
-  g.clear_all();
-
   while (1) {
     step_ball(g, x[0], y[0], x[1], y[1], xi, yi);
+    d->rasterizer.copy_bg_to_fg();
+    vga::sync_to_vblank();
+
     step_ball(g, x[1], y[1], x[0], y[0], xi, yi);
+    d->rasterizer.copy_bg_to_fg();
+    vga::sync_to_vblank();
   }
 }

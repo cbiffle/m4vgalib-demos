@@ -7,10 +7,9 @@
 namespace demo {
 namespace xor_pattern {
 
-void Rasterizer::activate(vga::Timing const &timing) {
-  _frame = 0;
-  _width = timing.video_pixels;
-}
+Rasterizer::Rasterizer(vga::Timing const &timing)
+  : _width(timing.video_pixels),
+    _frame(0) {}
 
 __attribute__((section(".ramcode")))
 vga::Rasterizer::LineShape Rasterizer::rasterize(unsigned line_number,

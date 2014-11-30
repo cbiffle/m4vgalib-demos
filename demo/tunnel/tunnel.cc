@@ -22,12 +22,6 @@ using vga::rast::Direct_4;
 namespace demo {
 namespace tunnel {
 
-static Direct_4 rasterizer(config::cols, config::rows);
-
-static vga::Band const band { &rasterizer, config::rows * 4, nullptr };
-
-static table::Table * tab;
-
 static unsigned tex_fetch(float u, float v) {
   return static_cast<unsigned>(u) ^ static_cast<unsigned>(v);
 }
@@ -44,26 +38,33 @@ static unsigned color(float distance, float fd, float fa) {
   return shade(distance, tex_fetch(fd, fa));
 }
 
-void run() {
+struct Tunnel {
+  vga::rast::Direct_4 rasterizer { config::cols, config::rows };
+  vga::Band band { &rasterizer, config::rows * 4, nullptr };
+
 #if TABLE_IN_ROM == 0
-  tab = vga::arena_new<table::Table>();
+  table::Table tab;
 #else
-  tab = vga::arena_new<table::Table>(table::Table::compile_time_table);
+  table::Table tab{table::Table::compile_time_table};
 #endif
+};
 
-  ETL_ON_SCOPE_EXIT { vga::arena_reset(); };
-
+void run() {
+  vga::arena_reset();
   input_init();
-  rasterizer.activate(vga::timing_vesa_800x600_60hz);
-  vga::configure_band_list(&band);
-  ETL_ON_SCOPE_EXIT { vga::configure_band_list(nullptr); };
+
+  auto d = vga::arena_make<Tunnel>();
 
   bool video_on = false;
-  ETL_ON_SCOPE_EXIT { vga::video_off(); };
+  ETL_ON_SCOPE_EXIT { if (video_on) vga::video_off(); };
 
+  vga::configure_band_list(&d->band);
+  ETL_ON_SCOPE_EXIT { vga::clear_band_list(); };
+
+  auto & tab = d->tab;
   unsigned frame = 0;
   while (!user_button_pressed()) {
-    unsigned char *fb = rasterizer.get_bg_buffer();
+    unsigned char *fb = d->rasterizer.get_bg_buffer();
     ++frame;
 
     // Quadrants II, I
@@ -72,7 +73,7 @@ void run() {
 
       // Quadrant II
       for (unsigned x = 0; x < config::cols/2; ++x) {
-        auto e = tab->get(config::cols/2 - x - 1, dy);
+        auto e = tab.get(config::cols/2 - x - 1, dy);
         float d = e.distance + frame*config::dspeed;
         float a = -e.angle + config::texture_period_a + frame*config::aspeed;
         fb[y * config::cols + x] = color(e.distance, d, a);
@@ -80,7 +81,7 @@ void run() {
 
       // Quadrant I
       for (unsigned x = config::cols/2; x < config::cols; ++x) {
-        auto e = tab->get(x - config::cols/2, dy);
+        auto e = tab.get(x - config::cols/2, dy);
         float d = e.distance + frame*config::dspeed;
         float a = e.angle + frame*config::aspeed;
         fb[y * config::cols + x] = color(e.distance, d, a);
@@ -93,7 +94,7 @@ void run() {
 
       // Quadrant III
       for (unsigned x = 0; x < config::cols/2; ++x) {
-        auto e = tab->get(config::cols/2 - x - 1, dy);
+        auto e = tab.get(config::cols/2 - x - 1, dy);
         float d = e.distance + frame*config::dspeed;
         float a = e.angle + frame*config::aspeed;
         fb[y * config::cols + x] = color(e.distance, d, a);
@@ -101,7 +102,7 @@ void run() {
 
       // Quadrant IV
       for (unsigned x = config::cols/2; x < config::cols; ++x) {
-        auto e = tab->get(x - config::cols/2, dy);
+        auto e = tab.get(x - config::cols/2, dy);
         float d = e.distance + frame*config::dspeed;
         float a = -e.angle + config::texture_period_a + frame*config::aspeed;
         fb[y * config::cols + x] = color(e.distance, d, a);
@@ -109,7 +110,7 @@ void run() {
     }
 
     vga::msig_a_clear();
-    rasterizer.flip();
+    d->rasterizer.flip();
     if (!video_on) {
       vga::video_on();
       video_on = true;

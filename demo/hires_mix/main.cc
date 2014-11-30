@@ -1,7 +1,9 @@
-#include "etl/armv7m/exception_table.h"
+#include "etl/scope_guard.h"
 
 #include "etl/armv7m/crt0.h"
+#include "etl/armv7m/exception_table.h"
 
+#include "vga/arena.h"
 #include "vga/graphics_1.h"
 #include "vga/timing.h"
 #include "vga/vga.h"
@@ -10,29 +12,37 @@
 
 using vga::rast::Bitmap_1;
 
-typedef vga::Rasterizer::Pixel Pixel;
+using Pixel = vga::Rasterizer::Pixel;
 
 
 /*******************************************************************************
  * Screen partitioning
  */
 
-static constexpr unsigned text_cols = 800;
-static constexpr unsigned text_rows = 16 * 16;
+static constexpr unsigned
+  text_cols = 800,
+  text_rows = 16 * 16,
+  gfx_cols = 800,
+  gfx_rows = 600 - text_rows;
 
-static constexpr unsigned gfx_cols = 800;
-static constexpr unsigned gfx_rows = 600 - text_rows;
+enum {
+  white   = 0b111111,
+  lt_gray = 0b101010,
+  dk_gray = 0b010101,
+  black   = 0b000000,
+
+  red     = 0b000011,
+  green   = 0b001100,
+  blue    = 0b110000,
+};
 
 
 /*******************************************************************************
  * The Graphics Parts
  */
 
-static Bitmap_1 gfx_rast(gfx_cols, gfx_rows);
-
 class Particle {
 public:
-  static constexpr unsigned lifetime = 120;
   static unsigned seed;
 
   void randomize() {
@@ -102,150 +112,66 @@ private:
 
 unsigned Particle::seed = 1118;
 
-static constexpr unsigned particle_count = 500;
+struct GfxDemo {
+  static constexpr unsigned particle_count = 500;
 
-static Particle particles[particle_count];
+  Particle particles[particle_count];
 
-static void update_particles() {
-  vga::Graphics1 g = gfx_rast.make_bg_graphics();
-  for (Particle &p : particles) {
-    p.step(g);
-    p.nudge(0, 1);
+  Bitmap_1 gfx_rast{gfx_cols, gfx_rows};
+
+  GfxDemo() {
+    gfx_rast.set_fg_color(0b111111);
+    gfx_rast.set_bg_color(0b100000);
+
+    if (!gfx_rast.can_bg_use_bitband()) {
+      gfx_rast.flip();
+      if (!gfx_rast.can_bg_use_bitband()) while (1);
+    }
+
+    gfx_rast.make_bg_graphics().clear_all();
+
+    for (Particle &p : particles) p.randomize();
   }
-  vga::sync_to_vblank();
-  gfx_rast.copy_bg_to_fg();
-}
+
+  void update_particles() {
+    vga::Graphics1 g = gfx_rast.make_bg_graphics();
+    for (Particle &p : particles) {
+      p.step(g);
+      p.nudge(0, 1);
+    }
+    gfx_rast.copy_bg_to_fg();
+  }
+};
 
 
 /*******************************************************************************
  * The Text Parts
  */
 
-static vga::rast::Text_10x16 text_rast(text_cols, text_rows, gfx_rows);
+struct TextDemo {
+  static constexpr unsigned
+    t_right_margin = (text_cols + 9) / 10,
+    t_bottom_margin = (text_rows + 15) / 16;
 
+  vga::rast::Text_10x16 text_rast{text_cols, text_rows, gfx_rows};
 
-static constexpr unsigned t_right_margin = (text_cols + 9) / 10;
-static constexpr unsigned t_bottom_margin = (text_rows + 15) / 16;
+  unsigned t_row = 0, t_col = 0;
 
-static unsigned t_row = 0, t_col = 0;
+  TextDemo() {
+    text_rast.clear_framebuffer(0);
 
-static void type_raw(Pixel fore, Pixel back, char c) {
-  text_rast.put_char(t_col, t_row, fore, back, c);
-  ++t_col;
-  if (t_col == t_right_margin) {
-    t_col = 0;
-    ++t_row;
-    if (t_row == t_bottom_margin) t_row = 0;
-  }
-}
+    text_centered(0, white, dk_gray, "800x600 Mixed Graphics Modes Demo");
+    cursor_to(0, 2);
+    type(white, black, "Bitmap framebuffer combined with ");
+    type(black, white, "attributed");
+    type(red, black, " 256");
+    type(green, black, " color ");
+    type(blue, black, "text.");
+    cursor_to(0, 4);
+    rainbow_type("The quick brown fox jumped over the lazy dog. "
+                 "0123456789!@#$%^{}");
 
-static void type(Pixel fore, Pixel back, char c) {
-  switch (c) {
-    case '\n':
-      do {
-        type_raw(fore, back, ' ');
-      } while (t_col);
-      return;
-
-    default:
-      type_raw(fore, back, c);
-      return;
-  }
-}
-
-static void type(Pixel fore, Pixel back, char const *s) {
-  while (char c = *s++) {
-    type(fore, back, c);
-  }
-}
-
-static void rainbow_type(char const *s) {
-  unsigned x = 0;
-  while (char c = *s++) {
-    type(x & 0b111111, ~x & 0b111111, c);
-    ++x;
-  }
-}
-
-static void cursor_to(unsigned col, unsigned row) {
-  if (col >= t_right_margin) col = t_right_margin - 1;
-  if (row >= t_bottom_margin) row = t_bottom_margin - 1;
-
-  t_col = col;
-  t_row = row;
-}
-
-static void text_at(unsigned col, unsigned row,
-                    Pixel fore, Pixel back,
-                    char const *s) {
-  cursor_to(col, row);
-  type(fore, back, s);
-}
-
-static void text_centered(unsigned row, Pixel fore, Pixel back, char const *s) {
-  unsigned len = 0;
-  while (s[len]) ++len;
-
-  unsigned left_margin = 40 - len / 2;
-  unsigned right_margin = t_right_margin - len - left_margin;
-
-  cursor_to(0, row);
-  for (unsigned i = 0; i < left_margin; ++i) type(fore, back, ' ');
-  type(fore, back, s);
-  for (unsigned i = 0; i < right_margin; ++i) type(fore, back, ' ');
-}
-
-enum {
-  white   = 0b111111,
-  lt_gray = 0b101010,
-  dk_gray = 0b010101,
-  black   = 0b000000,
-
-  red     = 0b000011,
-  green   = 0b001100,
-  blue    = 0b110000,
-};
-
-
-/*******************************************************************************
- * The Startup Routine
- */
-
-static vga::Band const bands[] = {
-  { &gfx_rast, gfx_rows, &bands[1] },
-  { &text_rast, text_rows, nullptr },
-};
-
-void etl_armv7m_reset_handler() {
-  etl::armv7m::crt0_init();
-  vga::init();
-
-  gfx_rast.activate(vga::timing_vesa_800x600_60hz);
-  gfx_rast.set_fg_color(0b111111);
-  gfx_rast.set_bg_color(0b100000);
-
-  if (!gfx_rast.can_bg_use_bitband()) {
-    gfx_rast.flip();
-    if (!gfx_rast.can_bg_use_bitband()) while (1);
-  }
-
-  gfx_rast.make_bg_graphics().clear_all();
-
-  text_rast.activate(vga::timing_vesa_800x600_60hz);
-  text_rast.clear_framebuffer(0);
-
-  text_centered(0, white, dk_gray, "800x600 Mixed Graphics Modes Demo");
-  cursor_to(0, 2);
-  type(white, black, "Bitmap framebuffer combined with ");
-  type(black, white, "attributed");
-  type(red, black, " 256");
-  type(green, black, " color ");
-  type(blue, black, "text.");
-  cursor_to(0, 4);
-  rainbow_type("The quick brown fox jumped over the lazy dog. "
-               "0123456789!@#$%^{}");
-
-  text_at(0, 6, white, 0b100000,
+    text_at(0, 6, white, 0b100000,
       "     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam ut\n"
       "     tellus quam. Cras ornare facilisis sollicitudin. Quisque quis\n"
       "     imperdiet mauris. Proin malesuada nibh dolor, eu luctus mauris\n"
@@ -253,20 +179,112 @@ void etl_armv7m_reset_handler() {
       "     in faucibus. Aenean tincidunt viverra ultricies. Quisque rutrum\n"
       "     vehicula pulvinar.\n");
 
-  text_at(0, 15, white, black, "60 fps / 40MHz pixel clock");
-  text_at(58, 36, white, black, "Frame number:");
+    text_at(0, 15, white, black, "60 fps / 40MHz pixel clock");
+    text_at(58, 36, white, black, "Frame number:");
+  }
 
-  vga::configure_band_list(&bands[0]);
+  void type_raw(Pixel fore, Pixel back, char c) {
+    text_rast.put_char(t_col, t_row, fore, back, c);
+    ++t_col;
+    if (t_col == t_right_margin) {
+      t_col = 0;
+      ++t_row;
+      if (t_row == t_bottom_margin) t_row = 0;
+    }
+  }
+
+  void type(Pixel fore, Pixel back, char c) {
+    switch (c) {
+      case '\n':
+        do {
+          type_raw(fore, back, ' ');
+        } while (t_col);
+        return;
+
+      default:
+        type_raw(fore, back, c);
+        return;
+    }
+  }
+
+  void type(Pixel fore, Pixel back, char const *s) {
+    while (char c = *s++) {
+      type(fore, back, c);
+    }
+  }
+
+  void rainbow_type(char const *s) {
+    unsigned x = 0;
+    while (char c = *s++) {
+      type(x & 0b111111, ~x & 0b111111, c);
+      ++x;
+    }
+  }
+
+  void cursor_to(unsigned col, unsigned row) {
+    if (col >= t_right_margin) col = t_right_margin - 1;
+    if (row >= t_bottom_margin) row = t_bottom_margin - 1;
+
+    t_col = col;
+    t_row = row;
+  }
+
+  void text_at(unsigned col, unsigned row,
+               Pixel fore, Pixel back,
+               char const *s) {
+    cursor_to(col, row);
+    type(fore, back, s);
+  }
+
+  void text_centered(unsigned row, Pixel fore, Pixel back, char const *s) {
+    unsigned len = 0;
+    while (s[len]) ++len;
+
+    unsigned left_margin = 40 - len / 2;
+    unsigned right_margin = t_right_margin - len - left_margin;
+
+    cursor_to(0, row);
+    for (unsigned i = 0; i < left_margin; ++i) type(fore, back, ' ');
+    type(fore, back, s);
+    for (unsigned i = 0; i < right_margin; ++i) type(fore, back, ' ');
+  }
+};
+
+
+/*******************************************************************************
+ * Combining Code
+ */
+
+struct SplitDemo {
+  GfxDemo g;
+  TextDemo t;
+
+  vga::Band const bands[2] {
+    { &g.gfx_rast, gfx_rows, &bands[1] },
+    { &t.text_rast, text_rows, nullptr },
+  };
+};
+
+/*******************************************************************************
+ * The Startup Routine
+ */
+
+void etl_armv7m_reset_handler() {
+  etl::armv7m::crt0_init();
+  vga::init();
   vga::configure_timing(vga::timing_vesa_800x600_60hz);
-  vga::video_on();
 
-  for (Particle &p : particles) p.randomize();
+  auto d = vga::arena_make<SplitDemo>();
+  vga::configure_band_list(d->bands);
+  ETL_ON_SCOPE_EXIT { vga::clear_band_list(); };
+
+  vga::video_on();
 
   char fc[9];
   fc[8] = 0;
   unsigned frame = 0;
 
-  while (1) {
+  while (true) {
     unsigned f = ++frame;
 
     for (unsigned i = 8; i > 0; --i) {
@@ -274,16 +292,8 @@ void etl_armv7m_reset_handler() {
       fc[i - 1] = n > 9 ? 'A' + n - 10 : '0' + n;
       f >>= 4;
     }
-    text_at(72, 15, red, black, fc);
-    update_particles();
-
-    f = ++frame;
-    for (unsigned i = 8; i > 0; --i) {
-      unsigned n = f & 0xF;
-      fc[i - 1] = n > 9 ? 'A' + n - 10 : '0' + n;
-      f >>= 4;
-    }
-    text_at(72, 15, red, black, fc);
-    update_particles();
+    vga::sync_to_vblank();
+    d->t.text_at(72, 15, red, black, fc);
+    d->g.update_particles();
   }
 }

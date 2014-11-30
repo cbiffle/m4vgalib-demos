@@ -1,3 +1,6 @@
+#include "etl/scope_guard.h"
+
+#include "etl/armv7m/crt0.h"
 #include "etl/armv7m/exception_table.h"
 
 #include "etl/stm32f4xx/ahb.h"
@@ -6,8 +9,6 @@
 #include "etl/stm32f4xx/interrupts.h"
 #include "etl/stm32f4xx/rcc.h"
 #include "etl/stm32f4xx/usart.h"
-
-#include "etl/armv7m/crt0.h"
 
 #include "vga/arena.h"
 #include "vga/rast/text_10x16.h"
@@ -22,109 +23,11 @@ using etl::stm32f4xx::Usart;
 using etl::stm32f4xx::usart2;
 using etl::stm32f4xx::Gpio;
 
-static vga::rast::Text_10x16 rasterizer(800, 600);
-
-static vga::Band const band = { &rasterizer, 600, nullptr };
-
-typedef vga::Rasterizer::Pixel Pixel;
+using Pixel = vga::Rasterizer::Pixel;
 
 /*******************************************************************************
  * Some basic terminal functionality.
  */
-
-static unsigned t_row = 0, t_col = 0;
-
-static void type_raw(Pixel fore, Pixel back, char c) {
-  rasterizer.put_char(t_col, t_row, fore, back, c);
-  ++t_col;
-  if (t_col == 80) {
-    t_col = 0;
-    ++t_row;
-    if (t_row == 37) t_row = 0;
-  }
-}
-
-static void cursor_to(unsigned col, unsigned row) {
-  if (col >= 80) col = 80 - 1;
-  if (row >= 37) row = 37 - 1;
-
-  t_col = col;
-  t_row = row;
-}
-
-static void type(Pixel fore, Pixel back, char c) {
-  switch (c) {
-    case '\r':
-      do {
-        type_raw(fore, back, ' ');
-      } while (t_col);
-      return;
-
-    case '\f':
-      rasterizer.clear_framebuffer(back);
-      cursor_to(0, 0);
-      break;
-
-    case '\b':
-      if (t_col) {
-        --t_col;
-        type_raw(fore, back, ' ');
-        --t_col;
-      }
-      break;
-
-
-    default:
-      type_raw(fore, back, c);
-      return;
-  }
-}
-
-static void type(Pixel fore, Pixel back, char const *s) {
-  while (char c = *s++) type(fore, back, c);
-}
-
-static void type_decimal(Pixel fore, Pixel back, unsigned n,
-                         bool right = false) {
-  char buf[10] = { ' ' };
-  unsigned p = 10;
-  do {
-    buf[--p] = '0' + (n % 10);
-    n /= 10;
-  } while (n);
-
-  for (unsigned i = right ? 0 : p; i < 10; ++i) {
-    type(fore, back, buf[i]);
-  }
-}
-
-static void type_box(Pixel fore, Pixel back,
-                     unsigned left, unsigned top,
-                     unsigned right, unsigned bottom) {
-  cursor_to(left, top);
-  type_raw(fore, back, '+');
-  for (unsigned x = left + 1; x < right; ++x) {
-    type_raw(fore, back, '-');
-  }
-  type_raw(fore, back, '+');
-
-  for (unsigned y = top + 1; y < bottom; ++y) {
-    cursor_to(left, y);
-    type_raw(fore, back, '|');
-    for (unsigned x = left + 1; x < right; ++x) {
-      type_raw(fore, back, ' ');
-    }
-    type_raw(fore, back, '|');
-  }
-
-  cursor_to(left, bottom);
-  type_raw(fore, back, '+');
-  for (unsigned x = left + 1; x < right; ++x) {
-    type_raw(fore, back, '-');
-  }
-  type_raw(fore, back, '+');
-}
-
 enum {
   white   = 0b111111,
   lt_gray = 0b101010,
@@ -134,6 +37,110 @@ enum {
   red     = 0b000011,
   green   = 0b001100,
   blue    = 0b110000,
+};
+
+
+struct TextDemo {
+  vga::rast::Text_10x16 rasterizer{800, 600};
+  vga::Band const band{&rasterizer, 600, nullptr};
+
+  unsigned t_row = 0, t_col = 0;
+
+  TextDemo() {
+    rasterizer.clear_framebuffer(blue);
+    cursor_to(0, 0);
+  }
+
+  void type_raw(Pixel fore, Pixel back, char c) {
+    rasterizer.put_char(t_col, t_row, fore, back, c);
+    ++t_col;
+    if (t_col == 80) {
+      t_col = 0;
+      ++t_row;
+      if (t_row == 37) t_row = 0;
+    }
+  }
+
+  void cursor_to(unsigned col, unsigned row) {
+    if (col >= 80) col = 80 - 1;
+    if (row >= 37) row = 37 - 1;
+
+    t_col = col;
+    t_row = row;
+  }
+
+  void type(Pixel fore, Pixel back, char c) {
+    switch (c) {
+      case '\r':
+        do {
+          type_raw(fore, back, ' ');
+        } while (t_col);
+        return;
+
+      case '\f':
+        rasterizer.clear_framebuffer(back);
+        cursor_to(0, 0);
+        break;
+
+      case '\b':
+        if (t_col) {
+          --t_col;
+          type_raw(fore, back, ' ');
+          --t_col;
+        }
+        break;
+
+
+      default:
+        type_raw(fore, back, c);
+        return;
+    }
+  }
+
+  void type(Pixel fore, Pixel back, char const *s) {
+    while (char c = *s++) type(fore, back, c);
+  }
+
+  void type_decimal(Pixel fore, Pixel back, unsigned n,
+                    bool right = false) {
+    char buf[10] = { ' ' };
+    unsigned p = 10;
+    do {
+      buf[--p] = '0' + (n % 10);
+      n /= 10;
+    } while (n);
+
+    for (unsigned i = right ? 0 : p; i < 10; ++i) {
+      type(fore, back, buf[i]);
+    }
+  }
+
+  void type_box(Pixel fore, Pixel back,
+                unsigned left, unsigned top,
+                unsigned right, unsigned bottom) {
+    cursor_to(left, top);
+    type_raw(fore, back, '+');
+    for (unsigned x = left + 1; x < right; ++x) {
+      type_raw(fore, back, '-');
+    }
+    type_raw(fore, back, '+');
+
+    for (unsigned y = top + 1; y < bottom; ++y) {
+      cursor_to(left, y);
+      type_raw(fore, back, '|');
+      for (unsigned x = left + 1; x < right; ++x) {
+        type_raw(fore, back, ' ');
+      }
+      type_raw(fore, back, '|');
+    }
+
+    cursor_to(left, bottom);
+    type_raw(fore, back, '+');
+    for (unsigned x = left + 1; x < right; ++x) {
+      type_raw(fore, back, '-');
+    }
+    type_raw(fore, back, '+');
+  }
 };
 
 
@@ -224,94 +231,95 @@ static void usart2_poll() {
   }
 }
 
-/*
- * Interrupts!
- */
+static void startup_banner(TextDemo & d) {
+  d.type_box(white, dk_gray, 10, 10, 70, 27);
+
+  d.cursor_to(11, 11);
+  d.type(white, dk_gray, "PixelPusher v1 - arena: ");
+  d.type_decimal(white, dk_gray, vga::arena_bytes_free());
+  d.type(white, dk_gray, " / ");
+  d.type_decimal(white, dk_gray, vga::arena_bytes_total());
+  d.type(white, dk_gray, " bytes free.");
+
+  d.cursor_to(11, 12); d.type(white, dk_gray, "Clocks:");
+
+  d.cursor_to(14, 13);
+  d.type(white, dk_gray, "CPU:   ");
+  d.type_decimal(white, dk_gray,
+                 static_cast<unsigned>(rcc.get_cpu_clock_hz()),
+                 true);
+
+  d.cursor_to(14, 14);
+  d.type(white, dk_gray, "AHBx:  ");
+  d.type_decimal(white, dk_gray,
+                 static_cast<unsigned>(rcc.get_ahb_clock_hz()),
+                 true);
+
+  d.cursor_to(14, 15);
+  d.type(white, dk_gray, "APB1:  ");
+  d.type_decimal(white, dk_gray,
+                 static_cast<unsigned>(rcc.get_apb1_clock_hz()),
+                 true);
+
+  d.cursor_to(14, 16);
+  d.type(white, dk_gray, "APB2:  ");
+  d.type_decimal(white, dk_gray,
+                 static_cast<unsigned>(rcc.get_apb2_clock_hz()),
+                 true);
+
+  d.cursor_to(14, 17);
+  d.type(white, dk_gray, "PLL48: ");
+  d.type_decimal(white, dk_gray,
+                 static_cast<unsigned>(rcc.get_pll48_clock_hz()),
+                 true);
+
+  d.cursor_to(14, 18);
+  d.type(white, dk_gray, "Pixel: ");
+  d.type_decimal(white, dk_gray, 
+                 static_cast<unsigned>(rcc.get_cpu_clock_hz() / 4),
+                 true);
+
+  d.cursor_to(26, 26);
+  d.type(white, dk_gray, "Press any key to continue");
+}
 
 void etl_armv7m_reset_handler() {
   etl::armv7m::crt0_init();
   vga::init();
-
-  rasterizer.activate(vga::timing_vesa_800x600_60hz);
-  vga::configure_band_list(&band);
   vga::configure_timing(vga::timing_vesa_800x600_60hz);
+
+  auto d = vga::arena_make<TextDemo>();
 
   usart2_init();
 
-  rasterizer.clear_framebuffer(blue);
+  startup_banner(*d);
 
-  type_box(white, dk_gray, 10, 10, 70, 27);
-
-  cursor_to(11, 11);
-  type(white, dk_gray, "PixelPusher v1 - arena: ");
-  type_decimal(white, dk_gray, vga::arena_bytes_free());
-  type(white, dk_gray, " / ");
-  type_decimal(white, dk_gray, vga::arena_bytes_total());
-  type(white, dk_gray, " bytes free.");
-
-  cursor_to(11, 12); type(white, dk_gray, "Clocks:");
-
-  cursor_to(14, 13);
-  type(white, dk_gray, "CPU:   ");
-  type_decimal(white, dk_gray,
-               static_cast<unsigned>(rcc.get_cpu_clock_hz()),
-               true);
-
-  cursor_to(14, 14);
-  type(white, dk_gray, "AHBx:  ");
-  type_decimal(white, dk_gray,
-               static_cast<unsigned>(rcc.get_ahb_clock_hz()),
-               true);
-
-  cursor_to(14, 15);
-  type(white, dk_gray, "APB1:  ");
-  type_decimal(white, dk_gray,
-               static_cast<unsigned>(rcc.get_apb1_clock_hz()),
-               true);
-
-  cursor_to(14, 16);
-  type(white, dk_gray, "APB2:  ");
-  type_decimal(white, dk_gray,
-               static_cast<unsigned>(rcc.get_apb2_clock_hz()),
-               true);
-
-  cursor_to(14, 17);
-  type(white, dk_gray, "PLL48: ");
-  type_decimal(white, dk_gray,
-               static_cast<unsigned>(rcc.get_pll48_clock_hz()),
-               true);
-
-  cursor_to(14, 18);
-  type(white, dk_gray, "Pixel: ");
-  type_decimal(white, dk_gray, 
-               static_cast<unsigned>(rcc.get_cpu_clock_hz() / 4),
-               true);
-
-  cursor_to(26, 26);
-  type(white, dk_gray, "Press any key to continue");
-
-  cursor_to(0, 0);
+  vga::configure_band_list(&d->band);
+  ETL_ON_SCOPE_EXIT { vga::clear_band_list(); };
 
   vga::video_on();
 
+  // Wait for first character.
   while (true) {
     unsigned char c;
     bool has_c = usart_rx_queue.take(c);
     if (!has_c) continue;
 
-    rasterizer.clear_framebuffer(blue);
+    d->rasterizer.clear_framebuffer(blue);
+    d->cursor_to(0, 0);
     usart2_send(c);
-    type(white, blue, c);
+    d->type(white, blue, c);
     break;
   }
 
+  // Subsequent characters.
   while (true) {
     unsigned char c;
     bool has_c = usart_rx_queue.take(c);
     if (!has_c) continue;
 
     usart2_send(c);
-    type(white, blue, c);
+    d->type(white, blue, c);
   }
 }
 

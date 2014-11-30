@@ -2,6 +2,7 @@
 
 #include "etl/armv7m/crt0.h"
 
+#include "vga/arena.h"
 #include "vga/rasterizer.h"
 #include "vga/timing.h"
 #include "vga/vga.h"
@@ -18,15 +19,21 @@ public:
   }
 };
 
-static Nothing rasterizer;
-static vga::Band const band = { &rasterizer, 600, nullptr };
+struct Demo {
+  Nothing rasterizer;
+  vga::Band const band[2]{
+    {&rasterizer, 1, &band[1]},
+    {nullptr, 599, nullptr},
+  };
+};
 
 void etl_armv7m_reset_handler() {
   etl::armv7m::crt0_init();
   vga::init();
 
-  rasterizer.activate(vga::timing_vesa_800x600_60hz);
-  vga::configure_band_list(&band);
+  auto d = vga::arena_make<Demo>();
+
+  vga::configure_band_list(d->band);
   vga::configure_timing(vga::timing_vesa_800x600_60hz);
   vga::video_on();
   while (1);
