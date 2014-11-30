@@ -57,7 +57,6 @@ overview of each.
 
 All of the demos are stable at 60fps unless otherwise noted.
 
- - **blt**: a boring demo of m4vgalib's bitblt support (somewhat buggy).
  - **conway**: cellular automata demonstration, achieving almost 29 million
    cell updates per second while generating 800x600 video.
  - **hires_mix**: mixed character and pixel graphics at 800x600.
