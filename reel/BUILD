@@ -13,9 +13,11 @@ c_binary('reel',
     '//runtime:default_traps',
     '//vga:vga',
     '//demo:demo',
+
     '//demo/tunnel:lib',
     '//demo/conway:lib',
     '//demo/hires_text:lib',
     '//demo/rook:lib',
+    '//demo/xor_pattern:lib',
   ],
 )

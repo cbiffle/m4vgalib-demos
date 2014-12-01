@@ -9,6 +9,7 @@
 #include "demo/tunnel/tunnel.h"
 #include "demo/hires_text/hires_text.h"
 #include "demo/rook/rook.h"
+#include "demo/xor_pattern/xor.h"
 
 __attribute__((noreturn))
 __attribute__((noinline))
@@ -18,8 +19,9 @@ static void rest() {
   vga::configure_timing(vga::timing_vesa_800x600_60hz);
 
   while (1) {
-    demo::tunnel::run();
     demo::hires_text::run();
+    demo::xor_pattern::run();
+    demo::tunnel::run();
     demo::conway::run(false);
     demo::rook::run();
   }
