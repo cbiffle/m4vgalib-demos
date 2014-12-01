@@ -8,7 +8,8 @@
 #include "vga/timing.h"
 #include "vga/vga.h"
 #include "vga/rast/bitmap_1.h"
-#include "vga/rast/text_10x16.h"
+
+#include "demo/terminal.h"
 
 using vga::rast::Bitmap_1;
 
@@ -24,17 +25,6 @@ static constexpr unsigned
   text_rows = 16 * 16,
   gfx_cols = 800,
   gfx_rows = 600 - text_rows;
-
-enum {
-  white   = 0b111111,
-  lt_gray = 0b101010,
-  dk_gray = 0b010101,
-  black   = 0b000000,
-
-  red     = 0b000011,
-  green   = 0b001100,
-  blue    = 0b110000,
-};
 
 
 /*******************************************************************************
@@ -148,17 +138,11 @@ struct GfxDemo {
  * The Text Parts
  */
 
-struct TextDemo {
-  static constexpr unsigned
-    t_right_margin = (text_cols + 9) / 10,
-    t_bottom_margin = (text_rows + 15) / 16;
+struct TextDemo : demo::Terminal {
+  TextDemo() : demo::Terminal(text_cols, text_rows, gfx_rows) {}
 
-  vga::rast::Text_10x16 text_rast{text_cols, text_rows, gfx_rows};
-
-  unsigned t_row = 0, t_col = 0;
-
-  TextDemo() {
-    text_rast.clear_framebuffer(0);
+  void startup_banner() {
+    using namespace demo;  // for colors
 
     text_centered(0, white, dk_gray, "800x600 Mixed Graphics Modes Demo");
     cursor_to(0, 2);
@@ -182,72 +166,6 @@ struct TextDemo {
     text_at(0, 15, white, black, "60 fps / 40MHz pixel clock");
     text_at(58, 36, white, black, "Frame number:");
   }
-
-  void type_raw(Pixel fore, Pixel back, char c) {
-    text_rast.put_char(t_col, t_row, fore, back, c);
-    ++t_col;
-    if (t_col == t_right_margin) {
-      t_col = 0;
-      ++t_row;
-      if (t_row == t_bottom_margin) t_row = 0;
-    }
-  }
-
-  void type(Pixel fore, Pixel back, char c) {
-    switch (c) {
-      case '\n':
-        do {
-          type_raw(fore, back, ' ');
-        } while (t_col);
-        return;
-
-      default:
-        type_raw(fore, back, c);
-        return;
-    }
-  }
-
-  void type(Pixel fore, Pixel back, char const *s) {
-    while (char c = *s++) {
-      type(fore, back, c);
-    }
-  }
-
-  void rainbow_type(char const *s) {
-    unsigned x = 0;
-    while (char c = *s++) {
-      type(x & 0b111111, ~x & 0b111111, c);
-      ++x;
-    }
-  }
-
-  void cursor_to(unsigned col, unsigned row) {
-    if (col >= t_right_margin) col = t_right_margin - 1;
-    if (row >= t_bottom_margin) row = t_bottom_margin - 1;
-
-    t_col = col;
-    t_row = row;
-  }
-
-  void text_at(unsigned col, unsigned row,
-               Pixel fore, Pixel back,
-               char const *s) {
-    cursor_to(col, row);
-    type(fore, back, s);
-  }
-
-  void text_centered(unsigned row, Pixel fore, Pixel back, char const *s) {
-    unsigned len = 0;
-    while (s[len]) ++len;
-
-    unsigned left_margin = 40 - len / 2;
-    unsigned right_margin = t_right_margin - len - left_margin;
-
-    cursor_to(0, row);
-    for (unsigned i = 0; i < left_margin; ++i) type(fore, back, ' ');
-    type(fore, back, s);
-    for (unsigned i = 0; i < right_margin; ++i) type(fore, back, ' ');
-  }
 };
 
 
@@ -260,8 +178,8 @@ struct SplitDemo {
   TextDemo t;
 
   vga::Band const bands[2] {
-    { &g.gfx_rast, gfx_rows, &bands[1] },
-    { &t.text_rast, text_rows, nullptr },
+    { &g.gfx_rast,   gfx_rows,  &bands[1] },
+    { &t.rasterizer, text_rows, nullptr },
   };
 };
 
@@ -275,6 +193,9 @@ void etl_armv7m_reset_handler() {
   vga::configure_timing(vga::timing_vesa_800x600_60hz);
 
   auto d = vga::arena_make<SplitDemo>();
+
+  d->t.startup_banner();
+
   vga::configure_band_list(d->bands);
   ETL_ON_SCOPE_EXIT { vga::clear_band_list(); };
 
@@ -293,7 +214,7 @@ void etl_armv7m_reset_handler() {
       f >>= 4;
     }
     vga::sync_to_vblank();
-    d->t.text_at(72, 15, red, black, fc);
+    d->t.text_at(72, 15, demo::red, demo::black, fc);
     d->g.update_particles();
   }
 }

@@ -15,6 +15,8 @@
 #include "vga/timing.h"
 #include "vga/vga.h"
 
+#include "demo/terminal.h"
+
 using etl::stm32f4xx::AhbPeripheral;
 using etl::stm32f4xx::ApbPeripheral;
 using etl::stm32f4xx::gpioa;
@@ -28,78 +30,13 @@ using Pixel = vga::Rasterizer::Pixel;
 /*******************************************************************************
  * Some basic terminal functionality.
  */
-enum {
-  white   = 0b111111,
-  lt_gray = 0b101010,
-  dk_gray = 0b010101,
-  black   = 0b000000,
 
-  red     = 0b000011,
-  green   = 0b001100,
-  blue    = 0b110000,
-};
+struct TextDemo : public demo::Terminal {
+  TextDemo() : demo::Terminal(800, 600) {
+    rasterizer.clear_framebuffer(demo::blue);
+  }
 
-
-struct TextDemo {
-  vga::rast::Text_10x16 rasterizer{800, 600};
   vga::Band const band{&rasterizer, 600, nullptr};
-
-  unsigned t_row = 0, t_col = 0;
-
-  TextDemo() {
-    rasterizer.clear_framebuffer(blue);
-    cursor_to(0, 0);
-  }
-
-  void type_raw(Pixel fore, Pixel back, char c) {
-    rasterizer.put_char(t_col, t_row, fore, back, c);
-    ++t_col;
-    if (t_col == 80) {
-      t_col = 0;
-      ++t_row;
-      if (t_row == 37) t_row = 0;
-    }
-  }
-
-  void cursor_to(unsigned col, unsigned row) {
-    if (col >= 80) col = 80 - 1;
-    if (row >= 37) row = 37 - 1;
-
-    t_col = col;
-    t_row = row;
-  }
-
-  void type(Pixel fore, Pixel back, char c) {
-    switch (c) {
-      case '\r':
-        do {
-          type_raw(fore, back, ' ');
-        } while (t_col);
-        return;
-
-      case '\f':
-        rasterizer.clear_framebuffer(back);
-        cursor_to(0, 0);
-        break;
-
-      case '\b':
-        if (t_col) {
-          --t_col;
-          type_raw(fore, back, ' ');
-          --t_col;
-        }
-        break;
-
-
-      default:
-        type_raw(fore, back, c);
-        return;
-    }
-  }
-
-  void type(Pixel fore, Pixel back, char const *s) {
-    while (char c = *s++) type(fore, back, c);
-  }
 
   void type_decimal(Pixel fore, Pixel back, unsigned n,
                     bool right = false) {
@@ -232,6 +169,8 @@ static void usart2_poll() {
 }
 
 static void startup_banner(TextDemo & d) {
+  using namespace demo;  // for colors
+
   d.type_box(white, dk_gray, 10, 10, 70, 27);
 
   d.cursor_to(11, 11);
@@ -305,10 +244,10 @@ void etl_armv7m_reset_handler() {
     bool has_c = usart_rx_queue.take(c);
     if (!has_c) continue;
 
-    d->rasterizer.clear_framebuffer(blue);
+    d->rasterizer.clear_framebuffer(demo::blue);
     d->cursor_to(0, 0);
     usart2_send(c);
-    d->type(white, blue, c);
+    d->type(demo::white, demo::blue, c);
     break;
   }
 
@@ -319,7 +258,7 @@ void etl_armv7m_reset_handler() {
     if (!has_c) continue;
 
     usart2_send(c);
-    d->type(white, blue, c);
+    d->type(demo::white, demo::blue, c);
   }
 }
 

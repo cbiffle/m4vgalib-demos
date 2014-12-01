@@ -6,6 +6,8 @@ c_binary('demo',
   deps = [
     ':lib',
 
+    '//demo:terminal',
+
     '//etl/armv7m',
     '//etl/armv7m:exception_table',
     '//etl/stm32f4xx:interrupt_table',

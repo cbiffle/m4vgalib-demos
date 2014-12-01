@@ -2,6 +2,7 @@ c_library('lib',
   sources = [ 'hires_text.cc' ],
   deps = [
     '//demo',
+    '//demo:terminal',
     '//vga',
   ],
 )

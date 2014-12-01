@@ -8,6 +8,7 @@
 #include "vga/vga.h"
 
 #include "demo/input.h"
+#include "demo/terminal.h"
 
 namespace demo {
 namespace hires_text {
@@ -18,27 +19,10 @@ using Pixel = vga::Rasterizer::Pixel;
  * Some basic terminal functionality.
  */
 
-enum {
-  white   = 0b111111,
-  lt_gray = 0b101010,
-  dk_gray = 0b010101,
-  black   = 0b000000,
-
-  red     = 0b000011,
-  green   = 0b001100,
-  blue    = 0b110000,
-};
-
-struct TextDemo {
-  vga::rast::Text_10x16 rasterizer{800, 600};
-
+struct TextDemo : public demo::Terminal {
   vga::Band const band{&rasterizer, 600, nullptr};
 
-  unsigned t_row, t_col;
-
-  TextDemo() : t_row(0), t_col(0) {
-    rasterizer.clear_framebuffer(0);
-  }
+  TextDemo() : demo::Terminal(800, 600) {}
 
   void startup_banner() {
     text_centered(0, white, dk_gray, "800x600 Attributed Text Demo");
@@ -101,72 +85,6 @@ struct TextDemo {
 
     text_at(0, 36, white, black, "60 fps / 40MHz pixel clock");
     text_at(58, 36, white, black, "Frame number:");
-  }
-
-  void type_raw(Pixel fore, Pixel back, char c) {
-    rasterizer.put_char(t_col, t_row, fore, back, c);
-    ++t_col;
-    if (t_col == 80) {
-      t_col = 0;
-      ++t_row;
-      if (t_row == 37) t_row = 0;
-    }
-  }
-
-  void type(Pixel fore, Pixel back, char c) {
-    switch (c) {
-      case '\n':
-        do {
-          type_raw(fore, back, ' ');
-        } while (t_col);
-        return;
-
-      default:
-        type_raw(fore, back, c);
-        return;
-    }
-  }
-
-  void type(Pixel fore, Pixel back, char const *s) {
-    while (char c = *s++) {
-      type(fore, back, c);
-    }
-  }
-
-  void rainbow_type(char const *s) {
-    unsigned x = 0;
-    while (char c = *s++) {
-      type(x & 0b111111, ~x & 0b111111, c);
-      ++x;
-    }
-  }
-
-  void cursor_to(unsigned col, unsigned row) {
-    if (col >= 80) col = 80 - 1;
-    if (row >= 37) row = 37 - 1;
-
-    t_col = col;
-    t_row = row;
-  }
-
-  void text_at(unsigned col, unsigned row,
-               Pixel fore, Pixel back,
-               char const *s) {
-    cursor_to(col, row);
-    type(fore, back, s);
-  }
-
-  void text_centered(unsigned row, Pixel fore, Pixel back, char const *s) {
-    unsigned len = 0;
-    while (s[len]) ++len;
-
-    unsigned left_margin = 40 - len / 2;
-    unsigned right_margin = 80 - len - left_margin;
-
-    cursor_to(0, row);
-    for (unsigned i = 0; i < left_margin; ++i) type(fore, back, ' ');
-    type(fore, back, s);
-    for (unsigned i = 0; i < right_margin; ++i) type(fore, back, ' ');
   }
 };
 
