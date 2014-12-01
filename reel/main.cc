@@ -7,6 +7,7 @@
 
 #include "demo/conway/conway.h"
 #include "demo/tunnel/tunnel.h"
+#include "demo/hires_mix/hires_mix.h"
 #include "demo/hires_text/hires_text.h"
 #include "demo/rook/rook.h"
 #include "demo/xor_pattern/xor.h"
@@ -20,10 +21,11 @@ static void rest() {
 
   while (1) {
     demo::hires_text::run();
+    demo::hires_mix::run();
+    demo::rook::run();
+    demo::conway::run(false);
     demo::xor_pattern::run();
     demo::tunnel::run();
-    demo::conway::run(false);
-    demo::rook::run();
   }
 }
 

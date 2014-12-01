@@ -1,12 +1,17 @@
-c_library('lib')
+c_library('lib',
+  sources = [ 'hires_mix.cc' ],
+  deps = [
+    '//demo',
+    '//demo:terminal',
+    '//vga',
+  ],
+)
 
 c_binary('demo',
   environment = 'target-standalone',
   sources = ['main.cc'],
   deps = [
     ':lib',
-
-    '//demo:terminal',
 
     '//etl/armv7m',
     '//etl/armv7m:exception_table',
