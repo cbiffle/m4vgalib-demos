@@ -5,6 +5,7 @@ c_library('lib',
     'pattern.S',
   ],
   deps = [
+    '//demo',
     '//etl/armv7m',
     '//vga',
   ],

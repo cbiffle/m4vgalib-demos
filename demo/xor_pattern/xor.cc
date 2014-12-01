@@ -7,6 +7,7 @@
 #include "vga/timing.h"
 #include "vga/vga.h"
 
+#include "demo/input.h"
 #include "demo/xor_pattern/rasterizer.h"
 
 namespace demo {
@@ -17,8 +18,10 @@ struct Demo {
   vga::Band const band{&rasterizer, 600, nullptr};
 };
 
-void run(unsigned frame_count) {
+void run() {
   vga::arena_reset();
+
+  input_init();
 
   auto d = vga::arena_make<Demo>();
 
@@ -27,8 +30,7 @@ void run(unsigned frame_count) {
 
   vga::video_on();
 
-  unsigned frame = 0;
-  while (frame_count == 0 || frame++ < frame_count) {
+  while (!user_button_pressed()) {
     vga::sync_to_vblank();
   }
 

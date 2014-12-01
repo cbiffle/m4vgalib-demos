@@ -4,7 +4,7 @@
 namespace demo {
 namespace xor_pattern {
 
-void run(unsigned frame_count);
+void run();
 
 }  // namespace xor_pattern
 }  // namespace demo
