@@ -20,11 +20,11 @@ using vga::rast::Direct_4;
 namespace demo {
 namespace tunnel {
 
-static unsigned tex_fetch(float u, float v) {
-  return static_cast<unsigned>(u) ^ static_cast<unsigned>(v);
+static uint_fast8_t tex_fetch(float u, float v) {
+  return uint_fast8_t(u) ^ uint_fast8_t(v);
 }
 
-static unsigned shade(float distance, unsigned char pixel) {
+static uint_fast8_t shade(float distance, uint_fast8_t pixel) {
   unsigned sel = unsigned(distance) / (config::texture_repeats_d * 2);
   sel = etl::armv7m::usat<3>(sel);
 
@@ -32,7 +32,7 @@ static unsigned shade(float distance, unsigned char pixel) {
       & (0x5555AAFFu >> (sel * 8));
 }
 
-static unsigned color(float distance, float fd, float fa) {
+static uint_fast8_t color(float distance, float fd, float fa) {
   return shade(distance, tex_fetch(fd, fa));
 }
 
@@ -49,6 +49,7 @@ struct Tunnel {
 
 void run() {
   vga::arena_reset();
+  vga::msigs_init();
   input_init();
 
   auto d = vga::arena_make<Tunnel>();
@@ -62,7 +63,7 @@ void run() {
   auto & tab = d->tab;
   unsigned frame = 0;
   while (!user_button_pressed()) {
-    unsigned char *fb = d->rasterizer.get_bg_buffer();
+    uint8_t *fb = d->rasterizer.get_bg_buffer();
     ++frame;
 
     // Quadrants II, I
