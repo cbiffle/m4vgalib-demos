@@ -138,82 +138,12 @@ STDERR.puts "#{unique_edges.size.to_f / (3*tri_count)} unique edges per input ed
 STDERR.puts "#{trivial_edges} edges rejected as trivial."
 STDERR.puts "#{duplicate_edges} edges rejected as duplicate."
 
-STDERR.puts "Greedily constructing strips...."
-
-segments = []
-
-while not $ends.empty?
-  p = $ends.keys.first
-  edges = $ends[p]
-
-  e = edges.first
-
-  if $ends[e.b]
-    $ends[e.b].delete(e)
-    $ends.delete(e.b) if $ends[e.b].empty?
-  else
-    STDERR.puts "Edge #{e} detached at #{e.b}"
-  end
-
-  if $ends[e.a]
-    $ends[e.a].delete(e)
-    $ends.delete(e.a) if $ends[e.a].empty?
-  else
-    STDERR.puts "Edge detached at #{e.a}"
-  end
-
-  segment = [e.a, e.b]
-
-  while not $ends.empty?
-    if $ends[segment.first]
-      e2 = $ends[segment.first].shift
-      $ends.delete(segment.first) if $ends[segment.first].empty?
-      if e2.a.eql? segment.first
-        $ends[e2.b].delete(e2)
-        $ends.delete(e2.b) if $ends[e2.b].empty?
-        segment.insert(0, e2.b)
-      else
-        $ends[e2.a].delete(e2)
-        $ends.delete(e2.a) if $ends[e2.a].empty?
-        segment.insert(0, e2.a)
-      end
-    elsif $ends[segment.last]
-      e2 = $ends[segment.last].shift
-      $ends.delete(segment.last) if $ends[segment.last].empty?
-      if e2.a.eql? segment.last
-        $ends[e2.b].delete(e2)
-        $ends.delete(e2.b) if $ends[e2.b].empty?
-        segment << e2.b
-      else
-        $ends[e2.a].delete(e2)
-        $ends.delete(e2.a) if $ends[e2.a].empty?
-        segment << e2.a
-      end
-    else
-      break
-    end
-  end
-
-  # STDERR.puts "Built segment of #{segment.length} pieces"
-  segments << segment
-end
-
-STDERR.puts "#{segments.length} segments total."
-n =segments.inject(0) { |x, s| x + s.length }
-STDERR.puts "#{n} points total."
-
 STDERR.puts <<END
 Indexed edge rep requires:
  - #{unique_points.size} matrix multiplies.
  - #{unique_edges.size} line draw calls.
  - #{unique_points.size * 12} bytes read from Flash.
  - #{unique_points.size * 12 * 2 + unique_edges.size * 4} bytes read/write from RAM.
-
-Segment rep requires:
- - #{n} matrix multiplies.
- - #{n - segments.length} line draw calls.
- - #{n * 12} bytes read from Flash.
- - No significant non-display RAM traffic.
 END
 
 STDERR.puts "Output going into #{OUT}"
@@ -228,10 +158,10 @@ File.open(OUT + '/model.h', 'w') { |f|
   f.puts 'namespace demo {'
   f.puts 'namespace rook {'
   f.puts
-  f.puts "static constexpr unsigned vertex_count = #{unique_points.size};"
+  f.puts "static constexpr std::uint16_t vertex_count = #{unique_points.size};"
   f.puts "static constexpr unsigned edge_count = #{unique_edges.size};"
   f.puts
-  f.puts 'extern Vec3f const vertices[vertex_count];'
+  f.puts 'extern Vec3h const vertices[vertex_count];'
   f.puts 'extern std::uint16_t const edges[edge_count][2];'
   f.puts
   f.puts '}  // namespace rook'
@@ -246,7 +176,7 @@ File.open(OUT + '/model.cc', 'w') { |f|
   f.puts 'namespace demo {'
   f.puts 'namespace rook {'
   f.puts
-  f.puts "Vec3f const vertices[vertex_count] = {"
+  f.puts "Vec3h const vertices[vertex_count] = {"
   unique_points.sort { |a, b| a[1] <=> b[1] }.each { |p, i|
     f.puts "  { #{p.x}, #{p.y}, #{p.z} },"
   }

@@ -42,6 +42,14 @@ struct Vec2i {
   int x, y;
 };
 
+struct Vec3h {
+  __fp16 x, y, z;
+
+  explicit operator Vec4f() const {
+    return { float(x), float(y), float(z), 1 };
+  }
+};
+
 
 /*******************************************************************************
  * Matrices!
