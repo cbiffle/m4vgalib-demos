@@ -20,22 +20,74 @@ using vga::rast::Direct_4;
 namespace demo {
 namespace tunnel {
 
+/*
+ * Can't decide if I like these two features or not, so I'm leaving the code in.
+ * Edit the constant to adjust.
+ */
+enum class Effect {
+  none,
+
+  /*
+   * Make pixels darker as distance increases.  Because we really only have four
+   * luminance levels in the current system, it winds up kind of banded without
+   * dithering (below).
+   *
+   * Cost: ~59% slower rendering (2.8ms/frame vs. 1.76ms)
+   */
+  depth_shading,
+
+  /*
+   * Dither darkness bands, both spatially and temporally.  This helps to hide
+   * the band edges.
+   *
+   * Cost: ~57% slower rendering (4.4ms/frame vs. 2.8ms)
+   */
+  dithering,
+};
+
+static constexpr Effect effect = Effect::none;
+
+
+/*
+ * Texture "lookup" generates the traditional procedural texture.
+ */
 static uint_fast8_t tex_fetch(float u, float v) {
   return uint_fast8_t(u) ^ uint_fast8_t(v);
 }
 
-static uint_fast8_t shade(float distance, uint_fast8_t pixel) {
-  unsigned sel = unsigned(distance) / (config::texture_repeats_d * 2);
+/*
+ * The shader applies a depth effect and (optionally) dithering.
+ */
+static uint_fast8_t shade(float distance,
+                          uint_fast8_t pixel,
+                          bool dither) {
+  unsigned sel = effect != Effect::dithering
+    ? unsigned(distance / (config::texture_repeats_d * 2))
+    : dither
+      ? unsigned(distance / (config::texture_repeats_d * 1.5f))
+      : unsigned(distance / (config::texture_repeats_d * 4.f));
   sel = etl::armv7m::usat<3>(sel);
 
   return (pixel >> (0x01010000u >> (sel * 8)))
       & (0x5555AAFFu >> (sel * 8));
 }
 
-static uint_fast8_t color(float distance, float fd, float fa) {
-  return shade(distance, tex_fetch(fd, fa));
+/*
+ * Facade for shade and tex_fetch.
+ */
+static uint_fast8_t color(float distance,
+                          float fd,
+                          float fa,
+                          bool dither) {
+  return effect != Effect::none
+    ? shade(distance, tex_fetch(fd, fa), dither)
+    : tex_fetch(fd, fa);
 }
 
+
+/*
+ * Demo state.
+ */
 struct Tunnel {
   vga::rast::Direct_4 rasterizer { config::cols, config::rows };
   vga::Band band { &rasterizer, config::rows * 4, nullptr };
@@ -47,6 +99,10 @@ struct Tunnel {
 #endif
 };
 
+
+/*
+ * Entry point.
+ */
 void run() {
   vga::arena_reset();
   vga::msigs_init();
@@ -62,51 +118,45 @@ void run() {
 
   auto & tab = d->tab;
   unsigned frame = 0;
+  bool dither = false;
   while (!user_button_pressed()) {
     uint8_t *fb = d->rasterizer.get_bg_buffer();
     ++frame;
 
-    // Quadrants II, I
     for (unsigned y = 0; y < config::rows/2; ++y) {
-      unsigned dy = config::rows/2 - y - 1;
-
-      // Quadrant II
+      vga::msig_b_toggle();
       for (unsigned x = 0; x < config::cols/2; ++x) {
-        auto e = tab.get(config::cols/2 - x - 1, dy);
+        auto e = tab.get(x, y);
         float d = e.distance + frame*config::dspeed;
-        float a = -e.angle + config::texture_period_a + frame*config::aspeed;
-        fb[y * config::cols + x] = color(e.distance, d, a);
-      }
 
-      // Quadrant I
-      for (unsigned x = config::cols/2; x < config::cols; ++x) {
-        auto e = tab.get(x - config::cols/2, dy);
-        float d = e.distance + frame*config::dspeed;
-        float a = e.angle + frame*config::aspeed;
-        fb[y * config::cols + x] = color(e.distance, d, a);
+        float a1 = -e.angle + config::texture_period_a + frame*config::aspeed;
+        auto p1 = color(e.distance, d, a1, dither);
+
+        // Quadrant IV
+        fb[(y + config::rows/2) * config::cols + x + config::cols/2] = p1;
+
+        // Quadrant II
+        fb[(config::rows/2 - 1 - y) * config::cols
+           + (config::cols/2 - 1 - x)] = p1;
+
+        float a2 = e.angle + frame*config::aspeed;
+        auto p2 = color(e.distance, d, a2, !dither);
+
+        // Quadrant I
+        fb[(config::rows/2 - 1 - y) * config::cols
+           + x + config::cols/2] = p2;
+
+        // Quadrant III
+        fb[(y + config::rows/2) * config::cols
+           + (config::cols/2 - 1 - x)] = p2;
+
+        dither = !dither;
       }
+      dither = !dither;
     }
 
-    // Quadrants III, IV
-    for (unsigned y = config::rows/2; y < config::rows; ++y) {
-      unsigned dy = y - config::rows/2;
-
-      // Quadrant III
-      for (unsigned x = 0; x < config::cols/2; ++x) {
-        auto e = tab.get(config::cols/2 - x - 1, dy);
-        float d = e.distance + frame*config::dspeed;
-        float a = e.angle + frame*config::aspeed;
-        fb[y * config::cols + x] = color(e.distance, d, a);
-      }
-
-      // Quadrant IV
-      for (unsigned x = config::cols/2; x < config::cols; ++x) {
-        auto e = tab.get(x - config::cols/2, dy);
-        float d = e.distance + frame*config::dspeed;
-        float a = -e.angle + config::texture_period_a + frame*config::aspeed;
-        fb[y * config::cols + x] = color(e.distance, d, a);
-      }
-    }
+    // Temporal dithering:
+    dither ^= (frame & 1);
 
     vga::msig_a_clear();
     d->rasterizer.flip();

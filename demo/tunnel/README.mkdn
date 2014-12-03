@@ -7,3 +7,34 @@ This demonstrates:
  - Using half-precision floating point to store precomputed tables more
    cheaply.
  - Rendering tricks handed down through the ages.
+
+
+Resolution
+==========
+
+The demo currently runs at an effective resolution of 200x150 pixels.  Its RAM
+requirements are:
+
+ - 100 x 75 element lookup table, each entry consisting of 2 16-bit floats:
+   30,000 bytes.
+
+ - 200 x 150 pixel framebuffer, double-buffered: 60,000 bytes
+
+ - Total: 90,000 bytes, or 3 bytes per pixel.
+
+Using the same approach, increasing the resolution to (say) 320x240 would
+require 230,400 bytes of RAM.  We have 176Ki to bring to bear.
+
+If we were able to render just ahead of the beam and avoid double-buffering,
+this would reduce overhead to 2 bytes/pixel, and make 320x240 potentially
+doable.
+
+If we were able to move the lookup table into ROM (perhaps by regularizing the
+access pattern to avoid stalls), that would also reduce overhead to 2B/p.
+
+Doing *both* could reduce overhead to 1 byte/pixel.  400x300 resolution is just
+barely possible RAM-wise (CPU might still be an issue, particularly since we
+have to render online).
+
+Current optimized renderer costs 5 - 8.5 cycles per pixel (depending on effects
+mode), plus loop overhead.
