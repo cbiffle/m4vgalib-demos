@@ -108,10 +108,9 @@ public:
 
   Table() : _entries(generate_online()) {}
 
-  Table(Array const & tmpl)
-    : _entries(tmpl) {}
+  constexpr Table(Array const & tmpl) : _entries(tmpl) {}
 
-  static Array const compile_time_table;
+  static Table const compile_time_table;
 
   /*
    * Returns the unpacked Entry for a pixel location in Quadrant I.

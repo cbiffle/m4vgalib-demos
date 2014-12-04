@@ -95,7 +95,7 @@ struct Tunnel {
 #if TABLE_IN_ROM == 0
   table::Table tab;
 #else
-  table::Table tab{table::Table::compile_time_table};
+  table::Table const & tab = table::Table::compile_time_table;
 #endif
 };
 
