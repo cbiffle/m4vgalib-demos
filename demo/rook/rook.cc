@@ -115,7 +115,7 @@ static char const spaces[80] = { ' ' };
 struct BragLine {
   unsigned message[81];
   unsigned t_c = 0;
-  vga::rast::Text_10x16 text{cols - 10, text_rows, rows - text_rows};
+  vga::rast::Text_10x16 text{cols + 10, text_rows, rows - text_rows, true};
 
   BragLine() {
     prepare_message();
@@ -138,7 +138,7 @@ struct BragLine {
   }
 
   void show_msg(unsigned frame) {
-    text.set_x_adj(9 - (frame % 10));
+    text.set_x_adj(-(frame % 10));
 
     frame /= 10;
     frame %= 81;
@@ -179,6 +179,7 @@ struct Demo {
 __attribute__((section(".ramcode.rook_run")))
 void run() {
   vga::arena_reset();
+  vga::msigs_init();
 
   input_init();
 
@@ -230,11 +231,10 @@ void run() {
 
     g.clear_all();
     d->wireframe.transform_vertices(m * m2);
-    vga::msig_a_set();
     d->wireframe.draw_edges(g);
     vga::msig_a_clear();
-
     vga::wait_for_vblank();
+    vga::msig_a_set();
     d->wireframe.rasterizer.copy_bg_to_fg();
   }
 }
