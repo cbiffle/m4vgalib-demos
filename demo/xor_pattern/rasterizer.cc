@@ -1,14 +1,12 @@
 #include "demo/xor_pattern/rasterizer.h"
 
-#include "vga/timing.h"
-
 #include "demo/xor_pattern/pattern.h"
 
 namespace demo {
 namespace xor_pattern {
 
-Rasterizer::Rasterizer(vga::Timing const &timing)
-  : _width(timing.video_pixels),
+Rasterizer::Rasterizer(unsigned width)
+  : _width(width),
     _frame(0) {}
 
 __attribute__((section(".ramcode")))

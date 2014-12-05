@@ -14,7 +14,7 @@ namespace demo {
 namespace xor_pattern {
 
 struct Demo {
-  Rasterizer rasterizer{vga::timing_vesa_800x600_60hz};
+  Rasterizer rasterizer{800};
   vga::Band const band{&rasterizer, 600, nullptr};
 };
 

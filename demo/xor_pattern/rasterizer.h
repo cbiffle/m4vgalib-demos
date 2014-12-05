@@ -8,7 +8,7 @@ namespace xor_pattern {
 
 class Rasterizer : public vga::Rasterizer {
 public:
-  Rasterizer(vga::Timing const &);
+  Rasterizer(unsigned width);
   virtual LineShape rasterize(unsigned, Pixel *);
 
 private:
