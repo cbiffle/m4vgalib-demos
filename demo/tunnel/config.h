@@ -16,8 +16,8 @@ static constexpr unsigned
   texture_period_a = texture_repeats_a * texture_width;
 
 static constexpr float
-  dspeed = 1.f,
-  aspeed = 0.2f,
+  dspeed = 0.7f,
+  aspeed = 0.4f,
   pi = 3.1415926f;
 
 }  // namespace config

@@ -112,7 +112,8 @@ __attribute__((noinline))
 static void inner_render_loop(uint8_t * fb,
                               unsigned frame,
                               bool dither,
-                              table::Table const & tab) {
+                              table::Table const & tab,
+                              float aspeed) {
   for (unsigned y = 0; y < config::rows/2; ++y) {
     unsigned y_ = config::rows/2 - 1 - y;
 
@@ -121,13 +122,13 @@ static void inner_render_loop(uint8_t * fb,
       auto e = tab.get(x, y);
       float d = e.distance + frame*config::dspeed;
 
-      float a1 = -e.angle + config::texture_period_a + frame*config::aspeed;
+      float a1 = -e.angle + config::texture_period_a + frame*aspeed;
       auto p1 = color(e.distance, d, a1, dither);
 
       // Quadrant II
       fb[y_ * config::cols + (config::cols/2 - 1 - x)] = p1;
 
-      float a2 = e.angle + frame*config::aspeed;
+      float a2 = e.angle + frame*aspeed;
       auto p2 = color(e.distance, d, a2, !dither);
 
       // Quadrant I
@@ -158,12 +159,28 @@ void run() {
   auto & tab = d->tab;
   unsigned frame = 0;
   bool dither = false;
+  float aspeed = config::aspeed;
+  bool speed_up = true;
 
   while (!user_button_pressed()) {
     uint8_t *fb = d->rast1.get_bg_buffer();
     ++frame;
 
-    inner_render_loop(fb, frame, dither, tab);
+    if (speed_up) {
+      if (aspeed >= 1.f) {
+        speed_up = false;
+      } else {
+        aspeed += 0.01f;
+      }
+    } else {
+      if (aspeed <= 0.1f) {
+        speed_up = true;
+      } else {
+        aspeed -= 0.01f;
+      }
+    }
+
+    inner_render_loop(fb, frame, dither, tab, aspeed);
 
     // Temporal dithering:
     dither ^= (frame & 1);
