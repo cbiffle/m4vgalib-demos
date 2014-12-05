@@ -1,7 +1,7 @@
 #ifndef MATH_GEOMETRY_H
 #define MATH_GEOMETRY_H
 
-#include <math.h>
+#include <cmath>
 
 namespace math {
 
@@ -14,12 +14,31 @@ struct Vec3f;
 struct Vec4f {
   float x, y, z, w;
 
-  inline Vec3f project() const;
+  inline constexpr Vec3f project() const;
 };
 
 inline constexpr float dot(Vec4f const &a, Vec4f b) {
   return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 }
+
+inline constexpr Vec4f operator-(Vec4f const &a, Vec4f const &b) {
+  return { a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w };
+}
+
+inline constexpr Vec4f operator+(Vec4f const &a, Vec4f const &b) {
+  return { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
+}
+
+inline constexpr Vec4f operator*(Vec4f const &a, float b) {
+  return { a.x * b, a.y * b, a.z * b, a.w * b };
+}
+
+inline constexpr Vec4f operator*(float b, Vec4f const &a) {
+  return { a.x * b, a.y * b, a.z * b, a.w * b };
+}
+
+
+struct Vec2f;
 
 struct Vec3f {
   float x, y, z;
@@ -27,15 +46,71 @@ struct Vec3f {
   explicit operator Vec4f() const {
     return { x, y, z, 1 };
   }
+
+  inline constexpr Vec2f xy() const;
+  inline constexpr Vec2f hom() const;
 };
 
-Vec3f Vec4f::project() const {
+constexpr Vec3f Vec4f::project() const {
   return { x/w, y/w, z/w };
 }
 
+inline constexpr float dot(Vec3f const &a, Vec3f b) {
+  return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
+inline constexpr Vec3f operator-(Vec3f const &a, Vec3f const &b) {
+  return { a.x - b.x, a.y - b.y, a.z - b.z };
+}
+
+inline constexpr Vec3f operator+(Vec3f const &a, Vec3f const &b) {
+  return { a.x + b.x, a.y + b.y, a.z + b.z };
+}
+
+inline constexpr Vec3f operator*(Vec3f const &a, float b) {
+  return { a.x * b, a.y * b, a.z * b };
+}
+
+inline constexpr Vec3f operator*(float b, Vec3f const &a) {
+  return { a.x * b, a.y * b, a.z * b };
+}
+
+
 struct Vec2f {
   float x, y;
+
+  constexpr float magnitude() const {
+    return std::sqrt(x * x + y * y);
+  }
+
+  constexpr Vec2f normalized() const {
+    return { x / magnitude(), y / magnitude() };
+  }
 };
+
+constexpr Vec2f Vec3f::xy() const {
+  return { x, y };
+}
+
+constexpr Vec2f Vec3f::hom() const {
+  return { x/z, y/z };
+}
+
+inline constexpr Vec2f operator-(Vec2f const &a, Vec2f const &b) {
+  return { a.x - b.x, a.y - b.y };
+}
+
+inline constexpr Vec2f operator+(Vec2f const &a, Vec2f const &b) {
+  return { a.x + b.x, a.y + b.y };
+}
+
+inline constexpr Vec2f operator*(Vec2f const &a, float b) {
+  return { a.x * b, a.y * b };
+}
+
+inline constexpr Vec2f operator*(float b, Vec2f const &a) {
+  return { a.x * b, a.y * b };
+}
 
 struct Vec2i {
   int x, y;
@@ -131,6 +206,53 @@ static constexpr Mat4f operator*(Mat4f const &a, Mat4f const &b) {
            b.transpose() * a.r1,
            b.transpose() * a.r2,
            b.transpose() * a.r3 };
+}
+
+struct Mat3f {
+  Vec3f r0, r1, r2;
+
+  static constexpr Mat3f identity() {
+    return {{ 1, 0, 0 },
+            { 0, 1, 0 },
+            { 0, 0, 1 }};
+  }
+
+  static constexpr Mat3f translate(float x, float y) {
+    return {{ 1, 0, x },
+            { 0, 1, y },
+            { 0, 0, 1 }};
+  }
+
+  static constexpr Mat3f scale(float sx, float sy) {
+    return {{ sx, 0,  0 },
+            { 0,  sy, 0 },
+            { 0,  0,  1 }};
+  }
+
+  static constexpr Mat3f rotate(float a) {
+    return {{ cosf(a), -sinf(a), 0 },
+            { sinf(a), cosf(a),  0 },
+            { 0,      0,         1 }};
+  }
+
+  inline constexpr Mat3f transpose() const {
+    return {{r0.x, r1.x, r2.x},
+            {r0.y, r1.y, r2.y},
+            {r0.z, r1.z, r2.z}};
+  }
+};
+
+__attribute__((section(".ramcode")))
+static constexpr Vec3f operator*(Mat3f const &m, Vec3f v) {
+  return { dot(m.r0, v),
+           dot(m.r1, v),
+           dot(m.r2, v) };
+}
+
+static constexpr Mat3f operator*(Mat3f const &a, Mat3f const &b) {
+  return { b.transpose() * a.r0,
+           b.transpose() * a.r1,
+           b.transpose() * a.r2 };
 }
 
 }  // namespace math
