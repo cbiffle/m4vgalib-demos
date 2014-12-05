@@ -1,6 +1,4 @@
-#include "etl/armv7m/exception_table.h"
-
-#include "etl/armv7m/crt0.h"
+#include "etl/armv7m/implicit_crt0.h"
 
 #include "vga/arena.h"
 #include "vga/rasterizer.h"
@@ -27,8 +25,7 @@ struct Demo {
   };
 };
 
-void etl_armv7m_reset_handler() {
-  etl::armv7m::crt0_init();
+int main() {
   vga::init();
 
   auto d = vga::arena_make<Demo>();
@@ -36,5 +33,6 @@ void etl_armv7m_reset_handler() {
   vga::configure_band_list(d->band);
   vga::configure_timing(vga::timing_vesa_800x600_60hz);
   vga::video_on();
-  while (1);
+  while (true);
+  __builtin_unreachable();
 }

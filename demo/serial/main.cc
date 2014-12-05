@@ -1,7 +1,6 @@
 #include "etl/scope_guard.h"
 
-#include "etl/armv7m/crt0.h"
-#include "etl/armv7m/exception_table.h"
+#include "etl/armv7m/implicit_crt0.h"
 
 #include "etl/stm32f4xx/ahb.h"
 #include "etl/stm32f4xx/apb.h"
@@ -222,8 +221,7 @@ static void startup_banner(TextDemo & d) {
   d.type(white, dk_gray, "Press any key to continue");
 }
 
-void etl_armv7m_reset_handler() {
-  etl::armv7m::crt0_init();
+int main() {
   vga::init();
   vga::configure_timing(vga::timing_vesa_800x600_60hz);
 
@@ -260,6 +258,7 @@ void etl_armv7m_reset_handler() {
     usart2_send(c);
     d->type(demo::white, demo::blue, c);
   }
+  __builtin_unreachable();
 }
 
 __attribute__((section(".ramcode")))

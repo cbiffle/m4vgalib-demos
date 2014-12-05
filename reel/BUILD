@@ -7,8 +7,9 @@ c_binary('reel',
   deps = [
     '//etl/armv7m:armv7m',
     '//etl/armv7m:exception_table',
+    '//etl/armv7m:implicit_crt0',
     '//etl/stm32f4xx:interrupt_table',
-    '//etl/armv7m:manual_crt0',
+
     '//runtime:runtime',
     '//runtime:default_traps',
     '//vga:vga',

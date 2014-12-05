@@ -33,7 +33,7 @@ for name, mode in [('demo', 1), ('demo_online_tablegen', 0)]:
       ':lib',
 
       '//etl/armv7m:exception_table',
-      '//etl/armv7m:manual_crt0',
+      '//etl/armv7m:implicit_crt0',
       '//etl/stm32f4xx:interrupt_table',
       '//runtime',
       '//runtime:default_traps',

@@ -1,8 +1,7 @@
 #include "etl/assert.h"
 #include "etl/scope_guard.h"
 
-#include "etl/armv7m/crt0.h"
-#include "etl/armv7m/exception_table.h"
+#include "etl/armv7m/implicit_crt0.h"
 
 #include "vga/arena.h"
 #include "vga/graphics_1.h"
@@ -74,8 +73,7 @@ static void step_ball(vga::Graphics1 &g,
   ++yi;
 }
 
-void etl_armv7m_reset_handler() {
-  etl::armv7m::crt0_init();
+int main() {
   vga::init();
   vga::configure_timing(vga::timing_vesa_640x480_60hz);
 
@@ -94,7 +92,7 @@ void etl_armv7m_reset_handler() {
 
   x[0] = x[1] = y[0] = y[1] = 0;
 
-  while (1) {
+  while (true) {
     step_ball(g, x[0], y[0], x[1], y[1], xi, yi);
     d->rasterizer.copy_bg_to_fg();
     vga::sync_to_vblank();
@@ -103,4 +101,5 @@ void etl_armv7m_reset_handler() {
     d->rasterizer.copy_bg_to_fg();
     vga::sync_to_vblank();
   }
+  __builtin_unreachable();
 }
