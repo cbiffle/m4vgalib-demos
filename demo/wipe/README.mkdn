@@ -1,0 +1,8 @@
+Renders a mix of two graphics modes (procedural scroller and text scroller)
+with the boundary between them changing dynamically.
+
+This demonstrates:
+
+ - Mixed modes.
+ - Dynamically messing with mode configuration during vblank.
+ - Smooth scrolling of text.
