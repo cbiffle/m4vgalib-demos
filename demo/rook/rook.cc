@@ -12,12 +12,18 @@
 #include "vga/timing.h"
 #include "vga/vga.h"
 
-#include "demo/input.h"
+#include "math/geometry.h"
 
-#include "demo/rook/geometry.h"
+#include "demo/input.h"
 #include "demo/rook/model.h"
 
 #include <math.h>
+
+using math::Mat4f;
+using math::Vec2i;
+using math::Vec3h;
+using math::Vec3f;
+using math::Vec4f;
 
 namespace demo {
 namespace rook {

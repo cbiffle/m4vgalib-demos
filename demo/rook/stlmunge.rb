@@ -153,7 +153,7 @@ File.open(OUT + '/model.h', 'w') { |f|
   f.puts '#define DEMO_ROOK_MODEL_H'
   f.puts
   f.puts '#include <cstdint>'
-  f.puts '#include "demo/rook/geometry.h"'
+  f.puts '#include "math/geometry.h"'
   f.puts
   f.puts 'namespace demo {'
   f.puts 'namespace rook {'
@@ -161,7 +161,7 @@ File.open(OUT + '/model.h', 'w') { |f|
   f.puts "static constexpr std::uint16_t vertex_count = #{unique_points.size};"
   f.puts "static constexpr unsigned edge_count = #{unique_edges.size};"
   f.puts
-  f.puts 'extern Vec3h const vertices[vertex_count];'
+  f.puts 'extern math::Vec3h const vertices[vertex_count];'
   f.puts 'extern std::uint16_t const edges[edge_count][2];'
   f.puts
   f.puts '}  // namespace rook'
@@ -176,7 +176,7 @@ File.open(OUT + '/model.cc', 'w') { |f|
   f.puts 'namespace demo {'
   f.puts 'namespace rook {'
   f.puts
-  f.puts "Vec3h const vertices[vertex_count] = {"
+  f.puts "math::Vec3h const vertices[vertex_count] = {"
   unique_points.sort { |a, b| a[1] <=> b[1] }.each { |p, i|
     f.puts "  { #{p.x}, #{p.y}, #{p.z} },"
   }

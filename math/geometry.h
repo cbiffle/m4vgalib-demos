@@ -1,10 +1,9 @@
-#ifndef DEMO_ROOK_GEOMETRY_H
-#define DEMO_ROOK_GEOMETRY_H
+#ifndef MATH_GEOMETRY_H
+#define MATH_GEOMETRY_H
 
 #include <math.h>
 
-namespace demo {
-namespace rook {
+namespace math {
 
 /*******************************************************************************
  * Vectors!
@@ -134,7 +133,6 @@ static constexpr Mat4f operator*(Mat4f const &a, Mat4f const &b) {
            b.transpose() * a.r3 };
 }
 
-}  // namespace rook
-}  // namespace demo
+}  // namespace math
 
-#endif  // DEMO_ROOK_GEOMETRY_H
+#endif  // MATH_GEOMETRY_H
