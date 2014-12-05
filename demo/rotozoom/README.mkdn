@@ -1,0 +1,4 @@
+Rotozoomer
+==========
+
+Orthonormal texture mapping with rotation and scaling.
