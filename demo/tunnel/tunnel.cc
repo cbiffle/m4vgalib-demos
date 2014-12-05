@@ -9,15 +9,15 @@
 #include "vga/measurement.h"
 #include "vga/timing.h"
 #include "vga/vga.h"
-#include "vga/rast/direct_4.h"
-#include "vga/rast/direct_4_mirror.h"
+#include "vga/rast/direct_2.h"
+#include "vga/rast/direct_2_mirror.h"
 
 #include "demo/input.h"
 #include "demo/tunnel/config.h"
 #include "demo/tunnel/table.h"
 
-using vga::rast::Direct_4;
-using vga::rast::Direct_4_Mirror;
+using vga::rast::Direct_2;
+using vga::rast::Direct_2_Mirror;
 
 namespace demo {
 namespace tunnel {
@@ -91,12 +91,12 @@ static uint_fast8_t color(float distance,
  * Demo state.
  */
 struct Tunnel {
-  vga::rast::Direct_4 rast1 { config::cols, config::rows/2 };
-  vga::rast::Direct_4_Mirror rast2 { rast1, config::rows*2 };
+  vga::rast::Direct_2 rast1 { config::cols, config::rows/2 };
+  vga::rast::Direct_2_Mirror rast2 { rast1, config::rows };
 
   vga::Band bands[2] {
-    { &rast1, config::rows * 2, &bands[1] },
-    { &rast2, config::rows * 2, nullptr },
+    { &rast1, config::rows, &bands[1] },
+    { &rast2, config::rows, nullptr },
   };
 
 #if TABLE_IN_ROM == 0
@@ -106,6 +106,38 @@ struct Tunnel {
 #endif
 };
 
+__attribute__((section(".ramcode.tunnel.render_loop")))
+__attribute__((noinline))
+  __attribute__((optimize("prefetch-loop-arrays")))
+static void inner_render_loop(uint8_t * fb,
+                              unsigned frame,
+                              bool dither,
+                              table::Table const & tab) {
+  for (unsigned y = 0; y < config::rows/2; ++y) {
+    unsigned y_ = config::rows/2 - 1 - y;
+
+    vga::msig_b_toggle();
+    for (unsigned x = 0; x < config::cols/2; ++x) {
+      auto e = tab.get(x, y);
+      float d = e.distance + frame*config::dspeed;
+
+      float a1 = -e.angle + config::texture_period_a + frame*config::aspeed;
+      auto p1 = color(e.distance, d, a1, dither);
+
+      // Quadrant II
+      fb[y_ * config::cols + (config::cols/2 - 1 - x)] = p1;
+
+      float a2 = e.angle + frame*config::aspeed;
+      auto p2 = color(e.distance, d, a2, !dither);
+
+      // Quadrant I
+      fb[y_ * config::cols + x + config::cols/2] = p2;
+
+      dither = !dither;
+    }
+    dither = !dither;
+  }
+}
 
 /*
  * Entry point.
@@ -126,34 +158,12 @@ void run() {
   auto & tab = d->tab;
   unsigned frame = 0;
   bool dither = false;
+
   while (!user_button_pressed()) {
     uint8_t *fb = d->rast1.get_bg_buffer();
     ++frame;
 
-    for (unsigned y = 0; y < config::rows/2; ++y) {
-      unsigned y_ = config::rows/2 - 1 - y;
-
-      vga::msig_b_toggle();
-      for (unsigned x = 0; x < config::cols/2; ++x) {
-        auto e = tab.get(x, y);
-        float d = e.distance + frame*config::dspeed;
-
-        float a1 = -e.angle + config::texture_period_a + frame*config::aspeed;
-        auto p1 = color(e.distance, d, a1, dither);
-
-        // Quadrant II
-        fb[y_ * config::cols + (config::cols/2 - 1 - x)] = p1;
-
-        float a2 = e.angle + frame*config::aspeed;
-        auto p2 = color(e.distance, d, a2, !dither);
-
-        // Quadrant I
-        fb[y_ * config::cols + x + config::cols/2] = p2;
-
-        dither = !dither;
-      }
-      dither = !dither;
-    }
+    inner_render_loop(fb, frame, dither, tab);
 
     // Temporal dithering:
     dither ^= (frame & 1);

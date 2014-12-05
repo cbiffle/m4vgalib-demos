@@ -5,7 +5,7 @@ c_library('lib',
   ],
   local = {
     'cxx_flags': [
-      '-O2',
+      '-O3',
       '-ffast-math',
       '-DTABLE_IN_ROM=%(tunnel_table_in_rom)s',
     ],

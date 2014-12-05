@@ -2,7 +2,7 @@ c_binary('reel',
   environment = 'target',
   sources = [ 'main.cc' ],
   extra = {
-    'tunnel_table_in_rom': 0,
+    'tunnel_table_in_rom': 1,
   },
   deps = [
     '//etl/armv7m:armv7m',

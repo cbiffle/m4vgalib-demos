@@ -6,8 +6,8 @@ namespace tunnel {
 namespace config {
 
 static constexpr unsigned
-  cols = 200,
-  rows = 150,
+  cols = 400,
+  rows = 300,
   texture_width = 64,
   texture_height = 64,
   texture_repeats_d = 32,
