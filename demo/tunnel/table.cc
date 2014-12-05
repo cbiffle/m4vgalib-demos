@@ -48,7 +48,7 @@ static constexpr std::array<PackedEntry, width * height> generate() {
   return generate_helper(etl::MakeIndexSequence<width * height>{});
 }
 
-Table const Table::compile_time_table{generate()};
+alignas(16) Table const Table::compile_time_table{generate()};
 
 }  // namespace table
 }  // namespace tunnel

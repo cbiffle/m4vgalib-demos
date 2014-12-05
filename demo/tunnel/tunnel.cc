@@ -10,12 +10,14 @@
 #include "vga/timing.h"
 #include "vga/vga.h"
 #include "vga/rast/direct_4.h"
+#include "vga/rast/direct_4_mirror.h"
 
 #include "demo/input.h"
 #include "demo/tunnel/config.h"
 #include "demo/tunnel/table.h"
 
 using vga::rast::Direct_4;
+using vga::rast::Direct_4_Mirror;
 
 namespace demo {
 namespace tunnel {
@@ -89,8 +91,13 @@ static uint_fast8_t color(float distance,
  * Demo state.
  */
 struct Tunnel {
-  vga::rast::Direct_4 rasterizer { config::cols, config::rows };
-  vga::Band band { &rasterizer, config::rows * 4, nullptr };
+  vga::rast::Direct_4 rast1 { config::cols, config::rows/2 };
+  vga::rast::Direct_4_Mirror rast2 { rast1, config::rows*2 };
+
+  vga::Band bands[2] {
+    { &rast1, config::rows * 2, &bands[1] },
+    { &rast2, config::rows * 2, nullptr },
+  };
 
 #if TABLE_IN_ROM == 0
   table::Table tab;
@@ -113,17 +120,19 @@ void run() {
   bool video_on = false;
   ETL_ON_SCOPE_EXIT { if (video_on) vga::video_off(); };
 
-  vga::configure_band_list(&d->band);
+  vga::configure_band_list(d->bands);
   ETL_ON_SCOPE_EXIT { vga::clear_band_list(); };
 
   auto & tab = d->tab;
   unsigned frame = 0;
   bool dither = false;
   while (!user_button_pressed()) {
-    uint8_t *fb = d->rasterizer.get_bg_buffer();
+    uint8_t *fb = d->rast1.get_bg_buffer();
     ++frame;
 
     for (unsigned y = 0; y < config::rows/2; ++y) {
+      unsigned y_ = config::rows/2 - 1 - y;
+
       vga::msig_b_toggle();
       for (unsigned x = 0; x < config::cols/2; ++x) {
         auto e = tab.get(x, y);
@@ -132,23 +141,14 @@ void run() {
         float a1 = -e.angle + config::texture_period_a + frame*config::aspeed;
         auto p1 = color(e.distance, d, a1, dither);
 
-        // Quadrant IV
-        fb[(y + config::rows/2) * config::cols + x + config::cols/2] = p1;
-
         // Quadrant II
-        fb[(config::rows/2 - 1 - y) * config::cols
-           + (config::cols/2 - 1 - x)] = p1;
+        fb[y_ * config::cols + (config::cols/2 - 1 - x)] = p1;
 
         float a2 = e.angle + frame*config::aspeed;
         auto p2 = color(e.distance, d, a2, !dither);
 
         // Quadrant I
-        fb[(config::rows/2 - 1 - y) * config::cols
-           + x + config::cols/2] = p2;
-
-        // Quadrant III
-        fb[(y + config::rows/2) * config::cols
-           + (config::cols/2 - 1 - x)] = p2;
+        fb[y_ * config::cols + x + config::cols/2] = p2;
 
         dither = !dither;
       }
@@ -159,7 +159,7 @@ void run() {
     dither ^= (frame & 1);
 
     vga::msig_a_clear();
-    d->rasterizer.flip();
+    d->rast1.flip();
     if (!video_on) {
       vga::video_on();
       video_on = true;
