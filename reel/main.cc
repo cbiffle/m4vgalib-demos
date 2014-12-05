@@ -6,6 +6,7 @@
 #include "demo/hires_mix/hires_mix.h"
 #include "demo/hires_text/hires_text.h"
 #include "demo/rook/rook.h"
+#include "demo/wipe/wipe.h"
 #include "demo/xor_pattern/xor.h"
 
 int main() {
@@ -16,9 +17,10 @@ int main() {
   while (true) {
     demo::hires_text::run();
     demo::hires_mix::run();
-    demo::rook::run();
-    demo::conway::run(false);
     demo::xor_pattern::run();
+    demo::wipe::run();
     demo::tunnel::run();
+    demo::conway::run(false);
+    demo::rook::run();
   }
 }

@@ -1,3 +1,13 @@
+included_demos = [
+  'conway',
+  'hires_mix',
+  'hires_text',
+  'rook',
+  'tunnel',
+  'wipe',
+  'xor_pattern',
+]
+
 c_binary('reel',
   environment = 'target',
   sources = [ 'main.cc' ],
@@ -14,12 +24,5 @@ c_binary('reel',
     '//runtime:default_traps',
     '//vga:vga',
     '//demo:demo',
-
-    '//demo/tunnel:lib',
-    '//demo/conway:lib',
-    '//demo/hires_text:lib',
-    '//demo/hires_mix:lib',
-    '//demo/rook:lib',
-    '//demo/xor_pattern:lib',
-  ],
+  ] + ['//demo/%s:lib' % d for d in included_demos],
 )
