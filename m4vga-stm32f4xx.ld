@@ -6,6 +6,7 @@ MEMORY {
   ccm (rwx)     : ORIGIN = 0x10000000, LENGTH =   64K
   sram112 (rwx) : ORIGIN = 0x20000000, LENGTH =  112K
   sram16  (rwx) : ORIGIN = 0x2001c000, LENGTH =   16K
+  bkpsram (rw)  : ORIGIN = 0x40024000, LENGTH =    4K
 }
 
 EXTERN(_ZN3etl6armv7mL15exception_tableE)
@@ -118,9 +119,9 @@ SECTIONS {
   } >ccm
 
   /* Allow stuff to be placed explicitly into scanout RAM as needed. */
-  .sram16 (NOLOAD) : {
+  .bkpsram (NOLOAD) : {
     *(.vga_scan_ram)
-  } >sram16
+  } >bkpsram
 
   PROVIDE(_ccm_arena_end = ORIGIN(ccm) + LENGTH(ccm));
   PROVIDE(_sram112_arena_end = ORIGIN(sram112_at_zero)
