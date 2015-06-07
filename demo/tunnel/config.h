@@ -6,14 +6,19 @@ namespace tunnel {
 namespace config {
 
 static constexpr unsigned
-  cols = 200,
-  rows = 150,
+  cols = 400,
+  rows = 300,
   texture_width = 64,
   texture_height = 64,
   texture_repeats_d = 32,
   texture_repeats_a = 4,
   texture_period_d = texture_repeats_d * texture_height,
   texture_period_a = texture_repeats_a * texture_width;
+
+static constexpr unsigned
+  quad_width = cols / 2,
+  quad_height = rows / 2,
+  sub = 4;
 
 static constexpr float
   dspeed = 1.f,

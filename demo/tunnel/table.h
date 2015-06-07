@@ -12,8 +12,15 @@ namespace table {
 
 /*
  * This lookup table eliminates transcendentals from the render loop.  It
- * consists of one entry for each pixel in one quadrant of the screen -- we
- * derive the other quadrants from the first on the fly.
+ * consists of one entry for each "macroblock" in one quadrant of the screen --
+ * we derive the other quadrants from the first on the fly.
+ *
+ * "Macroblocks" here consist of square areas, config::sub pixels on a side.
+ * We linearly interpolate between table samples taken at macroblock corners.
+ * This reduces the size of the lookup table by a factor of config::sub^2.
+ * Of course, it's also wrong -- in the sense that neither function we're
+ * evaluating is linear.  However, at relatively small values of config::sub,
+ * it's very difficult to see the errors.
  * 
  * The lookup table and associated types are defined such that we can choose to
  * generate the lookup table either at demo launch, or at compile time,
@@ -21,8 +28,8 @@ namespace table {
  */
 
 static constexpr unsigned
-  width = config::cols / 2,
-  height = config::rows / 2;
+  width = config::quad_width / config::sub + 1,
+  height = config::quad_height / config::sub + 1;
 
 
 /*
@@ -104,9 +111,8 @@ union PackedEntry {
  */
 class Table {
 public:
-  using Array = std::array<PackedEntry, width * height>;
-
-  Table() : _entries(generate_online()) {}
+  using Row = std::array<PackedEntry, width>;
+  using Array = std::array<Row, height>;
 
   constexpr Table(Array const & tmpl) : _entries(tmpl) {}
 
@@ -116,16 +122,11 @@ public:
    * Returns the unpacked Entry for a pixel location in Quadrant I.
    */
   Entry get(unsigned x, unsigned y) const {
-    return _entries[y * width + x].unpack();
+    return _entries[y][x].unpack();
   }
 
 private:
-  std::array<PackedEntry, width * height> _entries;
-
-  /*
-   * Generates the lookup table contents for online mode.
-   */
-  static std::array<PackedEntry, width * height> generate_online();
+  Array _entries;
 
 };
 

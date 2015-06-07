@@ -7,7 +7,6 @@ c_library('lib',
     'cxx_flags': [
       '-O2',
       '-ffast-math',
-      '-DTABLE_IN_ROM=%(tunnel_table_in_rom)s',
     ],
   },
   deps = [
@@ -18,25 +17,21 @@ c_library('lib',
   ],
 )
 
-for name, mode in [('demo', 1), ('demo_online_tablegen', 0)]:
-  c_binary(name,
-    environment = 'target',
-    sources = [ 'main.cc' ],
-    local = {
-      # TODO(cbiffle): probably not necessary
-      'cxx_flags': [ '-O2' ],
-    },
-    extra = {
-      'tunnel_table_in_rom': mode,
-    },
-    deps = [
-      ':lib',
+c_binary('demo',
+  environment = 'target',
+  sources = [ 'main.cc' ],
+  local = {
+    # TODO(cbiffle): probably not necessary
+    'cxx_flags': [ '-O2' ],
+  },
+  deps = [
+    ':lib',
 
-      '//etl/armv7m:exception_table',
-      '//etl/armv7m:implicit_crt0',
-      '//etl/stm32f4xx:interrupt_table',
-      '//runtime',
-      '//runtime:default_traps',
-      '//vga',
-    ],
-  )
+    '//etl/armv7m:exception_table',
+    '//etl/armv7m:implicit_crt0',
+    '//etl/stm32f4xx:interrupt_table',
+    '//runtime',
+    '//runtime:default_traps',
+    '//vga',
+  ],
+)
