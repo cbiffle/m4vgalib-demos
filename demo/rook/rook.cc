@@ -166,12 +166,10 @@ struct Demo {
   Wireframe wireframe;
   BragLine brag_line;
 
-  vga::Band const bands[6] {
-    { &blue,                 1,                 &bands[1] },
-    { nullptr,               top_margin - 1,    &bands[2] },
-    { &wireframe.rasterizer, wireframe_rows,    &bands[3] },
-    { &blue,                 1,                 &bands[4] },
-    { nullptr,               bottom_margin - 1, &bands[5] },
+  vga::Band const bands[4] {
+    { &blue,                 top_margin,        &bands[1] },
+    { &wireframe.rasterizer, wireframe_rows,    &bands[2] },
+    { &blue,                 bottom_margin,     &bands[3] },
     { &brag_line.text,       text_rows,         nullptr },
   };
 };
