@@ -16,15 +16,16 @@ namespace table {
  * we derive the other quadrants from the first on the fly.
  *
  * "Macroblocks" here consist of square areas, config::sub pixels on a side.
- * We linearly interpolate between table samples taken at macroblock corners.
+ * We bilinearly interpolate between table samples taken at macroblock corners.
  * This reduces the size of the lookup table by a factor of config::sub^2.
  * Of course, it's also wrong -- in the sense that neither function we're
  * evaluating is linear.  However, at relatively small values of config::sub,
  * it's very difficult to see the errors.
  * 
- * The lookup table and associated types are defined such that we can choose to
- * generate the lookup table either at demo launch, or at compile time,
- * depending on whether we have RAM or Flash to burn.
+ * The lookup table and associated types are defined such that we can produce
+ * them entirely at compile time using constexpr, ensuring that they can go
+ * into Flash.  The algorithms used at runtime are designed to avoid the
+ * resulting wait states.
  */
 
 static constexpr unsigned
@@ -34,10 +35,10 @@ static constexpr unsigned
 
 /*
  * Each entry contains the cached results of two operations:
- *  - distance: the distance of the piece of the tunnel displayed on this pixel
- *    from the near clip plane (essentially a fixed Z-buffer).
+ *  - distance: the distance from the near clip plane to the piece of tunnel
+ *    displayed in this block -- essentially a precomputed Z-buffer.
  *  - angle: the angle from the X axis to the line between the center of the
- *    screen and this pixel.
+ *    screen and this block.
  *
  * Neither of these are measured in real-world units -- instead, they're derived
  * from the texturing parameters to ease their (ab)use as texture (U, V)
@@ -50,10 +51,16 @@ struct Entry {
 
 /*
  * We store the pairs in a compact format using half-precision floating point.
- * (Single-precision floating point would be wasteful of space and cost very
- * little less than half-precision on the Cortex-M4.  Fixed point would be
- * equally compact, but actually more expensive to evaluate since we have an
- * FPU, and it also poses a greater analytical burden on the programmer.)
+ * The Cortex-M4 has hardware support for packing and unpacking pairs of
+ * half-precision floating point values, so this costs basically nothing.
+ *
+ * Single-precision floating point takes twice as much space without visibly
+ * improving the output.
+ *
+ * The demo was originally fixed point, but it was hard on both the programmer
+ * and the CPU: the programmer had to track the range and scale of each
+ * intermediate value, and the CPU couldn't use its *really fast* FPU.  So
+ * believe it or not, this is significantly faster than fixed point.
  *
  * Because GCC 4.8.3 has pretty limited ability to pack half-precision floats
  * into words when moving data to/from memory, we do it manually by representing
@@ -74,7 +81,7 @@ union PackedEntry {
 
   /*
    * Bitwise conversion constructor.
-   * */
+   */
   explicit constexpr PackedEntry(uint32_t b) : packed_bits(b) {}
 
   /*
@@ -84,16 +91,15 @@ union PackedEntry {
     : floats { __fp16(e.distance), __fp16(e.angle) } {}
 
   /*
-   * Unpacking is not constexpr because (1) we don't need it at compile time and
-   * (2) it's terribly performance sensitive.  So, it's in assembly.
+   * GCC's half-precision floating point support (as of 4.8.3, anyway) will only
+   * produce code for unpacking from the bottom half of a word -- but the M4F
+   * can efficiently unpack both halves in one more cycle.  So we resort to
+   * assembly here.
+   *
+   * This means unpacking can't be constexpr, but we don't actually need it at
+   * compile time -- so that's fine.
    */
   Entry unpack() const {
-    /*
-     * GCC's half-precision floating point support (as of 4.8.3) only
-     * generates vcvtb, so it misses an opportunity to efficiently unpack a
-     * pair of half floats like this.  Because it's so speed critical we
-     * resort to inline assembly:
-     */
     float distance, angle;
     asm (
       "vcvtt.f32.f16 %[angle], %[bits]\n"
@@ -111,12 +117,27 @@ union PackedEntry {
  */
 class Table {
 public:
+  // Convenient shorthand for our fixed-size arrays.
   using Row = std::array<PackedEntry, width>;
   using Array = std::array<Row, height>;
 
+  /*
+   * Creates a Table by *copying* an Array.  This is not something you want to
+   * do accidentally at runtime.  Fortunately, it's pretty hard for you to
+   * acquire a value of type Array without deliberately pointing a gun at your
+   * foot.
+   */
   constexpr Table(Array const & tmpl) : _entries(tmpl) {}
 
-  static Table const compile_time_table;
+  /*
+   * You really don't want to copy a Table.
+   */
+  Table(Table const &) = delete;
+
+  /*
+   * Accessor for the ROM table.
+   */
+  static Table const & compile_time_table();
 
   /*
    * Returns the unpacked Entry for a pixel location in Quadrant I.
@@ -127,7 +148,6 @@ public:
 
 private:
   Array _entries;
-
 };
 
 }  // namespace table
