@@ -2,12 +2,19 @@ Old-skool tunnel effect.
 
 This demonstrates:
 
- - Dividing down resolution to save on memory and computation time (in this
-   case, pixels are handled in 2x2 groups).
+ - Repeating pixels to effectively lower resolution, saving memory and compute
+   time.  In this case, pixels are handled in 2x2 groups, for a 400x300
+   effective resolution in the 800x600 frame.
+
+ - Subsampling a lookup table in ROM, and then upsampling it at runtime using
+   bilinear interpolation, to save space.
+
  - Using half-precision floating point to store precomputed tables more
    cheaply.
- - Stupid constexpr tricks for generating lookup tables at compile time and
-   putting them in ROM.
+
+ - Stupid (but *really useful*) constexpr tricks for generating lookup tables
+   at compile time and putting them in ROM.
+
  - Rendering tricks handed down through the ages.
 
 
@@ -25,7 +32,7 @@ Second: the lookup table only describes one quarter of the screen, because
 that's enough for `atan2`.  We can generate the rest of the screen using
 basic trig identities.
 
-Third: the lookup table is decimated, with each entry describing a 4x4
+Third: the lookup table is subsampled, with each entry describing a 4x4
 doubled-pixel area (so 8x8 monitor pixes).  This dramatically reduces the size
 of the table.  We linearly interpolate between table entries to make up for the
 missing data.  It's technically wrong, but it looks fine.
@@ -36,15 +43,16 @@ floating point.
 Fifth: we only actually draw the *top half* of the screen.  We use a special
 rasterizer to mirror and reverse the top of the screen onto the bottom half
 during scanout.  This makes two pages of 8-bit framebuffer just barely
-possible.
+possible, since we're storing a 400x150 framebuffer instead of 400x300.
 
 All that processing is using about 60% of the available CPU.  Increasing the
 `config::sub` parameter raises the interpolation block size to 8x8, reduces the
-CPU usage to 33%, but making the tunnel in the distance appear slightly
-square.  Tradeoffs.
+CPU usage to 33%, but makes the tunnel in the distance appear slightly square.
+Tradeoffs.
 
-Moving from 400x300 to 800x600 would be difficult; the framebuffers just barely
-fit already.  It's tempting to consider generating the tunnel pixels during
-rasterization, on the fly, but you'd need to do this for *every* scanline ---
-whereas right now we only process every other.  Without a breakthrough in the
-algorithms it seems computationally infeasible.
+Moving from 400x300 to 800x600 would be difficult: you would not have room for
+a framebuffer (at least in color), so you'd have to generate the pixels during
+scanout with a rasterizer.  Unfortunately, to get the vertical resolution
+increase, you'd need to generate the pixels -- and thus perform the table
+lookups and linear interpolation -- for every scanline.  Without a breakthrough
+in the algorithm or implementation, this would be computationally infeasible.
