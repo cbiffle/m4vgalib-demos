@@ -93,7 +93,8 @@ void run() {
     m = m * r;
 
     vga::msig_a_clear();
-    d->rasterizer.flip();
+    vga::sync_to_vblank();
+    d->rasterizer.flip_now();
     if (!video_on) {
       vga::video_on();
       video_on = true;

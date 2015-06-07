@@ -85,8 +85,8 @@ STM32F4DISCOVERY board.
 
 Pin(s) | Signal | Description
 -------|--------|------------
-C6     | HSYNC  | governs monitor's horizontal timing
-C7     | VSYNC  | governs monitor's vertical timing
+B6     | HSYNC  | governs monitor's horizontal timing
+B7     | VSYNC  | governs monitor's vertical timing
 C8     | sig B  | used for benchmarking
 C9     | sig A  | used for benchmarking
 E15:8  | video  | feed to video DAC

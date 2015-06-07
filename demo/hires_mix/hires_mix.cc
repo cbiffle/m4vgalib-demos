@@ -1,5 +1,6 @@
 #include "demo/hires_mix/hires_mix.h"
 
+#include "etl/assert.h"
 #include "etl/scope_guard.h"
 
 #include "etl/armv7m/crt0.h"
@@ -119,8 +120,8 @@ struct GfxDemo {
     gfx_rast.set_bg_color(0b100000);
 
     if (!gfx_rast.can_bg_use_bitband()) {
-      gfx_rast.flip();
-      if (!gfx_rast.can_bg_use_bitband()) while (1);
+      gfx_rast.flip_now();
+      ETL_ASSERT(gfx_rast.can_bg_use_bitband());
     }
 
     gfx_rast.make_bg_graphics().clear_all();

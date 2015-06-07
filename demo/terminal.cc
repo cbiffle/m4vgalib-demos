@@ -1,9 +1,11 @@
 #include "demo/terminal.h"
 
+#include "vga/font_10x16.h"
+
 namespace demo {
 
 Terminal::Terminal(unsigned width, unsigned height, unsigned top_line)
-  : rasterizer(width, height, top_line),
+  : rasterizer(vga::font_10x16, 256, width, height, top_line),
     t_row(0), t_col(0) {
   rasterizer.clear_framebuffer(0);
 }

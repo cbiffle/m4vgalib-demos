@@ -1,9 +1,11 @@
 #include "demo/rook/rook.h"
 
+#include "etl/attribute_macros.h"
 #include "etl/assert.h"
 #include "etl/scope_guard.h"
 
 #include "vga/arena.h"
+#include "vga/font_10x16.h"
 #include "vga/graphics_1.h"
 #include "vga/measurement.h"
 #include "vga/rast/bitmap_1.h"
@@ -77,7 +79,7 @@ struct Wireframe {
 
     // Switch to whichever page has bitband support.
     if (!rasterizer.can_bg_use_bitband()) {
-      rasterizer.flip();
+      rasterizer.flip_now();
       ETL_ASSERT(rasterizer.can_bg_use_bitband());
     }
   }
@@ -86,7 +88,7 @@ struct Wireframe {
     transformed_vertices = nullptr;
   }
 
-  __attribute__((section(".ramcode.transform_vertices")))
+  ETL_SECTION(".ramcode.transform_vertices")
   void transform_vertices(Mat4f const &m) const {
     for (unsigned i = 0; i < vertex_count; ++i) {
       Vec3f v = (m * static_cast<Vec4f>(vertices[i])).project();
@@ -95,7 +97,7 @@ struct Wireframe {
     }
   }
 
-  __attribute__((section(".ramcode.draw_edges")))
+  ETL_SECTION(".ramcode.draw_edges")
   void draw_edges(vga::Graphics1 &g) {
     for (unsigned i = 0; i < edge_count; ++i) {
       Vec2i const &a = transformed_vertices[edges[i][0]];
@@ -115,7 +117,10 @@ static char const spaces[80] = { ' ' };
 struct BragLine {
   unsigned message[81];
   unsigned t_c = 0;
-  vga::rast::Text_10x16 text{cols + 10, text_rows, rows - text_rows, true};
+  vga::rast::Text_10x16 text{
+    vga::font_10x16, 256,
+    cols + 10, text_rows, rows - text_rows, true
+  };
 
   BragLine() {
     prepare_message();
@@ -176,7 +181,7 @@ struct Demo {
  */
 
 
-__attribute__((section(".ramcode.rook_run")))
+ETL_SECTION(".ramcode.rook_run")
 void run() {
   vga::arena_reset();
   vga::msigs_init();

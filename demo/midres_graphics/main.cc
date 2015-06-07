@@ -18,7 +18,7 @@ struct Demo {
     rasterizer.set_bg_color(0b100000);
 
     if (!rasterizer.can_bg_use_bitband()) {
-      rasterizer.flip();
+      rasterizer.flip_now();
       ETL_ASSERT(rasterizer.can_bg_use_bitband());
     }
   }

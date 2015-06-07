@@ -239,7 +239,7 @@ void run(bool clear_first) {
     vga::Graphics1 g = rasterizer.make_bg_graphics();
     g.clear_all();
     d->set_random_cells(boot_threshold);
-    rasterizer.flip();
+    rasterizer.flip_now();
   }
 
   vga::sync_to_vblank();

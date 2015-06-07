@@ -1,4 +1,5 @@
 #include "etl/armv7m/implicit_crt0.h"
+#include "etl/attribute_macros.h"
 
 #include "vga/arena.h"
 #include "vga/rasterizer.h"
@@ -7,21 +8,25 @@
 
 class Nothing : public vga::Rasterizer {
 public:
-  __attribute__((section(".ramcode")))
-  LineShape rasterize(unsigned, Pixel *out) {
+  ETL_SECTION(".ramcode")
+  RasterInfo rasterize(unsigned, Pixel *out) override {
     for (unsigned i = 0; i < 800; i += 2) {
       out[i] = 0xFF;
       out[i + 1] = 0x00;
     }
-    return { 0, 800 };
+    return {
+      .offset = 0,
+      .length = 800,
+      .stretch_cycles = 0,
+      .repeat_lines = 599,
+    };
   }
 };
 
 struct Demo {
   Nothing rasterizer;
-  vga::Band const band[2]{
-    {&rasterizer, 1, &band[1]},
-    {nullptr, 599, nullptr},
+  vga::Band const band[1]{
+    {&rasterizer, 600, nullptr},
   };
 };
 
