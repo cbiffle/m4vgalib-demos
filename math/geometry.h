@@ -39,6 +39,7 @@ inline constexpr Vec4f operator*(float b, Vec4f const &a) {
 
 
 struct Vec2f;
+struct Vec3h;
 
 struct Vec3f {
   float x, y, z;
@@ -49,6 +50,24 @@ struct Vec3f {
 
   inline constexpr Vec2f xy() const;
   inline constexpr Vec2f hom() const;
+
+  inline explicit operator Vec3h() const;
+
+  constexpr float magnitude() const {
+    return std::sqrt(x * x + y * y + z * z);
+  }
+
+  inline constexpr Vec3f cross(Vec3f other) {
+    return {
+      y * other.z - z * other.y,
+      z * other.x - x * other.z,
+      x * other.y - y * other.x,
+    };
+  }
+
+  constexpr Vec3f normalized() const {
+    return { x / magnitude(), y / magnitude(), z / magnitude() };
+  }
 };
 
 constexpr Vec3f Vec4f::project() const {
@@ -124,6 +143,10 @@ struct Vec3h {
   }
 };
 
+inline Vec3f::operator Vec3h() const {
+  return { __fp16(x), __fp16(y), __fp16(z) };
+}
+
 
 /*******************************************************************************
  * Matrices!
@@ -165,6 +188,13 @@ struct Mat4f {
             { 0,        1, 0,       0 },
             { -sinf(a), 0, cosf(a), 0 },
             { 0,        0, 0,       1 }};
+  }
+
+  static constexpr Mat4f rotate_x(float a) {
+    return {{ 1, 0,       0,        0 },
+            { 0, cosf(a), -sinf(a), 0 },
+            { 0, sinf(a), cosf(a),  0 },
+            { 0, 0,       0,        1 }};
   }
 
   inline constexpr Mat4f transpose() const {
