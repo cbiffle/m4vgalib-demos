@@ -14,6 +14,10 @@ void __cxa_pure_virtual() {
   while (1);
 }
 
+void operator delete(void *) {
+  while (1);
+}
+
 int __aeabi_atexit(void *, void (*)(void *), void *) {
   return 1;
 }
