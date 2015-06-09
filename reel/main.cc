@@ -1,5 +1,4 @@
-#include "vga/timing.h"
-#include "vga/vga.h"
+#include "demo/runner.h"
 
 #include "demo/conway/conway.h"
 #include "demo/tunnel/tunnel.h"
@@ -10,9 +9,7 @@
 #include "demo/xor_pattern/xor.h"
 
 int main() {
-  vga::init();
-
-  vga::configure_timing(vga::timing_vesa_800x600_60hz);
+  demo::general_setup();
 
   while (true) {
     demo::hires_text::run();
@@ -20,7 +17,7 @@ int main() {
     demo::xor_pattern::run();
     demo::wipe::run();
     demo::tunnel::run();
-    demo::conway::run(false);
+    demo::conway::legacy_run();
     demo::rook::run();
   }
 }

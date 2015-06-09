@@ -3,12 +3,11 @@ c_library('lib',
     'conway.cc',
   ],
   local = {
-    # Best performance for this module is *not* obtained at -Os... nor,
-    # interestingly enough, at -O2/O3.  (This is true as of GCC 4.6.3.)
-    'cxx_flags': [ '-O1' ],
+    'cxx_flags': [ '-O2' ],
   },
   deps = [
     '//demo',
+    '//math',
     '//vga',
   ],
 )
