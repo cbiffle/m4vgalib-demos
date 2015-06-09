@@ -45,8 +45,8 @@ static constexpr unsigned
   rows = 600,
   top_margin = 100,
   wireframe_rows = 400,
-  bottom_margin = 83,
-  text_rows = 17;
+  bottom_margin = 84,
+  text_rows = 16;
 
 
 
