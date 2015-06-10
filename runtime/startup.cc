@@ -70,18 +70,16 @@ InitFnPtr const preinit_enable_floating_point = enable_floating_point;
  * initialization in the CRT startup.
  */
 static void remap_sram() {
-  // Remap SRAM.
   // Power on syscfg, so we can mess with its registers.
   rcc.enable_clock(ApbPeripheral::syscfg);
 
-  // VTOR starts out at zero, which points to Flash and is good.
-  // But now things are about to change.
-  // Interrupts are disabled, but to be safe in case we fault (due to a bug),
-  // go ahead and give VTOR the true address of the Flash table.
-  // TODO(cbiffle): this is a no-op, remove it.
-  scb.write_vtor(reinterpret_cast<unsigned>(&_data_start));
-  etl::armv7m::data_synchronization_barrier();  // Write it now.
-  etl::armv7m::instruction_synchronization_barrier();
+  // Note: we do not need to change VTOR here.
+  //
+  // It is initially zero.  At boot, this aliases the ROM copy of the table.
+  //
+  // The table has been copied to RAM *before* the preinit_array functions run.
+  // The remapping we're about to perform will cause address zero (and thus the
+  // VTOR) to alias the *RAM* copy of the vector table.
 
   // Remap!
   auto mode = SysCfg::memrmp_value_t::mem_mode_t::embedded_sram;
