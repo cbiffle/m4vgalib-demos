@@ -12,7 +12,7 @@ int main() {
   demo::general_setup();
 
   while (true) {
-    demo::hires_text::run();
+    demo::hires_text::legacy_run();
     demo::hires_mix::run();
     demo::xor_pattern::run();
     demo::wipe::run();
