@@ -21,8 +21,16 @@ extern "C" {
   extern etl::armv7m::Word _data_start;
 }
 
+/*
+ * The type of things that can go into the preinit_array (void functions).
+ */
 typedef void (*InitFnPtr)();
 
+/*
+ * Turn on the CPU's fault reporting during preinit, e.g. before constructors
+ * run.  Without this, memory violations, usage faults, etc. just show up as
+ * Hard Fault and are a real pain to debug.
+ */
 static void enable_faults() {
   etl::armv7m::scb.enable_faults();
 }
@@ -30,6 +38,13 @@ static void enable_faults() {
 ETL_SECTION(".preinit_array") ETL_USED
 InitFnPtr const preinit_enable_faults = enable_faults;
 
+/*
+ * Turn on the floating point unit for all execution contexts, with lazy
+ * save enabled to make interrupts cheaper.
+ *
+ * We do this before running constructors so that everyone can just pretend
+ * it's always on.  To do otherwise risks a Usage Fault.
+ */
 static void enable_floating_point() {
   // Enable floating point automatic/lazy state preservation.
   // The CONTROL bit governing FP will be set automatically when first used.
@@ -47,6 +62,13 @@ static void enable_floating_point() {
 ETL_SECTION(".preinit_array") ETL_USED
 InitFnPtr const preinit_enable_floating_point = enable_floating_point;
 
+/*
+ * Remap SRAM112 to addresses starting at 0x00000000.  We do this before
+ * running constructors to simplify the init process -- otherwise code would be
+ * aware of its data being at address A one minute and address B the next.  In
+ * particular, this lets us combine SRAM112 initialization with the rodata
+ * initialization in the CRT startup.
+ */
 static void remap_sram() {
   // Remap SRAM.
   // Power on syscfg, so we can mess with its registers.
