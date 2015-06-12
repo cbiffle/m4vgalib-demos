@@ -15,7 +15,7 @@ int main() {
     demo::hires_text::legacy_run();
     demo::hires_mix::run();
     demo::xor_pattern::run();
-    demo::wipe::run();
+    demo::wipe::legacy_run();
     demo::tunnel::run();
     demo::conway::legacy_run();
     demo::rook::run();

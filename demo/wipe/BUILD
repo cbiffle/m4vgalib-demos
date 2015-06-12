@@ -22,10 +22,6 @@ c_library('lib',
 c_binary('demo',
   environment = 'target',
   sources = [ 'main.cc' ],
-  local = {
-    # TODO(cbiffle): probably not necessary
-    'cxx_flags': [ '-O2' ],
-  },
   deps = [
     ':lib',
 

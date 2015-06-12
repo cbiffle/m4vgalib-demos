@@ -12,6 +12,9 @@ static constexpr int
 static constexpr float
   pi = 3.1415926f;
 
+static constexpr unsigned
+  max_band_height = 3 * 16;
+
 }  // namespace config
 }  // namespace wipe
 }  // namespace demo
