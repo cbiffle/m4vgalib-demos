@@ -1,14 +1,7 @@
-#include "vga/timing.h"
-#include "vga/vga.h"
-
 #include "demo/rook/rook.h"
 
+#include "demo/runner.h"
+
 int main() {
-  vga::init();
-
-  vga::configure_timing(vga::timing_vesa_800x600_60hz);
-
-  while (1) {
-    demo::rook::run();
-  }
+  demo::run<demo::rook::Rook>();
 }

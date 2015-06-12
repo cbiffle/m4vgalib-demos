@@ -18,6 +18,6 @@ int main() {
     demo::wipe::legacy_run();
     demo::tunnel::run();
     demo::conway::legacy_run();
-    demo::rook::run();
+    demo::rook::legacy_run();
   }
 }
