@@ -11,15 +11,13 @@
 #include "vga/measurement.h"
 #include "vga/timing.h"
 #include "vga/vga.h"
-#include "vga/rast/direct_4.h"
+#include "vga/rast/direct.h"
 
 #include "math/geometry.h"
 #include "math/interpolate.h"
 
 #include "demo/input.h"
 #include "demo/rotozoom/config.h"
-
-using vga::rast::Direct_4;
 
 using namespace math;
 
@@ -30,7 +28,10 @@ namespace rotozoom {
  * Demo state.
  */
 struct State {
-  vga::rast::Direct_4 rasterizer { config::cols, config::rows };
+  vga::rast::Direct rasterizer{
+    config::cols * 4, config::rows * 4,
+    4, 4,
+  };
   vga::Band band { &rasterizer, config::rows * 4, nullptr };
 };
 

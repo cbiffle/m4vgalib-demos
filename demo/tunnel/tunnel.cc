@@ -9,15 +9,12 @@
 #include "vga/measurement.h"
 #include "vga/timing.h"
 #include "vga/vga.h"
-#include "vga/rast/direct_2.h"
-#include "vga/rast/direct_2_mirror.h"
+#include "vga/rast/direct.h"
+#include "vga/rast/direct_mirror.h"
 
 #include "demo/input.h"
 #include "demo/tunnel/config.h"
 #include "demo/tunnel/table.h"
-
-using vga::rast::Direct_2;
-using vga::rast::Direct_2_Mirror;
 
 using demo::tunnel::table::Entry;
 
@@ -60,8 +57,11 @@ static uint_fast8_t color(float distance,
  * Demo state.
  */
 struct Tunnel {
-  vga::rast::Direct_2 rast1 { config::cols, config::rows/2 };
-  vga::rast::Direct_2_Mirror rast2 { rast1, config::rows };
+  vga::rast::Direct rast1 {
+    config::cols * 2, config::rows,
+    2, 2,
+  };
+  vga::rast::DirectMirror rast2 { rast1, config::rows };
 
   vga::Band bands[2] {
     { &rast1, config::rows, &bands[1] },
