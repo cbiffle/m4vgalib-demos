@@ -13,6 +13,10 @@ c_binary('reel',
   sources = [ 'main.cc' ],
   extra = {
     'tunnel_table_in_rom': 0,
+    'cxx_flags': [
+      '-DCFG_WIDTH=800',
+      '-DCFG_HEIGHT=600',
+    ],
   },
   deps = [
     '//etl/armv7m:armv7m',

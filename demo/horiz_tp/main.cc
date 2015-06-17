@@ -9,7 +9,7 @@
 class Nothing : public vga::Rasterizer {
 public:
   ETL_SECTION(".ramcode")
-  RasterInfo rasterize(unsigned, Pixel *out) override {
+  RasterInfo rasterize(unsigned cpp, unsigned, Pixel *out) override {
     for (unsigned i = 0; i < 800; i += 2) {
       out[i] = 0xFF;
       out[i + 1] = 0x00;
@@ -17,7 +17,7 @@ public:
     return {
       .offset = 0,
       .length = 800,
-      .stretch_cycles = 0,
+      .cycles_per_pixel = cpp,
       .repeat_lines = 599,
     };
   }

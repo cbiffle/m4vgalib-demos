@@ -9,7 +9,7 @@ namespace xor_pattern {
 class Rasterizer : public vga::Rasterizer {
 public:
   Rasterizer(unsigned width);
-  RasterInfo rasterize(unsigned, Pixel *) override;
+  RasterInfo rasterize(unsigned, unsigned, Pixel *) override;
 
 private:
   unsigned _width;

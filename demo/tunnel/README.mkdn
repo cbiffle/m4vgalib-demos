@@ -1,10 +1,12 @@
 Old-skool tunnel effect.
 
+Note that this is built at two different resolutions.  Try 'em both.
+
 This demonstrates:
 
  - Repeating pixels to effectively lower resolution, saving memory and compute
-   time.  In this case, pixels are handled in 2x2 groups, for a 400x300
-   effective resolution in the 800x600 frame.
+   time.  In this case, pixels are handled in 2x2 groups, reducing 800x600 to
+   an effective resolution of 400x300, or 640x480 to 320x240.
 
  - Subsampling a lookup table in ROM, and then upsampling it at runtime using
    bilinear interpolation, to save space.
@@ -43,7 +45,8 @@ floating point.
 Fifth: we only actually draw the *top half* of the screen.  We use a special
 rasterizer to mirror and reverse the top of the screen onto the bottom half
 during scanout.  This makes two pages of 8-bit framebuffer just barely
-possible, since we're storing a 400x150 framebuffer instead of 400x300.
+possible, since (at 800x600) we're storing a 400x150 framebuffer instead of
+400x300.
 
 All that processing is using about 60% of the available CPU.  Increasing the
 `config::sub` parameter raises the interpolation block size to 8x8, reduces the
@@ -56,3 +59,6 @@ scanout with a rasterizer.  Unfortunately, to get the vertical resolution
 increase, you'd need to generate the pixels -- and thus perform the table
 lookups and linear interpolation -- for every scanline.  Without a breakthrough
 in the algorithm or implementation, this would be computationally infeasible.
+
+Because the 640x480 version has fewer pixels to push and a higher ratio of CPU
+cycles to pixel clock cycles, it's only using about 38% of the CPU.

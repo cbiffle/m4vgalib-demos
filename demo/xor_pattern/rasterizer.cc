@@ -12,7 +12,9 @@ Rasterizer::Rasterizer(unsigned width)
     _frame(0) {}
 
 ETL_SECTION(".ramcode")
-auto Rasterizer::rasterize(unsigned line_number, Pixel *target) -> RasterInfo {
+auto Rasterizer::rasterize(unsigned cycles_per_pixel,
+                           unsigned line_number,
+                           Pixel *target) -> RasterInfo {
   unsigned f = _frame;
 
   if (line_number == 0) _frame = ++f;
@@ -22,7 +24,7 @@ auto Rasterizer::rasterize(unsigned line_number, Pixel *target) -> RasterInfo {
   return {
     .offset = 0,
     .length = _width,
-    .stretch_cycles = 0,
+    .cycles_per_pixel = cycles_per_pixel,
     .repeat_lines = 0,
   };
 }
