@@ -49,7 +49,7 @@ namespace math {
     asm (
         "vmrs %[old_fpscr], FPSCR\n"
         "vmsr FPSCR, %[new_fpscr]\n"
-        "vcvt.s32.f32 %[v], %[v]\n"
+        "vcvtr.s32.f32 %[v], %[v]\n"
         "vmsr FPSCR, %[old_fpscr]\n"
         "vmov %[result], %[v]\n"
       : [old_fpscr] "=&r"(old_fpscr),
