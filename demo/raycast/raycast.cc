@@ -1185,17 +1185,17 @@ bool RayCast::render_frame(unsigned frame) {
 
   for (unsigned x = 0; x < config::cols; ++x) {
     auto const fx = 2 * x / float(config::cols) - 1;
-    auto hit = cast(fx);
+    auto const hit = cast(fx);
 
-    auto line_height = std::abs(int(config::rows / hit.distance));
-    auto top = etl::max(-line_height / 2 + config::rows / 2, 0);
+    auto const line_height = std::abs(int(config::rows / hit.distance));
+    auto const top = etl::max(-line_height / 2 + config::rows / 2, 0);
 
     vga::msig_e_set(1);
     // Draw the ceiling, floor.
-    auto fill = &fb[x];
-    while (fill != &fb[top * config::cols + x]) {
+    for (auto fill = &fb[x];
+         fill != &fb[top * config::cols + x];
+         fill += config::cols) {
       *fill = 0;
-      fill += config::cols;
     }
 
     auto const m = float(config::apparent_tex_height) / line_height;
