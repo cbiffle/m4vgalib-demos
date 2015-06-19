@@ -1089,12 +1089,92 @@ void RayCast::configure_band_list() {
   vga::configure_band_list(_bands);
 }
 
-enum class Side { x, y };
-
 static unsigned map_fetch(int x, int y) {
   if (std::abs(x - 10) > 2) return 2;
   if (std::abs(y - 10) > 10) return x & 1 ? 1 : 3;
   return 0;
+}
+
+static int same(Hit::Side side, Vec2i v) {
+  return side == Hit::Side::x ? v.x : v.y;
+}
+
+static float same(Hit::Side side, Vec2f v) {
+  return side == Hit::Side::x ? v.x : v.y;
+}
+
+static float other(Hit::Side side, Vec2f v) {
+  return side == Hit::Side::x ? v.y : v.x;
+}
+
+Hit RayCast::cast(float x) const {
+  auto const ray_pos = _pos;
+  auto const ray_dir = _dir + _plane * x;
+
+  auto map_pos = Vec2i{math::floor(ray_pos.x), math::floor(ray_pos.y)};
+
+  auto const delta_dist = Vec2f{
+    sqrtf(1 + (ray_dir.y * ray_dir.y) / (ray_dir.x * ray_dir.x)),
+    sqrtf(1 + (ray_dir.x * ray_dir.x) / (ray_dir.y * ray_dir.y)),
+  };
+
+  Vec2f side_dist;
+  Vec2i step;
+
+  if (ray_dir.x < 0) {
+    step.x = -1;
+    side_dist.x = (ray_pos.x - map_pos.x) * delta_dist.x;
+  } else {
+    step.x = +1;
+    side_dist.x = (map_pos.x + 1 - ray_pos.x) * delta_dist.x;
+  }
+
+  if (ray_dir.y < 0) {
+    step.y = -1;
+    side_dist.y = (ray_pos.y - map_pos.y) * delta_dist.y;
+  } else {
+    step.y = +1;
+    side_dist.y = (map_pos.y + 1 - ray_pos.y) * delta_dist.y;
+  }
+
+  Hit::Side side;
+  unsigned texnum;
+
+  do {
+    if (side_dist.x < side_dist.y) {
+      side_dist.x += delta_dist.x;
+      map_pos.x += step.x;
+      side = Hit::Side::x;
+    } else {
+      side_dist.y += delta_dist.y;
+      map_pos.y += step.y;
+      side = Hit::Side::y;
+    }
+
+    texnum = map_fetch(map_pos.x, map_pos.y);
+  } while (texnum == 0);
+
+  texnum -= 1;
+
+  auto const t =
+    (same(side, map_pos) - same(side, ray_pos) + (1 - same(side, step)) / 2)
+        / same(side, ray_dir);
+  auto const wall_dist = fabsf(t);
+  auto const wall_x = other(side, ray_pos) + t * other(side, ray_dir);
+
+  auto const tile_x = wall_x - math::floor(wall_x);
+
+  auto tex_x = unsigned(tile_x * config::tex_width);
+  if (same(side, ray_dir) > 0) {
+    tex_x = config::tex_width - tex_x - 1;
+  }
+
+  return {
+    .texture = texnum,
+    .tex_x = tex_x,
+    .distance = wall_dist,
+    .side = side,
+  };
 }
 
 bool RayCast::render_frame(unsigned frame) {
@@ -1105,74 +1185,9 @@ bool RayCast::render_frame(unsigned frame) {
 
   for (unsigned x = 0; x < config::cols; ++x) {
     auto const fx = 2 * x / float(config::cols) - 1;
-    auto const ray_pos = _pos;
-    auto const ray_dir = _dir + _plane * fx;
+    auto hit = cast(fx);
 
-    auto map_pos = Vec2i{math::floor(ray_pos.x), math::floor(ray_pos.y)};
-
-    auto const delta_dist = Vec2f{
-      sqrtf(1 + (ray_dir.y * ray_dir.y) / (ray_dir.x * ray_dir.x)),
-      sqrtf(1 + (ray_dir.x * ray_dir.x) / (ray_dir.y * ray_dir.y)),
-    };
-
-    Vec2f side_dist;
-    Vec2i step;
-
-    if (ray_dir.x < 0) {
-      step.x = -1;
-      side_dist.x = (ray_pos.x - map_pos.x) * delta_dist.x;
-    } else {
-      step.x = +1;
-      side_dist.x = (map_pos.x + 1 - ray_pos.x) * delta_dist.x;
-    }
-
-    if (ray_dir.y < 0) {
-      step.y = -1;
-      side_dist.y = (ray_pos.y - map_pos.y) * delta_dist.y;
-    } else {
-      step.y = +1;
-      side_dist.y = (map_pos.y + 1 - ray_pos.y) * delta_dist.y;
-    }
-
-    Side side;
-    unsigned texnum;
-
-    do {
-      if (side_dist.x < side_dist.y) {
-        side_dist.x += delta_dist.x;
-        map_pos.x += step.x;
-        side = Side::x;
-      } else {
-        side_dist.y += delta_dist.y;
-        map_pos.y += step.y;
-        side = Side::y;
-      }
-
-      texnum = map_fetch(map_pos.x, map_pos.y);
-    } while (texnum == 0);
-
-    texnum -= 1;
-
-    float wall_dist;
-    float wall_x;
-    if (side == Side::x) {
-      auto t = (map_pos.x - ray_pos.x + (1 - step.x) / 2) / ray_dir.x;
-      wall_dist = fabsf(t);
-      wall_x = ray_pos.y + t * ray_dir.y;
-    } else {
-      auto t = (map_pos.y - ray_pos.y + (1 - step.y) / 2) / ray_dir.y;
-      wall_dist = fabsf(t);
-      wall_x = ray_pos.x + t * ray_dir.x;
-    }
-    wall_x -= math::floor(wall_x);
-
-    int tex_x = int(wall_x * config::tex_width);
-    if ((side == Side::x && ray_dir.x > 0)
-        || (side == Side::y && ray_dir.y > 0)) {
-      tex_x = config::tex_width - tex_x - 1;
-    }
-
-    auto line_height = std::abs(int(config::rows / wall_dist));
+    auto line_height = std::abs(int(config::rows / hit.distance));
     auto top = etl::max(-line_height / 2 + config::rows / 2, 0);
 
     vga::msig_e_set(1);
@@ -1189,7 +1204,8 @@ bool RayCast::render_frame(unsigned frame) {
     auto tex_y = top * m + b;
 
     for (unsigned y = top; y < config::rows/2; ++y) {
-      fb[y * config::cols + x] = textures[texnum].fetch(tex_x, int(tex_y));
+      fb[y * config::cols + x] =
+          textures[hit.texture].fetch(hit.tex_x, int(tex_y));
       tex_y += m;
     }
 

@@ -9,6 +9,7 @@
 
 #include "demo/scene.h"
 #include "demo/raycast/config.h"
+#include "demo/raycast/hit.h"
 
 namespace demo {
 namespace raycast {
@@ -43,6 +44,8 @@ private:
   void update_camera();
   void rotate(float a);
   void move(math::Vec2f);
+
+  Hit cast(float x) const;
 };
 
 }  // namespace raycast

@@ -16,4 +16,5 @@ struct Texture {
 
 }  // namespace raycast
 }  // namespace demo
+
 #endif  // DEMO_RAYCAST_TEXTURE_H
