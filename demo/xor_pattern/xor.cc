@@ -7,8 +7,11 @@
 #include "vga/timing.h"
 #include "vga/vga.h"
 
+#include "demo/config.h"
 #include "demo/input.h"
 #include "demo/xor_pattern/rasterizer.h"
+
+DEMO_REQUIRE_RESOLUTION(800, 600)
 
 namespace demo {
 namespace xor_pattern {

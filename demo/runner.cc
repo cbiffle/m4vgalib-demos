@@ -6,6 +6,7 @@
 #include "vga/timing.h"
 #include "vga/vga.h"
 
+#include "demo/config.h"
 #include "demo/input.h"
 
 namespace demo {
@@ -15,7 +16,7 @@ void general_setup() {
   vga::msigs_init();
   input_init();
 
-  vga::configure_timing(vga::timing_vesa_800x600_60hz);
+  vga::configure_timing(demo::config::timing);
 }
 
 bool start_button_pressed() {

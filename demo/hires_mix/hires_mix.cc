@@ -12,8 +12,11 @@
 #include "vga/vga.h"
 #include "vga/rast/bitmap_1.h"
 
+#include "demo/config.h"
 #include "demo/input.h"
 #include "demo/terminal.h"
+
+DEMO_REQUIRE_RESOLUTION(800, 600)
 
 using vga::rast::Bitmap_1;
 

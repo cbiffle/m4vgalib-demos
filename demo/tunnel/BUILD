@@ -17,19 +17,13 @@ c_library('lib',
   ],
 )
 
-def demo(name, width, height):
+def demo(name, env):
   c_binary(name,
-    environment = 'target',
+    environment = env,
     sources = [ 'main.cc' ],
     local = {
       # TODO(cbiffle): probably not necessary
       'cxx_flags': [ '-O2' ],
-    },
-    extra = {
-      'cxx_flags': [
-        '-DCFG_WIDTH=' + str(width),
-        '-DCFG_HEIGHT=' + str(height),
-      ],
     },
     deps = [
       ':lib',
@@ -43,5 +37,5 @@ def demo(name, width, height):
     ],
   )
 
-demo('demo', 800, 600)
-demo('demo_640', 640, 480)
+demo('demo', 'demo800')
+demo('demo_640', 'demo640')

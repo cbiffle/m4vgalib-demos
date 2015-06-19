@@ -1,7 +1,7 @@
 c_library('lib')  # TODO(cbiffle): present for consistency with Makefile
 
 c_binary('demo',
-  environment = 'target-standalone',
+  environment = 'demo800',
   sources = [ 'main.cc' ],
   deps = [
     '//etl/armv7m',

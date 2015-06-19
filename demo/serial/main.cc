@@ -14,7 +14,10 @@
 #include "vga/timing.h"
 #include "vga/vga.h"
 
+#include "demo/config.h"
 #include "demo/terminal.h"
+
+DEMO_REQUIRE_RESOLUTION(800, 600)
 
 using etl::stm32f4xx::AhbPeripheral;
 using etl::stm32f4xx::ApbPeripheral;

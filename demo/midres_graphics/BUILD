@@ -1,7 +1,7 @@
 c_library('lib')
 
 c_binary('demo',
-  environment = 'target-standalone',
+  environment = 'demo640',
   sources = [ 'main.cc' ],
   deps = [
     ':lib',
@@ -13,5 +13,6 @@ c_binary('demo',
     '//runtime',
     '//runtime:default_traps',
     '//vga',
+    '//demo',
   ],
 )

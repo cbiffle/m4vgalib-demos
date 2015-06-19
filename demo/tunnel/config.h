@@ -1,13 +1,16 @@
 #ifndef DEMO_TUNNEL_CONFIG_H
 #define DEMO_TUNNEL_CONFIG_H
 
+#include "demo/config.h"
+
 namespace demo {
 namespace tunnel {
 namespace config {
 
 static constexpr unsigned
-  cols = CFG_WIDTH / 2,
-  rows = CFG_HEIGHT / 2,
+  div = 2,
+  cols = demo::config::display_width / div,
+  rows = demo::config::display_height / div,
   texture_width = 64,
   texture_height = 64,
   texture_repeats_d = 32,

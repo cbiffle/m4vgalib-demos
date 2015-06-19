@@ -9,6 +9,10 @@
 #include "vga/timing.h"
 #include "vga/vga.h"
 
+#include "demo/config.h"
+
+DEMO_REQUIRE_RESOLUTION(640, 480)
+
 struct Demo {
   vga::rast::Bitmap_1 rasterizer{640, 480};
   vga::Band const band { &rasterizer, 480, nullptr };

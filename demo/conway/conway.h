@@ -4,7 +4,10 @@
 #include "vga/vga.h"
 #include "vga/rast/bitmap_1.h"
 
+#include "demo/config.h"
 #include "demo/scene.h"
+
+DEMO_REQUIRE_RESOLUTION(800, 600)
 
 namespace demo {
 namespace conway {

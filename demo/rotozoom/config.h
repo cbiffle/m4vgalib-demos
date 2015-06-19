@@ -1,6 +1,10 @@
 #ifndef DEMO_ROTOZOOM_CONFIG_H
 #define DEMO_ROTOZOOM_CONFIG_H
 
+#include "demo/config.h"
+
+DEMO_REQUIRE_RESOLUTION(800, 600)
+
 namespace demo {
 namespace rotozoom {
 namespace config {

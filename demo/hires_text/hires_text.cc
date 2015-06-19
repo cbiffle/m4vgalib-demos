@@ -3,8 +3,11 @@
 #include "vga/arena.h"
 #include "vga/rasterizer.h"
 
+#include "demo/config.h"
 #include "demo/input.h"
 #include "demo/runner.h"
+
+DEMO_REQUIRE_RESOLUTION(800, 600)
 
 namespace demo {
 namespace hires_text {
