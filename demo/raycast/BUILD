@@ -1,11 +1,13 @@
 c_library('lib',
   sources = [
     'raycast.cc',
+    '@demo/raycast/tex.cc',
   ],
   local = {
     'cxx_flags': [ '-O2' ],
   },
   deps = [
+    ':tex_gen',
     '//demo',
     '//vga',
     '//sys:libm',
@@ -28,4 +30,9 @@ c_binary('demo',
     '//runtime:default_traps',
     '//vga',
   ],
+)
+
+convert_raycast_texture('tex_gen',
+  environment = 'base',
+  tex_name = 'tex',
 )
