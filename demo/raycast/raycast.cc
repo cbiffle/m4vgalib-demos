@@ -17,6 +17,7 @@
 
 #include "demo/input.h"
 #include "demo/raycast/config.h"
+#include "demo/raycast/texture.h"
 
 using math::Mat2f;
 using math::Vec2f;
@@ -284,7 +285,7 @@ static constexpr Pixel bot_palette[256] = {
   0x15,
   0x8,
 };
-static constexpr std::uint8_t textures[3][2048]{
+static constexpr Texture textures[3] {
   // texture 0
   {
     0x1, 0x2, 0x3, 0x4, 0x4, 0x5, 0x2, 0x2, 
@@ -1096,10 +1097,6 @@ static unsigned map_fetch(int x, int y) {
   return 0;
 }
 
-static vga::Pixel tex_fetch(unsigned t, unsigned x, unsigned y) {
-  return textures[t - 1][x * config::tex_height + y];
-}
-
 bool RayCast::render_frame(unsigned frame) {
   _rasterizer.flip_now();
   auto const j = read_joystick();
@@ -1160,6 +1157,8 @@ bool RayCast::render_frame(unsigned frame) {
       texnum = map_fetch(map_pos.x, map_pos.y);
     } while (texnum == 0);
 
+    texnum -= 1;
+
     float wall_dist;
     float wall_x;
     if (side == Side::x) {
@@ -1196,7 +1195,7 @@ bool RayCast::render_frame(unsigned frame) {
     auto tex_y = top * m + b;
 
     for (unsigned y = top; y < config::rows/2; ++y) {
-      fb[y * config::cols + x] = tex_fetch(texnum, tex_x, int(tex_y));
+      fb[y * config::cols + x] = textures[texnum].fetch(tex_x, int(tex_y));
       tex_y += m;
     }
 
