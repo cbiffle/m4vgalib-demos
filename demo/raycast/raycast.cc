@@ -17,8 +17,9 @@
 
 #include "demo/input.h"
 #include "demo/raycast/config.h"
-#include "demo/raycast/texture.h"
+#include "demo/raycast/map.h"
 #include "demo/raycast/tex.h"
+#include "demo/raycast/texture.h"
 
 using math::Mat2f;
 using math::Vec2f;
@@ -53,9 +54,7 @@ void RayCast::configure_band_list() {
 }
 
 static unsigned map_fetch(int x, int y) {
-  if (std::abs(x - 10) > 2) return 2;
-  if (std::abs(y - 10) > 10) return x & 1 ? 1 : 3;
-  return 0;
+  return canned_map.fetch(x, y);
 }
 
 static int same(Hit::Side side, Vec2i v) {

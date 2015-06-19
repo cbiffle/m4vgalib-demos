@@ -1,6 +1,8 @@
 c_library('lib',
   sources = [
+    'map.cc',
     'raycast.cc',
+
     '@demo/raycast/tex.cc',
   ],
   local = {
