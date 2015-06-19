@@ -115,6 +115,10 @@ constexpr Vec2f Vec3f::hom() const {
   return { x/z, y/z };
 }
 
+inline constexpr float dot(Vec2f const &a, Vec2f b) {
+  return a.x * b.x + a.y * b.y;
+}
+
 inline constexpr Vec2f operator-(Vec2f const &a, Vec2f const &b) {
   return { a.x - b.x, a.y - b.y };
 }
@@ -283,6 +287,36 @@ static constexpr Mat3f operator*(Mat3f const &a, Mat3f const &b) {
   return { b.transpose() * a.r0,
            b.transpose() * a.r1,
            b.transpose() * a.r2 };
+}
+
+struct Mat2f {
+  Vec2f r0, r1;
+
+  static constexpr Mat2f identity() {
+    return {{ 1, 0 },
+            { 0, 1 }};
+  }
+
+  static constexpr Mat2f rotate(float a) {
+    return {{ cosf(a), -sinf(a) },
+            { sinf(a), cosf(a)  }};
+  }
+
+  inline constexpr Mat2f transpose() const {
+    return {{r0.x, r1.x},
+            {r0.y, r1.y}};
+  }
+};
+
+__attribute__((section(".ramcode")))
+static constexpr Vec2f operator*(Mat2f const &m, Vec2f v) {
+  return { dot(m.r0, v),
+           dot(m.r1, v) };
+}
+
+static constexpr Mat2f operator*(Mat2f const &a, Mat2f const &b) {
+  return { b.transpose() * a.r0,
+           b.transpose() * a.r1 };
 }
 
 }  // namespace math
