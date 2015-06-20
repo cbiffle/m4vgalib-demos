@@ -143,26 +143,53 @@ bool RayCast::render_frame(unsigned frame) {
   _rasterizer.flip_now();
   update_camera();
 
-  auto fb = _rasterizer.get_bg_buffer();
+  auto const fb = _rasterizer.get_bg_buffer();
 
+  // Produce pixels in vertical columns, once for each X coordinate of the
+  // display.
   for (unsigned x = 0; x < config::cols; ++x) {
+    // Convert the integer x coordinate to the range (-1, 1) to simplify the
+    // casting math.
     auto const fx = 2 * x / float(config::cols) - 1;
+    // Figure out where in the map we hit.  Note that a hit is guaranteed: the
+    // map is closed (or is assumed to be closed).
     auto const hit = cast(fx);
 
-    auto const line_height = std::abs(int(config::rows / hit.distance));
-    auto const top = etl::max(-line_height / 2 + config::rows / 2, 0);
+    // Given the distance of the hit, apply simple perspective projection to
+    // find the height of the textured pixel column we need to draw.
+    // TODO: int(std::abs(x)) may actually be faster
+    auto const col_height = std::abs(int(config::rows / hit.distance));
+    // Get the Y coordinate of the first pixel drawn, limiting it to the top of
+    // the display.
+    auto const top = etl::max(-col_height / 2 + config::rows / 2, 0);
 
     vga::msig_e_set(1);
-    // Draw the ceiling, floor.
+
+    // Draw the ceiling/floor.  This formulation of the loop seems to generate
+    // the most efficient code on GCC 4.8.3.
     for (auto fill = &fb[x];
          fill != &fb[top * config::cols + x];
          fill += config::cols) {
       *fill = 0;
     }
 
-    auto const m = float(config::apparent_tex_height) / line_height;
-    auto const b = (-config::rows / 2.f + line_height / 2.f) * m;
-
+    // For each y coordinate between top and the middle of the screen, the
+    // tex_y value should be
+    //
+    //   tex_y = y * m + b
+    //
+    // for the values of m and b given below.
+    //
+    // However, we aren't going to write that in the loop below.  Instead, we'll
+    // manually strength-reduce the formula by changing the loop to repeated
+    // adds.
+    //
+    // This might seem counter-intuitive, since the M4 has a fused multiply add
+    // operation that can evaluate the full equation nearly as fast as an add.
+    // However, using that really pessimizes GCC 4.8.3's output.  The loop
+    // gains a lot of added fat and becomes 30% or so slower.
+    auto const m = float(config::apparent_tex_height) / col_height;
+    auto const b = (-config::rows / 2.f + col_height / 2.f) * m;
     auto tex_y = top * m + b;
 
     for (unsigned y = top; y < config::rows/2; ++y) {
