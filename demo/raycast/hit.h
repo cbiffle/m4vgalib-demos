@@ -10,7 +10,7 @@ struct Hit {
   enum class Side { x, y };
 
   unsigned texture;
-  unsigned tex_x;
+  unsigned tex_u;
   float distance;
   Side side;
 };

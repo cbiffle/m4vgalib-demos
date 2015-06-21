@@ -70,44 +70,66 @@ static float other(Hit::Side side, Vec2f v) {
 }
 
 Hit RayCast::cast(float x) const {
-  auto const ray_pos = _pos;
-  auto const ray_dir = _dir + _plane * x;
+  // The x value received here is in the range [-1, 1].  Multiply it by the
+  // plane vector to displace the (camera) dir vector into a ray direction.
+  auto dir = _dir + _plane * x;
 
-  auto map_pos = Vec2i{math::floor(ray_pos.x), math::floor(ray_pos.y)};
+  // map_pos gives our tile coordinate in the map.
+  auto map_pos = Vec2i{math::floor(_pos.x), math::floor(_pos.y)};
 
+  // The distance traveled by the ray for a move of one unit along either axis.
+  // Note that for axis-aligned rays, the step distance along the other axis
+  // becomes infinite.
   auto const delta_dist = Vec2f{
-    sqrtf(1 + (ray_dir.y * ray_dir.y) / (ray_dir.x * ray_dir.x)),
-    sqrtf(1 + (ray_dir.x * ray_dir.x) / (ray_dir.y * ray_dir.y)),
+    sqrtf(1 + (dir.y * dir.y) / (dir.x * dir.x)),
+    sqrtf(1 + (dir.x * dir.x) / (dir.y * dir.y)),
   };
 
+  // side_dist is the distance along the ray for a move from _pos to the nearest
+  // tile boundary along each axis.
   Vec2f side_dist;
+  // step is the integer signum of dir.
   Vec2i step;
 
-  if (ray_dir.x < 0) {
+  if (dir.x < 0) {
     step.x = -1;
-    side_dist.x = (ray_pos.x - map_pos.x) * delta_dist.x;
+    side_dist.x = (_pos.x - map_pos.x) * delta_dist.x;
   } else {
     step.x = +1;
-    side_dist.x = (map_pos.x + 1 - ray_pos.x) * delta_dist.x;
+    side_dist.x = (map_pos.x + 1 - _pos.x) * delta_dist.x;
   }
 
-  if (ray_dir.y < 0) {
+  if (dir.y < 0) {
     step.y = -1;
-    side_dist.y = (ray_pos.y - map_pos.y) * delta_dist.y;
+    side_dist.y = (_pos.y - map_pos.y) * delta_dist.y;
   } else {
     step.y = +1;
-    side_dist.y = (map_pos.y + 1 - ray_pos.y) * delta_dist.y;
+    side_dist.y = (map_pos.y + 1 - _pos.y) * delta_dist.y;
   }
 
+  // Step through the map until we find a cell containing a non-zero texture
+  // number.  This produces the following outputs:
+  // - map_pos will contain the location of the tile whose wall we hit.
+  // - side will indicate whether the wall we hit was aligned with the X or Y
+  //   axis.
+  // - texnum will give the texture number.
   Hit::Side side;
   unsigned texnum;
 
   do {
+    // If the ray needs to travel less far to reach an X-aligned wall than a
+    // Y-aligned wall...
     if (side_dist.x < side_dist.y) {
+      // ...then advance the ray along X.
+      // side_dist now records the distance to the *next* X-aligned boundary.
       side_dist.x += delta_dist.x;
+      // update map_pos by one.
       map_pos.x += step.x;
+      // In case this is a hit, record the axis.
       side = Hit::Side::x;
     } else {
+      // Otherwise, advance it along Y.
+      // Same deal.
       side_dist.y += delta_dist.y;
       map_pos.y += step.y;
       side = Hit::Side::y;
@@ -116,24 +138,44 @@ Hit RayCast::cast(float x) const {
     texnum = map_fetch(map_pos.x, map_pos.y);
   } while (texnum == 0);
 
+  // Decrement the texture number for zero-based texture array.
+  // TODO: it is possible that using 0xFF for free space could be slightly more
+  // efficient.
   texnum -= 1;
 
+  // Common factor used by the two wall-collision equations below.  This gives
+  // the distance along the ray to the wall we reached.
+  //
+  // This is 't' as in the parametric line equation.
   auto const t =
-    (same(side, map_pos) - same(side, ray_pos) + (1 - same(side, step)) / 2)
-        / same(side, ray_dir);
+    (same(side, map_pos) - same(side, _pos) + (1 - same(side, step)) / 2)
+        / same(side, dir);
+  // TODO: can t be negative given its derivation above?  Is fabsf necessary
+  // here?  Sure, it's a single cycle, but everything helps...
   auto const wall_dist = fabsf(t);
-  auto const wall_x = other(side, ray_pos) + t * other(side, ray_dir);
+  // Location along the wall's axis where the ray hits, derived from t.  This
+  // becomes the texture U coordinate.
+  auto const wall_u = other(side, _pos) + t * other(side, dir);
 
-  auto const tile_x = wall_x - math::floor(wall_x);
+  // The fractional part of wall_u gives us the U coordinate within the tile,
+  // and thus the texture.  (Range: [0, 1) )
+  auto const tile_u = wall_u - math::floor(wall_u);
 
-  auto tex_x = unsigned(tile_x * config::tex_width);
-  if (same(side, ray_dir) > 0) {
-    tex_x = config::tex_width - tex_x - 1;
+  auto tex_u = unsigned(tile_u * config::tex_width);
+  // The derivation of tex_u above is only a function of coordinate.  This looks
+  // wrong on half of the walls: the texture appears mirror-imaged on two sides
+  // of the walls.
+  //
+  // TODO: I don't understand why the axes are flipped here, with respect to
+  // one another.  Do we have a mismatch in e.g. the UV coordinate frame?
+  if ((side == Hit::Side::x && dir.x > 0)
+      || (side == Hit::Side::y && dir.y < 0)) {
+    tex_u = config::tex_width - tex_u - 1;
   }
 
   return {
     .texture = texnum,
-    .tex_x = tex_x,
+    .tex_u = tex_u,
     .distance = wall_dist,
     .side = side,
   };
@@ -194,7 +236,7 @@ bool RayCast::render_frame(unsigned frame) {
 
     for (unsigned y = top; y < config::rows/2; ++y) {
       fb[y * config::cols + x] =
-          tex_tex[hit.texture].fetch(hit.tex_x, int(tex_y));
+          tex_tex[hit.texture].fetch(hit.tex_u, int(tex_y));
       tex_y += m;
     }
 
