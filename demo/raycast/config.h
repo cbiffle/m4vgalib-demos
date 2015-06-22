@@ -8,8 +8,8 @@ namespace config {
 static constexpr unsigned
   disp_cols = 800,
   disp_rows = 600,
-  div_x = 4,
-  div_y = 1,
+  div_x = 2,
+  div_y = 2,
   map_width = 24,
   map_height = 24,
   tex_width = 64,
