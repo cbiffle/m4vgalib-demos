@@ -234,10 +234,20 @@ bool RayCast::render_frame(unsigned frame) {
     auto const b = (-config::rows / 2.f + col_height / 2.f) * m;
     auto tex_y = top * m + b;
 
-    for (unsigned y = top; y < config::rows/2; ++y) {
-      fb[y * config::cols + x] =
+    if (hit.side == Hit::Side::y) {
+      // Darken the texture slightly (Wolfenstein-style)
+      for (unsigned y = top; y < config::rows/2; ++y) {
+        fb[y * config::cols + x] = tex_darken[
+          tex_tex[hit.texture].fetch(hit.tex_u, int(tex_y))];
+        tex_y += m;
+      }
+    } else {
+      // Render the texture faithfully.
+      for (unsigned y = top; y < config::rows/2; ++y) {
+        fb[y * config::cols + x] =
           tex_tex[hit.texture].fetch(hit.tex_u, int(tex_y));
-      tex_y += m;
+        tex_y += m;
+      }
     }
 
     vga::msig_e_clear(1);
