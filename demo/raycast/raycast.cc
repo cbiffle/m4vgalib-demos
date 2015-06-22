@@ -1099,13 +1099,7 @@ static unsigned map_fetch(int x, int y) {
 
 bool RayCast::render_frame(unsigned frame) {
   _rasterizer.flip_now();
-  auto const j = read_joystick();
-
-  if (j & JoyBits::up) move(_dir * +0.1f);
-  if (j & JoyBits::down) move(_dir * -0.1f);
-
-  if (j & JoyBits::left) rotate(+0.01f);
-  if (j & JoyBits::right) rotate(-0.01f);
+  update_camera();
 
   auto fb = _rasterizer.get_bg_buffer();
 
@@ -1203,6 +1197,16 @@ bool RayCast::render_frame(unsigned frame) {
   }
 
   return true;
+}
+
+void RayCast::update_camera() {
+  auto const j = read_joystick();
+
+  if (j & JoyBits::up) move(_dir * +0.1f);
+  if (j & JoyBits::down) move(_dir * -0.1f);
+
+  if (j & JoyBits::left) rotate(+0.01f);
+  if (j & JoyBits::right) rotate(-0.01f);
 }
 
 void RayCast::rotate(float a) {

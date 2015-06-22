@@ -40,6 +40,7 @@ private:
   math::Vec2f _dir;     // Direction vector of camera (unit).
   math::Vec2f _plane;   // Plane vector; perp. to _dir, length determines FOV.
 
+  void update_camera();
   void rotate(float a);
   void move(math::Vec2f);
 };
