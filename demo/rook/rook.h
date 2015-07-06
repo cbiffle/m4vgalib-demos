@@ -1,13 +1,14 @@
 #ifndef DEMO_ROOK_ROOK_H
 #define DEMO_ROOK_ROOK_H
 
+#include "etl/math/matrix.h"
+#include "etl/math/vector.h"
+
 #include "vga/vga.h"
 #include "vga/rast/bitmap_1.h"
 #include "vga/rast/solid_color.h"
 #include "vga/rast/text_10x16.h"
 #include "vga/font_10x16.h"
-
-#include "math/geometry.h"
 
 #include "demo/scene.h"
 #include "demo/rook/config.h"
@@ -19,12 +20,12 @@ struct Wireframe {
   vga::rast::Bitmap_1 rasterizer{config::cols,
                                  config::wireframe_rows,
                                  config::top_margin};
-  math::Vec2i * transformed_vertices;
+  etl::math::Vec2i * transformed_vertices;
 
   Wireframe();
   ~Wireframe();
 
-  void transform_vertices(math::Mat4f const &m) const;
+  void transform_vertices(etl::math::Mat4f const &m) const;
   void draw_edges(vga::Graphics1 &g);
 };
 
@@ -67,8 +68,8 @@ private:
     { &_brag_line.text,       config::text_rows,         nullptr },
   };
 
-  math::Mat4f _projection;
-  math::Mat4f _model;
+  etl::math::Mat4f _projection;
+  etl::math::Mat4f _model;
 };
 
 void legacy_run();

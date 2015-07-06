@@ -7,6 +7,8 @@
 #include "etl/algorithm.h"
 #include "etl/scope_guard.h"
 
+#include "etl/math/matrix.h"
+
 #include "math/conversion.h"
 
 #include "vga/arena.h"
@@ -21,9 +23,9 @@
 #include "demo/raycast/tex.h"
 #include "demo/raycast/texture.h"
 
-using math::Mat2f;
-using math::Vec2f;
-using math::Vec2i;
+using etl::math::Mat2f;
+using etl::math::Vec2f;
+using etl::math::Vec2i;
 
 namespace demo {
 namespace raycast {
@@ -72,7 +74,7 @@ static float other(Hit::Side side, Vec2f v) {
 Hit RayCast::cast(float x) const {
   // The x value received here is in the range [-1, 1].  Multiply it by the
   // plane vector to displace the (camera) dir vector into a ray direction.
-  auto dir = _dir + _plane * x;
+  auto dir = _dir + _plane * Vec2f{x};
 
   // map_pos gives our tile coordinate in the map.
   auto map_pos = Vec2i{math::floor(_pos.x), math::floor(_pos.y)};
@@ -259,16 +261,20 @@ bool RayCast::render_frame(unsigned frame) {
 void RayCast::update_camera() {
   auto const j = read_joystick();
 
-  if (j & JoyBits::up) move(_dir * +0.1f);
-  if (j & JoyBits::down) move(_dir * -0.1f);
+  if (j & JoyBits::up)   move(_dir * Vec2f{+0.1f});
+  if (j & JoyBits::down) move(_dir * Vec2f{-0.1f});
 
   if (j & JoyBits::left) rotate(+0.01f);
   if (j & JoyBits::right) rotate(-0.01f);
 }
 
 void RayCast::rotate(float a) {
-  _dir = Mat2f::rotate(a) * _dir;
-  _plane = Vec2f{_dir.y, -_dir.x} * config::fov;
+  auto const m = Mat2f {
+    { cosf(a), -sinf(a) },
+    { sinf(a), cosf(a) },
+  };
+  _dir = m * _dir;
+  _plane = Vec2f{_dir.y, -_dir.x} * Vec2f{config::fov};
 }
 
 void RayCast::move(Vec2f delta) {

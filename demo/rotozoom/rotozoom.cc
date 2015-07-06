@@ -7,19 +7,26 @@
 #include "etl/armv7m/instructions.h"
 #include "etl/armv7m/types.h"
 
+#include "etl/math/affine.h"
+#include "etl/math/matrix.h"
+#include "etl/math/vector.h"
+
 #include "vga/arena.h"
 #include "vga/measurement.h"
 #include "vga/timing.h"
 #include "vga/vga.h"
 #include "vga/rast/direct.h"
 
-#include "math/geometry.h"
 #include "math/interpolate.h"
 
 #include "demo/input.h"
 #include "demo/rotozoom/config.h"
 
-using namespace math;
+using etl::math::Mat3f;
+
+using etl::math::Vec2i;
+using etl::math::Vec2f;
+using etl::math::Vec3f;
 
 namespace demo {
 namespace rotozoom {
@@ -36,6 +43,10 @@ struct State {
 };
 
 static constexpr auto center = Vec2i { config::cols/2, config::rows/2 };
+
+static constexpr Vec2f project(Vec3f v) {
+  return {v.x/v.z, v.y/v.z};
+}
 
 /*
  * Entry point.
@@ -62,25 +73,25 @@ void run() {
     float tx = std::cos(float(frame) / 59) * 50;
     float ty = std::sin(float(frame) / 50) * 50;
 
-    auto const scale = Mat3f::scale(s, s);
-    auto const trans = Mat3f::translate(tx, ty);
+    auto const scale = etl::math::scale(Vec2f{s, s});
+    auto const trans = etl::math::translate(Vec2f{tx, ty});
 
     auto const m_ = m * trans * scale;
 
     Vec2f const vertices[4] {
-      (m_ * Vec3f { -config::cols/2, -config::rows/2, 1 }).hom(),
-      (m_ * Vec3f { +config::cols/2, -config::rows/2, 1 }).hom(),
-      (m_ * Vec3f { -config::cols/2, +config::rows/2, 1 }).hom(),
-      (m_ * Vec3f { +config::cols/2, +config::rows/2, 1 }).hom(),
+      project(m_ * Vec3f { -config::cols/2, -config::rows/2, 1 }),
+      project(m_ * Vec3f { +config::cols/2, -config::rows/2, 1 }),
+      project(m_ * Vec3f { -config::cols/2, +config::rows/2, 1 }),
+      project(m_ * Vec3f { +config::cols/2, +config::rows/2, 1 }),
     };
 
-    auto xi = (vertices[1] - vertices[0]) * (1.f / config::cols);
+    auto xi = (vertices[1] - vertices[0]) * Vec2f{1.f / config::cols};
 
     uint8_t * fb = d->rasterizer.get_bg_buffer();
     for (unsigned y = 0; y < config::rows; ++y) {
       float yr = float(y) / config::rows;
 
-      auto pos = linear_interpolate(vertices[0], vertices[2], yr);
+      auto pos = math::linear_interpolate(vertices[0], vertices[2], yr);
 
       for (unsigned x = 0; x < config::cols; ++x) {
         fb[y * config::cols + x] = unsigned(int(pos.x))
@@ -89,7 +100,7 @@ void run() {
       }
     }
 
-    auto const r = Mat3f::rotate(0.01f);
+    auto const r = etl::math::rotate(0.01f);
 
     m = m * r;
 

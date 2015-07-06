@@ -13,7 +13,7 @@ namespace math {
 template <typename T>
 T linear_interpolate(T first, T second, float amount) {
   T delta = second - first;
-  return first + (delta * amount);
+  return first + (delta * T{amount});
 }
 
 /*

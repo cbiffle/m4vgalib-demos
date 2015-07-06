@@ -1,7 +1,7 @@
 #ifndef DEMO_RAYCAST_RAYCAST_H
 #define DEMO_RAYCAST_RAYCAST_H
 
-#include "math/geometry.h"
+#include "etl/math/vector.h"
 
 #include "vga/vga.h"
 #include "vga/rast/palette8.h"
@@ -37,13 +37,14 @@ private:
     { &_mirror,     config::disp_rows / 2, nullptr },
   };
 
-  math::Vec2f _pos;     // Position of camera within map.
-  math::Vec2f _dir;     // Direction vector of camera (unit).
-  math::Vec2f _plane;   // Plane vector; perp. to _dir, length determines FOV.
+  etl::math::Vec2f _pos;     // Position of camera within map.
+  etl::math::Vec2f _dir;     // Direction vector of camera (unit).
+  etl::math::Vec2f _plane;   // Plane vector; perpendicular to _dir,
+                             // length determines FOV.
 
   void update_camera();
   void rotate(float a);
-  void move(math::Vec2f);
+  void move(etl::math::Vec2f);
 
   Hit cast(float x) const;
 };
