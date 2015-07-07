@@ -85,7 +85,7 @@ void run() {
       project(m_ * Vec3f { +config::cols/2, +config::rows/2, 1 }),
     };
 
-    auto xi = (vertices[1] - vertices[0]) * Vec2f{1.f / config::cols};
+    auto xi = (vertices[1] - vertices[0]) * (1.f / config::cols);
 
     uint8_t * fb = d->rasterizer.get_bg_buffer();
     for (unsigned y = 0; y < config::rows; ++y) {

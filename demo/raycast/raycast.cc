@@ -74,7 +74,7 @@ static float other(Hit::Side side, Vec2f v) {
 Hit RayCast::cast(float x) const {
   // The x value received here is in the range [-1, 1].  Multiply it by the
   // plane vector to displace the (camera) dir vector into a ray direction.
-  auto dir = _dir + _plane * Vec2f{x};
+  auto dir = _dir + _plane * x;
 
   // map_pos gives our tile coordinate in the map.
   auto map_pos = Vec2i{math::floor(_pos.x), math::floor(_pos.y)};
@@ -261,8 +261,8 @@ bool RayCast::render_frame(unsigned frame) {
 void RayCast::update_camera() {
   auto const j = read_joystick();
 
-  if (j & JoyBits::up)   move(_dir * Vec2f{+0.1f});
-  if (j & JoyBits::down) move(_dir * Vec2f{-0.1f});
+  if (j & JoyBits::up)   move(_dir * +0.1f);
+  if (j & JoyBits::down) move(_dir * -0.1f);
 
   if (j & JoyBits::left) rotate(+0.01f);
   if (j & JoyBits::right) rotate(-0.01f);
@@ -274,7 +274,7 @@ void RayCast::rotate(float a) {
     { sinf(a), cosf(a) },
   };
   _dir = m * _dir;
-  _plane = Vec2f{_dir.y, -_dir.x} * Vec2f{config::fov};
+  _plane = Vec2f{_dir.y, -_dir.x} * config::fov;
 }
 
 void RayCast::move(Vec2f delta) {
