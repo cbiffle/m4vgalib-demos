@@ -59,11 +59,7 @@ Wireframe::~Wireframe() {
 }
 
 constexpr Vec4f expand(Vec3h const & v) {
-  return {v.x, v.y, v.z, 1};
-}
-
-constexpr Vec3f project(Vec4f v) {
-  return {v.x/v.w, v.y/v.w, v.z/v.w};
+  return augment(Vec3f{v});
 }
 
 __attribute__((section(".ramcode.transform_vertices")))

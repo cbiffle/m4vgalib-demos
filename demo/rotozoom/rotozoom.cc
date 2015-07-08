@@ -28,6 +28,9 @@ using etl::math::Vec2i;
 using etl::math::Vec2f;
 using etl::math::Vec3f;
 
+using etl::math::project;
+using etl::math::augment;
+
 namespace demo {
 namespace rotozoom {
 
@@ -43,10 +46,6 @@ struct State {
 };
 
 static constexpr auto center = Vec2i { config::cols/2, config::rows/2 };
-
-static constexpr Vec2f project(Vec3f v) {
-  return {v.x/v.z, v.y/v.z};
-}
 
 /*
  * Entry point.
@@ -79,10 +78,10 @@ void run() {
     auto const m_ = m * trans * scale;
 
     Vec2f const vertices[4] {
-      project(m_ * Vec3f { -config::cols/2, -config::rows/2, 1 }),
-      project(m_ * Vec3f { +config::cols/2, -config::rows/2, 1 }),
-      project(m_ * Vec3f { -config::cols/2, +config::rows/2, 1 }),
-      project(m_ * Vec3f { +config::cols/2, +config::rows/2, 1 }),
+      project(m_ * augment(Vec2f{-config::cols/2, -config::rows/2})),
+      project(m_ * augment(Vec2f{+config::cols/2, -config::rows/2})),
+      project(m_ * augment(Vec2f{-config::cols/2, +config::rows/2})),
+      project(m_ * augment(Vec2f{+config::cols/2, +config::rows/2})),
     };
 
     auto xi = (vertices[1] - vertices[0]) * (1.f / config::cols);
