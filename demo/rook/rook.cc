@@ -1,7 +1,7 @@
 #include "demo/rook/rook.h"
 
 #include "etl/assert.h"
-#include "etl/math/affine.h"
+#include "etl/math/affine_transform.h"
 
 #include "vga/arena.h"
 #include "vga/graphics_1.h"
@@ -19,6 +19,8 @@ using etl::math::Vec3f;
 using etl::math::Vec4f;
 
 using math::Vec3h;
+
+namespace xf = etl::math::affine_transform;
 
 namespace demo {
 namespace rook {
@@ -59,13 +61,13 @@ Wireframe::~Wireframe() {
 }
 
 constexpr Vec4f expand(Vec3h const & v) {
-  return augment(Vec3f{v});
+  return xf::augment(Vec3f{v});
 }
 
 __attribute__((section(".ramcode.transform_vertices")))
 void Wireframe::transform_vertices(Mat4f const &m) const {
   for (unsigned i = 0; i < vertex_count; ++i) {
-    Vec3f v = project(m * expand(vertices[i]));
+    Vec3f v = xf::project(m * expand(vertices[i]));
     transformed_vertices[i] = { static_cast<int>(v.x),
                                 static_cast<int>(v.y) };
   }
@@ -124,10 +126,10 @@ void BragLine::show_msg(unsigned frame) {
 
 Rook::Rook()
   : _projection(
-      etl::math::translate(Vec3f{config::cols/2, config::wireframe_rows/2, 0})
-      * etl::math::scale(Vec3f{config::rows/2, config::rows/2, 1})
-      * etl::math::persp(-10, -10, 10, 10, 20, 100)
-      * etl::math::translate(Vec3f{0, 0, -70})),
+      xf::translate(Vec3f{config::cols/2, config::wireframe_rows/2, 0})
+      * xf::scale(Vec3f{config::rows/2, config::rows/2, 1})
+      * xf::persp(-10, -10, 10, 10, 20, 100)
+      * xf::translate(Vec3f{0, 0, -70})),
     _model(Mat4f::identity()) {}
 
 void Rook::configure_band_list() {
@@ -140,14 +142,14 @@ bool Rook::render_frame(unsigned frame) {
   auto const j = read_joystick();
   _wireframe.rasterizer.copy_bg_to_fg();
 
-  if (j & JoyBits::up) _model = _model * etl::math::rotate_z(-0.01f);
-  if (j & JoyBits::down) _model = _model * etl::math::rotate_z(+0.01f);
+  if (j & JoyBits::up) _model = _model * xf::rotate_z(-0.01f);
+  if (j & JoyBits::down) _model = _model * xf::rotate_z(+0.01f);
 
   if (j & JoyBits::left) {
-    _projection = _projection * etl::math::rotate_y(-0.01f);
+    _projection = _projection * xf::rotate_y(-0.01f);
   }
   if (j & JoyBits::right) {
-    _projection = _projection * etl::math::rotate_y(+0.01f);
+    _projection = _projection * xf::rotate_y(+0.01f);
   }
 
   _brag_line.show_msg(frame % 810);

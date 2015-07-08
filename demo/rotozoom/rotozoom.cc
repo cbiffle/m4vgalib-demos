@@ -7,7 +7,7 @@
 #include "etl/armv7m/instructions.h"
 #include "etl/armv7m/types.h"
 
-#include "etl/math/affine.h"
+#include "etl/math/affine_transform.h"
 #include "etl/math/matrix.h"
 #include "etl/math/vector.h"
 
@@ -28,8 +28,7 @@ using etl::math::Vec2i;
 using etl::math::Vec2f;
 using etl::math::Vec3f;
 
-using etl::math::project;
-using etl::math::augment;
+namespace xf = etl::math::affine_transform;
 
 namespace demo {
 namespace rotozoom {
@@ -72,16 +71,16 @@ void run() {
     float tx = std::cos(float(frame) / 59) * 50;
     float ty = std::sin(float(frame) / 50) * 50;
 
-    auto const scale = etl::math::scale(Vec2f{s, s});
-    auto const trans = etl::math::translate(Vec2f{tx, ty});
+    auto const scale = xf::scale(Vec2f{s, s});
+    auto const trans = xf::translate(Vec2f{tx, ty});
 
     auto const m_ = m * trans * scale;
 
     Vec2f const vertices[4] {
-      project(m_ * augment(Vec2f{-config::cols/2, -config::rows/2})),
-      project(m_ * augment(Vec2f{+config::cols/2, -config::rows/2})),
-      project(m_ * augment(Vec2f{-config::cols/2, +config::rows/2})),
-      project(m_ * augment(Vec2f{+config::cols/2, +config::rows/2})),
+      xf::project(m_ * xf::augment(Vec2f{-config::cols/2, -config::rows/2})),
+      xf::project(m_ * xf::augment(Vec2f{+config::cols/2, -config::rows/2})),
+      xf::project(m_ * xf::augment(Vec2f{-config::cols/2, +config::rows/2})),
+      xf::project(m_ * xf::augment(Vec2f{+config::cols/2, +config::rows/2})),
     };
 
     auto xi = (vertices[1] - vertices[0]) * (1.f / config::cols);
@@ -99,7 +98,7 @@ void run() {
       }
     }
 
-    auto const r = etl::math::rotate(0.01f);
+    auto const r = xf::rotate(0.01f);
 
     m = m * r;
 
