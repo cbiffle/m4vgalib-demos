@@ -1,9 +1,7 @@
 #include "demo/tunnel/tunnel.h"
 
 #include "etl/scope_guard.h"
-
-#include "etl/armv7m/instructions.h"
-#include "etl/armv7m/types.h"
+#include "etl/math/saturation.h"
 
 #include "vga/arena.h"
 #include "vga/measurement.h"
@@ -34,7 +32,8 @@ static uint_fast8_t tex_fetch(float u, float v) {
 static uint_fast8_t shade(float distance,
                           uint_fast8_t pixel) {
   unsigned sel = unsigned(distance / (config::texture_repeats_d * 2));
-  sel = etl::armv7m::usat<3>(sel);
+  // Clamp value as signed signed to trigger GCC's usat matching pattern (bug).
+  sel = unsigned(etl::math::clamp(int(sel), 0, 7));
 
   return (pixel >> (0x01010000u >> (sel * 8)))
        & (0x5555AAFFu >> (sel * 8));
