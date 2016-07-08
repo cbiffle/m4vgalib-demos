@@ -4,48 +4,60 @@ produce high-quality graphics on an STM32F4 with few external components.
 For more information about the approach used, see [m4vgalib].
 
 
-Prerequisites
+Using Vagrant
 =============
 
-I've tested this code most thoroughly using GCC 4.8.3 produced by the
-[GCC ARM Embedded] 2014q1 recipe.  These demos do not rely heavily on the C
-library, so the fact that the GCC ARM Embedded folks have chosen a very unusual
-Newlib configuration won't hurt you.
+The easiest way to build and flash this code is by using [Vagrant].
 
-Most of the code *compiles* with CLang, but I haven't tested an ARM binary
-produced by CLang.
+Clone the `m4vgalib-demos` git repository and `cd` into the clone:
 
+    $ git clone https://github.com/cbiffle/m4vgalib-demos
+    $ cd m4vgalib-demos
 
-Using the Demos
-===============
+Use Vagrant to set up a toolchain and build environment:
 
-To prepare a fresh clone:
+    $ vagrant up
 
-    $ ./bootstrap.sh
+This will set up an isolated Ubuntu 14.04 environment with a tested version of
+the ARM GCC toolchain, along with OpenOCD for flashing and debugging.  As its
+final action, it will run this codebase's `bootstrap.sh` to set up the build
+environment.
 
-To build:
+Enter the build environment and run the build:
 
-    $ cd build
+    $ vagrant ssh
+    $ cd /vagrant/build
     $ ./cobble build
 
-Firmware images will be left in `build/demo/*/demo`.  To flash one onto an
-STM32F4DISCOVERY board:
+This will compile binaries for all of the demos individually, plus a "demo
+reel."  (See the tour below for details.)  On a recent Intel machine this takes
+less than 10 seconds.
 
-    $ ./flash.sh build/latest/demo/rook/demo
+Connect an STM32F4Discovery board.  Still within the build environment, run:
 
-(Note that you will need to have wired up the video circuit, described below,
-to see any results.)
+    $ ../flash.sh latest/demo/conway/demo
 
-To do the same through GDB, which is more useful if you're hacking on a demo:
+This flashes the Conway's Life demo, which should take about five seconds.
 
-    $ openocd &
-    $ ./gdb.sh build/latest/demo/rook/demo
-    gdb> flash
+Congratulations!  Your STM32F4Discovery board is now producing VGA output.  To
+actually see it, you'll want to wire the board up as described below.
 
-To clean:
 
-    $ rm -rf build
-    $ ./bootstrap.sh
+Building Natively
+=================
+
+Using Vagrant is easy, but you might prefer to build on your real machine.
+There are good reasons for this: Ubuntu's packaged version of OpenOCD is really
+old, for example, and gets flaky after flashing sometimes.
+
+You'll need to wrangle the prerequisites yourself.  The biggest one is a recent
+ARM GCC toolchain (4.9 or later, ideally).  If you're on Ubuntu, I suggest using
+the [ARM GCC PPA].  Otherwise, you can use [my GCC build recipe], derived from
+Ubuntu's.
+
+Once you have a toolchain, the process is identical to the one described for
+Vagrant above -- just without the `vagrant` commands, and you'll need to run
+`bootstrap.sh` in your fresh clone by hand.
 
 
 Tour of the Demos
@@ -123,3 +135,6 @@ The User Button is the blue button on the STM32F4DISCOVERY board.
 [m4vgalib]: https://github.com/cbiffle/m4vgalib
 [my chess set]: http://cliffle.com/thing/chess-set-i/
 [GCC ARM Embedded]: https://launchpad.net/gcc-arm-embedded
+[Vagrant]: https://www.vagrantup.com/
+[ARM GCC PPA]: https://launchpad.net/~team-gcc-arm-embedded/+archive/ubuntu/ppa
+[my GCC build recipe]: https://github.com/cbiffle/gcc-arm-embedded
