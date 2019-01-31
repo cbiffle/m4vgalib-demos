@@ -22,6 +22,7 @@ namespace tunnel {
 /*
  * Texture "lookup" generates the traditional procedural texture.
  */
+ETL_INLINE
 static uint_fast8_t tex_fetch(float u, float v) {
   return uint_fast8_t(u) ^ uint_fast8_t(v);
 }
@@ -29,6 +30,7 @@ static uint_fast8_t tex_fetch(float u, float v) {
 /*
  * The shader applies a depth effect.
  */
+ETL_INLINE
 static uint_fast8_t shade(float distance,
                           uint_fast8_t pixel) {
   unsigned sel = unsigned(distance / (config::texture_repeats_d * 2));
@@ -45,6 +47,7 @@ static uint_fast8_t shade(float distance,
  * 'distance' is distance from the viewer, whereas 'fd' is the Z position
  * that advances as time passes.
  */
+ETL_INLINE
 static uint_fast8_t color(float distance,
                           float fd,
                           float fa) {

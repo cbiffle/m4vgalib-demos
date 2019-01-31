@@ -4,6 +4,7 @@
 #include <array>
 #include <cstdint>
 
+#include <etl/attribute_macros.h>
 #include "demo/tunnel/config.h"
 
 namespace demo {
@@ -99,6 +100,7 @@ union PackedEntry {
    * This means unpacking can't be constexpr, but we don't actually need it at
    * compile time -- so that's fine.
    */
+  ETL_INLINE
   Entry unpack() const {
     float distance, angle;
     asm (
@@ -142,6 +144,7 @@ public:
   /*
    * Returns the unpacked Entry for a pixel location in Quadrant I.
    */
+  ETL_INLINE
   Entry get(unsigned x, unsigned y) const {
     return _entries[y][x].unpack();
   }
