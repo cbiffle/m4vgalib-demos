@@ -19,7 +19,7 @@ c_library('lib',
 
 def demo(name, env):
   c_binary(name,
-    environment = env,
+    env = env,
     sources = [ 'main.cc' ],
     local = {
       # TODO(cbiffle): probably not necessary
@@ -31,6 +31,7 @@ def demo(name, env):
       '//etl/armv7m:exception_table',
       '//etl/armv7m:implicit_crt0',
       '//etl/stm32f4xx:interrupt_table',
+      '//demo',
       '//runtime',
       '//runtime:default_traps',
       '//vga',

@@ -1,8 +1,9 @@
 #!/usr/bin/env ruby
 
 IN = ARGV[0]
-OUTDIR = ARGV[1]
-NAME = ARGV[2]
+OUTHDR = ARGV[1]
+OUTIMPL = ARGV[2]
+NAME = ARGV[3]
 
 TEXWIDTH = 64
 TEXHEIGHT = 64
@@ -130,9 +131,9 @@ end
 STDERR.puts "Success: #{$colors_used} colors used."
 STDERR.puts "#{$new_dark_colors} colors consumed by palette darkening."
 
-STDERR.puts "Output going into #{OUTDIR}."
+STDERR.puts "Output going into #{OUTHDR} / #{OUTIMPL}."
 
-File.open("#{OUTDIR}/#{NAME}.h", 'w') { |f|
+File.open(OUTHDR, 'w') { |f|
   f.puts <<-END.gsub(/^ {4}/, '')
     #ifndef DEMO_RAYCAST_#{NAME.upcase}_H
     #define DEMO_RAYCAST_#{NAME.upcase}_H
@@ -160,7 +161,7 @@ File.open("#{OUTDIR}/#{NAME}.h", 'w') { |f|
   END
 }
 
-File.open("#{OUTDIR}/#{NAME}.cc", 'w') { |f|
+File.open(OUTIMPL, 'w') { |f|
   f.puts <<-END.gsub(/^ {4}/, '')
     #include "demo/raycast/#{NAME}.h"
 

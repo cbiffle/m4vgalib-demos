@@ -17,7 +17,7 @@ c_library('lib',
 )
 
 c_binary('demo',
-  environment = 'demo800',
+  env = 'demo800',
   sources = [ 'main.cc' ],
   local = {
     # TODO(cbiffle): probably not necessary

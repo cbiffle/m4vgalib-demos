@@ -1,7 +1,7 @@
 c_library('lib',
   sources = [
     'rook.cc',
-    '@demo/rook/model.cc',
+    ':rook_stl_model#model.cc',
   ],
   local = {
     'cxx_flags': [ '-O2', '-Igen' ],
@@ -18,7 +18,7 @@ c_library('lib',
 )
 
 c_binary('demo',
-  environment = 'demo800',
+  env = 'demo800',
   sources = [ 'main.cc' ],
   deps = [
     ':lib',
@@ -31,9 +31,12 @@ c_binary('demo',
     '//runtime:default_traps',
     '//vga',
   ],
+  extra = {
+    'cxx_flags': [ '-DDISRUPTIVE_MEASUREMENT' ],
+  },
 )
 
 compile_stl('rook_stl_model',
-  environment = 'base',
+  env = 'base',
   stl_file = 'rook.stl',
 )

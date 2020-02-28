@@ -3,7 +3,7 @@ c_library('lib',
     'map.cc',
     'raycast.cc',
 
-    '@demo/raycast/tex.cc',
+    ':tex_gen#tex.cc',
   ],
   local = {
     'cxx_flags': [ '-O2' ],
@@ -17,7 +17,7 @@ c_library('lib',
 )
 
 c_binary('demo',
-  environment = 'demo800',
+  env = 'demo800',
   sources = [ 'main.cc' ],
   deps = [
     ':lib',
@@ -35,6 +35,6 @@ c_binary('demo',
 )
 
 convert_raycast_texture('tex_gen',
-  environment = 'base',
+  env = 'base',
   tex_name = 'tex',
 )

@@ -13,7 +13,7 @@ c_library('runtime',
     # If this code is packaged into a static archive, the linker won't grab
     # the preinit_array table, and thus won't link in the startup routines,
     # without setting whole_archive.
-    'whole_archive': True,
+    'c_library_whole_archive': True,
   }
 )
 
@@ -26,6 +26,6 @@ c_library('default_traps',
     # We don't correctly represent the dependency edge from the ARMv7M
     # vector table (provided by ETL) to this target, which provides the
     # traps.  We have to use whole_archive to hack around this.
-    'whole_archive': True,
+    'c_library_whole_archive': True,
   },
 )

@@ -1,7 +1,7 @@
 c_library('lib')
 
 c_binary('demo',
-  environment = 'demo640',
+  env = 'demo640',
   sources = [ 'main.cc' ],
   deps = [
     ':lib',

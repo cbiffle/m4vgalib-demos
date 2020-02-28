@@ -9,7 +9,7 @@ included_demos = [
 ]
 
 c_binary('reel',
-  environment = 'demo800',
+  env = 'demo800',
   sources = [ 'main.cc' ],
   deps = [
     '//etl/armv7m:armv7m',

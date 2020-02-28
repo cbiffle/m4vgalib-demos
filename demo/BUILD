@@ -8,16 +8,16 @@ c_library('demo',
   ],
   local = {
     'cxx_flags': [
-      '-DCFG_WIDTH=%(width)s',
-      '-DCFG_HEIGHT=%(height)s',
-      '-DCFG_HZ=%(hz)s',
+      '-DCFG_WIDTH=$width',
+      '-DCFG_HEIGHT=$height',
+      '-DCFG_HZ=$hz',
     ],
   },
   using = {
     'cxx_flags': [
-      '-DCFG_WIDTH=%(width)s',
-      '-DCFG_HEIGHT=%(height)s',
-      '-DCFG_HZ=%(hz)s',
+      '-DCFG_WIDTH=$width',
+      '-DCFG_HEIGHT=$height',
+      '-DCFG_HZ=$hz',
     ],
   },
 )

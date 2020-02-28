@@ -1,50 +1,57 @@
-import cobble
+import cobble.target
+from cobble.plugin import target_def
+import cobble.env
 
-class RaycastTextureConverter(cobble.Target):
-  def __init__(self, loader, package, name,
-               environment,
-               tex_name):
-    super(RaycastTextureConverter, self).__init__(loader, package, name)
-    self.environment = environment
-    self.tex_name = tex_name
-    self.leaf = True
+TEX_NAME = cobble.env.overrideable_string_key('raycast_tex_name')
+TEX_SCRIPT = cobble.env.overrideable_string_key('raycast_tex_script')
+KEYS = frozenset([TEX_NAME, TEX_SCRIPT])
 
-  def _derive_local(self, unused):
-    return self.package.project.named_envs[self.environment]
+@target_def
+def convert_raycast_texture(package, name, /, *,
+        env,
+        tex_name,
+        deps = []):
 
-  def _using_and_products(self, env_local): 
-    pnm = self.package.inpath(self.tex_name + '.pnm')
-    header, source = [self.package.genpath(self.tex_name + '.' + ext)
-                           for ext in ['h', 'cc']]
+    def mku(ctx):
+        script = package.project.inpath('demo', 'raycast', 'process_textures.rb')
+        gen_env = ctx.env.subset([]).derive({
+            TEX_NAME.name: tex_name,
+            TEX_SCRIPT.name: script,
+        })
 
-    script = self.project.inpath('demo', 'raycast', 'process_textures.rb')
-    converter = {
-      'outputs': [header, source],
-      'rule': 'convert_raycast_texture',
-      'inputs': [pnm],
-      'implicit': [script],
-      'variables': {
-        'script': script,
-        'outputdir': self.package.genpath(),
-        'name': self.tex_name,
-      },
-    }
+        pnm = package.inpath(tex_name + '.pnm')
+        header, source = [package.outpath(gen_env, tex_name + '.' + ext)
+                for ext in ['h', 'cc']]
 
-    using = cobble.env.make_appending_delta(
-      __order_only__ = [ header ],
-      cxx_flags = [ '-I' + self.project.genpath() ],
+        converter = cobble.target.Product(
+            env = gen_env,
+            outputs = [header, source],
+            rule = 'convert_raycast_texture',
+            inputs = [pnm],
+            implicit = [script],
+        )
+        converter.expose(name = tex_name + '.cc', path = source)
+        converter.expose(name = tex_name + '.h', path = header)
+
+        using = {
+            '__order_only__': [header],
+            'cxx_flags': ['-I' + package.project.outpath(gen_env)],
+        }
+
+        return (using, [converter])
+
+    return cobble.target.Target(
+        concrete = True,
+        package = package,
+        name = name,
+        using_and_products = mku,
+        down = lambda _: package.project.named_envs[env],
+        deps = deps,
     )
-
-    return (using, [converter])
-
-
-package_verbs = {
-  'convert_raycast_texture': RaycastTextureConverter,
-}
 
 ninja_rules = {
   'convert_raycast_texture': {
-    'command': '$script $in $outputdir $name',
-    'description': 'TEX $in',
+    'command': '$raycast_tex_script $in $out $raycast_tex_name',
+    'description': 'TEX $in -> $raycast_tex_name',
   },
 }

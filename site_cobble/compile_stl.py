@@ -1,47 +1,53 @@
-import cobble
+import cobble.target
+from cobble.plugin import target_def
+import cobble.env
 
-class StlCompiler(cobble.Target):
-  def __init__(self, loader, package, name,
-               environment,
-               stl_file = []):
-    super(StlCompiler, self).__init__(loader, package, name)
-    self.environment = environment
-    self.stl_file = stl_file
-    self.leaf = True
+STLMUNGE = cobble.env.overrideable_string_key('stlmunge')
+KEYS = frozenset([STLMUNGE])
 
-  def _derive_local(self, unused):
-    return self.package.project.named_envs[self.environment]
+@target_def
+def compile_stl(package, name, /, *,
+        env,
+        stl_file,
+        deps = []):
 
-  def _using_and_products(self, env_local): 
-    header, source = [self.package.genpath('model.' + ext)
-                        for ext in ['h', 'cc']]
+    def mku(ctx):
+        stl_file_i = ctx.rewrite_sources([stl_file])[0]
 
-    script = self.package.inpath('stlmunge.rb')
-    compiler = {
-      'outputs': [header, source],
-      'rule': 'compile_stl',
-      'inputs': [self.package.inpath(self.stl_file)],
-      'implicit': [script],
-      'variables': {
-        'stlmunge': 'ruby ' + script,
-        'outputdir': self.package.genroot,
-      },
-    }
+        stl_env = ctx.env.derive({
+            'stlmunge': 'ruby ' + package.inpath('stlmunge.rb'),
+        })
 
-    using = cobble.env.make_appending_delta(
-      __order_only__ = [ header ],
+        header, source = [package.outpath(stl_env, 'model.' + ext)
+                for ext in ['h', 'cc']]
+
+        product = cobble.target.Product(
+            env = stl_env,
+            outputs = [header, source],
+            rule = 'compile_stl',
+            inputs = [stl_file_i],
+        )
+        product.expose(name = 'model.h', path = header)
+        product.expose(name = 'model.cc', path = source)
+
+        using = {
+            '__order_only__': [header],
+            'cxx_flags': ['-I' + package.project.outpath(stl_env)],
+        }
+        return (using, [product])
+
+    return cobble.target.Target(
+        concrete = True,
+        package = package,
+        name = name,
+        using_and_products = mku,
+        down = lambda _: package.project.named_envs[env],
+        deps = deps,
     )
-
-    return (using, [compiler])
-
-
-package_verbs = {
-  'compile_stl': StlCompiler,
-}
 
 ninja_rules = {
   'compile_stl': {
-    'command': '$stlmunge $outputdir < $in',
+    'command': '$stlmunge $out < $in',
     'description': 'STL $in',
   },
 }

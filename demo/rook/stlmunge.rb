@@ -1,6 +1,6 @@
 #!/usr/bin/ruby
 
-OUT = ARGV[0]
+OUT = File::dirname(ARGV[0])
 
 STDIN.read(80)
 tri_count, = STDIN.read(4).unpack('V')

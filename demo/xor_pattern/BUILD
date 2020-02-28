@@ -12,7 +12,7 @@ c_library('lib',
 )
 
 c_binary('demo',
-  environment = 'demo800',
+  env = 'demo800',
   sources = [ 'main.cc' ],
   deps = [
     ':lib',

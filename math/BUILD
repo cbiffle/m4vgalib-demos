@@ -1,6 +1,7 @@
 c_library('math',
   sources = [
     'rand.cc',
+    'trig_$arch.cc',
   ],
   local = {
     'cxx_flags': [
@@ -9,13 +10,5 @@ c_library('math',
   },
   deps = [
     '//etl',
-  ],
-).extend_when(lambda e: e['arch'] != 'host',
-  sources = [
-    'trig.cc',
-  ],
-).extend_when(lambda e: e['arch'] == 'host',
-  sources = [
-    'trig_native.cc',
   ],
 )

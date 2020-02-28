@@ -6,6 +6,7 @@
 #include "vga/arena.h"
 #include "vga/graphics_1.h"
 #include "vga/rasterizer.h"
+#include "vga/measurement.h"
 
 #include "demo/rook/model.h"
 #include "demo/input.h"
@@ -130,7 +131,7 @@ Rook::Rook()
       * xf::scale(Vec3f{config::rows/2, config::rows/2, 1})
       * xf::persp(-10, -10, 10, 10, 20, 100)
       * xf::translate(Vec3f{0, 0, -70})),
-    _model(Mat4f::identity()) {}
+    _model(xf::rotate_y(3.1415926f/2)) {}
 
 void Rook::configure_band_list() {
   vga::configure_band_list(_bands);
@@ -140,7 +141,9 @@ __attribute__((section(".ramcode.rook_run")))
 bool Rook::render_frame(unsigned frame) {
   auto const continuing = !user_button_pressed();
   auto const j = read_joystick();
+  vga::msig_a_set();
   _wireframe.rasterizer.copy_bg_to_fg();
+  vga::msig_a_clear();
 
   if (j & JoyBits::up) _model = _model * xf::rotate_z(-0.01f);
   if (j & JoyBits::down) _model = _model * xf::rotate_z(+0.01f);
@@ -157,7 +160,9 @@ bool Rook::render_frame(unsigned frame) {
   auto g = _wireframe.rasterizer.make_bg_graphics();
   g.clear_all();
   _wireframe.transform_vertices(_projection * _model);
+  vga::msig_a_set();
   _wireframe.draw_edges(g);
+  vga::msig_a_clear();
 
   return continuing;
 }
