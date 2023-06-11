@@ -1,3 +1,7 @@
+(This was my original C++-based attempt at high quality microcontroller graphics
+demos. For a more featureful, robust, and faster version, see:
+https://github.com/cbiffle/m4vga-rs)
+
 This is a collection of demos which, together, show how to use [m4vgalib] to
 produce high-quality graphics on an STM32F4 with few external components.
 
